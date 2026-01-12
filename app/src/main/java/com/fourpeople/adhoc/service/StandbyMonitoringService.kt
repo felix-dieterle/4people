@@ -24,6 +24,7 @@ import androidx.core.app.NotificationCompat
 import com.fourpeople.adhoc.MainActivity
 import com.fourpeople.adhoc.R
 import com.fourpeople.adhoc.util.BatteryMonitor
+import com.fourpeople.adhoc.util.UltrasoundSignalHelper
 
 /**
  * Standby monitoring service that runs in the background to detect emergency patterns.
@@ -54,6 +55,7 @@ class StandbyMonitoringService : Service() {
     private lateinit var wifiManager: WifiManager
     private lateinit var preferences: SharedPreferences
     private val handler = Handler(Looper.getMainLooper())
+    private var ultrasoundHelper: UltrasoundSignalHelper? = null
 
     private val wifiScanRunnable = object : Runnable {
         override fun run() {
@@ -87,6 +89,9 @@ class StandbyMonitoringService : Service() {
         super.onCreate()
         wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         preferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        
+        // Initialize ultrasound helper for passive listening
+        ultrasoundHelper = UltrasoundSignalHelper()
         
         createNotificationChannels()
     }
@@ -134,6 +139,9 @@ class StandbyMonitoringService : Service() {
         // Start periodic WiFi scanning
         handler.post(wifiScanRunnable)
         
+        // Start ultrasound listening if enabled
+        startUltrasoundListening()
+        
         val interval = BatteryMonitor.getStandbyScanInterval(applicationContext)
         val batteryMode = BatteryMonitor.getBatteryModeDescription(applicationContext)
         Log.d(TAG, "Standby monitoring active - scanning every ${interval/1000}s ($batteryMode)")
@@ -156,6 +164,20 @@ class StandbyMonitoringService : Service() {
         } catch (e: IllegalArgumentException) {
             // Receiver not registered
         }
+        
+        // Stop ultrasound listening
+        stopUltrasoundListening()
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        stopStandbyMonitoring()
+        
+        // Clean up ultrasound helper
+        ultrasoundHelper?.cleanup()
+        ultrasoundHelper = null
+        
+        Log.d(TAG, "Standby service destroyed and resources cleaned up")
     }
 
     private fun scanForEmergencyNetworks() {
@@ -183,6 +205,31 @@ class StandbyMonitoringService : Service() {
                 onEmergencyDetected(result.SSID, "WiFi")
             }
         }
+    }
+
+    private fun startUltrasoundListening() {
+        val emergencyPrefs = getSharedPreferences("emergency_prefs", Context.MODE_PRIVATE)
+        val listenEnabled = emergencyPrefs.getBoolean("ultrasound_listen_enabled", true)
+        
+        if (!listenEnabled) {
+            Log.d(TAG, "Ultrasound listening is disabled in settings")
+            return
+        }
+        
+        if (ultrasoundHelper?.isSupported() == true) {
+            ultrasoundHelper?.startListening {
+                Log.i(TAG, "Ultrasound emergency signal detected in standby!")
+                onEmergencyDetected("Ultrasound Signal", "Ultrasound")
+            }
+            Log.d(TAG, "Ultrasound listening activated in standby mode")
+        } else {
+            Log.w(TAG, "Ultrasound not supported on this device")
+        }
+    }
+    
+    private fun stopUltrasoundListening() {
+        ultrasoundHelper?.stopListening()
+        Log.d(TAG, "Ultrasound listening deactivated")
     }
 
     /**

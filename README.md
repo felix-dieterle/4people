@@ -29,11 +29,16 @@ When emergency mode is activated:
 - ✓ Local hotspot activation (on supported devices)
 - ✓ Foreground service with persistent notification
 - ✓ Emergency broadcast signaling
+- ✓ WiFi Direct peer-to-peer discovery
+- ✓ SMS emergency broadcast to contacts
+- ✓ **Flashlight Morse code signaling (optional)**
+- ✓ **Ultrasound emergency beacon (optional)**
 
 ### Standby Mode
 - ✓ App ready to receive activation broadcasts
 - ✓ Background WiFi scanning for emergency patterns (every 30 seconds)
 - ✓ Phone call indicator detection (brief incoming calls)
+- ✓ **Ultrasound listening for emergency beacons** (continuous passive detection)
 - ✓ Automatic or manual activation on emergency detection
 - ✓ Low battery consumption
 - ✓ Starts automatically on device boot
@@ -58,6 +63,9 @@ The app requires the following permissions for full functionality:
 - `ACCESS_WIFI_STATE`, `CHANGE_WIFI_STATE`
 - `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`
 - `READ_PHONE_STATE` (for phone call indicator detection)
+- `SEND_SMS` (for emergency SMS broadcast)
+- `CAMERA` (for flashlight Morse code signaling)
+- `RECORD_AUDIO` (for ultrasound signal detection)
 - `FOREGROUND_SERVICE`
 - `POST_NOTIFICATIONS` (Android 13+)
 - `RECEIVE_BOOT_COMPLETED`
@@ -216,7 +224,11 @@ For detailed information about the project, see:
 - [ ] Emergency location sharing
 - [ ] Offline map integration
 - [ ] Advanced battery optimization for standby mode
-- [ ] Support for more communication protocols (WiFi Direct, NFC)
+- [x] **Flashlight Morse code signaling** - Implemented! Visual emergency signals using LED
+- [x] **Ultrasound signaling** - Implemented! Inaudible audio-based emergency beacon
+- [x] Support for WiFi Direct communication
+- [x] SMS emergency broadcast to contacts
+- [ ] NFC tap-to-join for quick network setup
 - [ ] Contact-based emergency signaling (calling frequent contacts)
 
 For a complete list of potential improvements with detailed analysis, see [NOTFALL_SZENARIEN.md](NOTFALL_SZENARIEN.md#verbesserungsvorschläge).
