@@ -131,6 +131,20 @@ class AdHocCommunicationService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        
+        // Clean up all resources
+        stopEmergencyMode()
+        
+        // Clean up helpers
+        flashlightHelper?.cleanup()
+        ultrasoundHelper?.cleanup()
+        wifiDirectHelper?.cleanup()
+        
+        Log.d(TAG, "Service destroyed and resources cleaned up")
+    }
 
     private fun startEmergencyMode() {
         Log.d(TAG, "Starting emergency mode")

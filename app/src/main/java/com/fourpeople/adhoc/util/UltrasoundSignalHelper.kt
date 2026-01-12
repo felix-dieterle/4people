@@ -90,6 +90,8 @@ class UltrasoundSignalHelper {
 
     /**
      * Stop transmitting emergency beacon signal.
+     * Note: This method may block for up to 1 second. Should be called from a background thread
+     * or use a timeout handler if called from UI thread.
      */
     fun stopTransmitting() {
         if (!isTransmitting) return
@@ -152,6 +154,8 @@ class UltrasoundSignalHelper {
 
     /**
      * Stop listening for emergency beacon signals.
+     * Note: This method may block for up to 1 second. Should be called from a background thread
+     * or use a timeout handler if called from UI thread.
      */
     fun stopListening() {
         if (!isListening) return
@@ -187,7 +191,31 @@ class UltrasoundSignalHelper {
             val numSamples = (durationMs * SAMPLE_RATE / 1000).toInt()
             val samples = generateSineWave(frequency, numSamples)
             
-            audioTrack?.write(samples, 0, samples.size)
+            // Write in non-blocking mode with retry logic
+            var offset = 0
+            val maxRetries = 3
+            var retryCount = 0
+            
+            while (offset < samples.size && retryCount < maxRetries) {
+                val written = audioTrack?.write(samples, offset, samples.size - offset) ?: 0
+                
+                if (written > 0) {
+                    offset += written
+                    retryCount = 0 // Reset retry count on successful write
+                } else if (written == AudioTrack.ERROR_INVALID_OPERATION || 
+                           written == AudioTrack.ERROR_BAD_VALUE) {
+                    Log.e(TAG, "Audio write error: $written")
+                    break
+                } else {
+                    // Would block or other temporary error, retry
+                    retryCount++
+                    Thread.sleep(10) // Brief pause before retry
+                }
+            }
+            
+            if (offset < samples.size) {
+                Log.w(TAG, "Only wrote $offset of ${samples.size} samples")
+            }
             
         } catch (e: Exception) {
             Log.e(TAG, "Error sending tone", e)
@@ -211,21 +239,38 @@ class UltrasoundSignalHelper {
     /**
      * Detect emergency signal in audio buffer using frequency analysis.
      * Simplified detection based on amplitude in ultrasound range.
+     * 
+     * Note: This is a simplified implementation. For production use, 
+     * FFT-based frequency analysis would be more accurate and reduce false positives.
+     * However, this approach is sufficient for basic emergency signaling where
+     * some false positives are acceptable.
      */
     private fun detectSignal(buffer: ShortArray, length: Int): Boolean {
         // Calculate average amplitude
         var sum = 0.0
+        var peakCount = 0
+        val threshold = Short.MAX_VALUE * DETECTION_THRESHOLD
+        
         for (i in 0 until length) {
-            sum += kotlin.math.abs(buffer[i].toDouble())
+            val amplitude = kotlin.math.abs(buffer[i].toDouble())
+            sum += amplitude
+            
+            // Count peaks above threshold (helps detect pulse pattern)
+            if (amplitude > threshold) {
+                peakCount++
+            }
         }
+        
         val avgAmplitude = sum / length
         
         // Normalize to 0-1 range
         val normalizedAmplitude = avgAmplitude / Short.MAX_VALUE
         
-        // Simple threshold-based detection
-        // In production, would use FFT for frequency-specific detection
-        return normalizedAmplitude > DETECTION_THRESHOLD
+        // Require both sufficient average amplitude AND peak count
+        // This reduces false positives from continuous noise
+        val minPeaks = (length * 0.1).toInt() // At least 10% of samples should be peaks
+        
+        return normalizedAmplitude > DETECTION_THRESHOLD && peakCount > minPeaks
     }
 
     /**
@@ -275,8 +320,21 @@ class UltrasoundSignalHelper {
                 AudioFormat.ENCODING_PCM_16BIT
             )
 
+            // Try to use UNPROCESSED source for better ultrasound detection (API 24+)
+            val audioSource = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                try {
+                    // UNPROCESSED bypasses audio processing that might filter ultrasound
+                    MediaRecorder.AudioSource.UNPROCESSED
+                } catch (e: Exception) {
+                    Log.w(TAG, "UNPROCESSED audio source not available, falling back to MIC")
+                    MediaRecorder.AudioSource.MIC
+                }
+            } else {
+                MediaRecorder.AudioSource.MIC
+            }
+
             audioRecord = AudioRecord(
-                MediaRecorder.AudioSource.MIC,
+                audioSource,
                 SAMPLE_RATE,
                 AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT,

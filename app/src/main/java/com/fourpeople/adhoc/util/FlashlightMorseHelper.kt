@@ -56,6 +56,7 @@ class FlashlightMorseHelper(private val context: Context) {
     private val handler = Handler(Looper.getMainLooper())
     private var isSignaling = false
     private var signalingRunnable: Runnable? = null
+    private var signalingThread: Thread? = null
 
     init {
         try {
@@ -77,17 +78,20 @@ class FlashlightMorseHelper(private val context: Context) {
         }
         
         isSignaling = true
-        signalingRunnable = object : Runnable {
-            override fun run() {
-                if (!isSignaling) return
-                
-                sendSOSPattern()
-                
-                // Repeat SOS every 5 seconds
-                handler.postDelayed(this, 5000)
+        signalingThread = Thread {
+            try {
+                while (isSignaling) {
+                    sendSOSPattern()
+                    // Repeat SOS every 5 seconds
+                    Thread.sleep(5000)
+                }
+            } catch (e: InterruptedException) {
+                Log.d(TAG, "SOS signaling thread interrupted")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error in SOS signaling", e)
             }
         }
-        handler.post(signalingRunnable!!)
+        signalingThread?.start()
         
         Log.i(TAG, "Started SOS signaling")
     }
@@ -103,17 +107,20 @@ class FlashlightMorseHelper(private val context: Context) {
         }
         
         isSignaling = true
-        signalingRunnable = object : Runnable {
-            override fun run() {
-                if (!isSignaling) return
-                
-                sendMorseText(PATTERN_4PEOPLE)
-                
-                // Repeat every 10 seconds
-                handler.postDelayed(this, 10000)
+        signalingThread = Thread {
+            try {
+                while (isSignaling) {
+                    sendMorseText(PATTERN_4PEOPLE)
+                    // Repeat every 10 seconds
+                    Thread.sleep(10000)
+                }
+            } catch (e: InterruptedException) {
+                Log.d(TAG, "Emergency identification signaling thread interrupted")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error in emergency identification signaling", e)
             }
         }
-        handler.post(signalingRunnable!!)
+        signalingThread?.start()
         
         Log.i(TAG, "Started emergency identification signaling")
     }
@@ -125,8 +132,11 @@ class FlashlightMorseHelper(private val context: Context) {
         if (!isSignaling) return
         
         isSignaling = false
-        signalingRunnable?.let { handler.removeCallbacks(it) }
-        signalingRunnable = null
+        
+        // Interrupt the signaling thread
+        signalingThread?.interrupt()
+        signalingThread?.join(1000)
+        signalingThread = null
         
         // Ensure flashlight is turned off
         setFlashlight(false)
