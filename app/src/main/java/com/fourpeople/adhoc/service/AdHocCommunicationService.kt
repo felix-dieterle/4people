@@ -227,23 +227,9 @@ class AdHocCommunicationService : Service() {
         handler.removeCallbacks(wifiScanRunnable)
         handler.removeCallbacks(meshMaintenanceRunnable)
         
-        try {
-            unregisterReceiver(wifiScanReceiver)
-        } catch (e: IllegalArgumentException) {
-            // Receiver not registered
-        }
-        
-        try {
-            unregisterReceiver(bluetoothDiscoveryReceiver)
-        } catch (e: IllegalArgumentException) {
-            // Receiver not registered
-        }
-        
-        try {
-            unregisterReceiver(helpRequestReceiver)
-        } catch (e: IllegalArgumentException) {
-            // Receiver not registered
-        }
+        safeUnregisterReceiver(wifiScanReceiver)
+        safeUnregisterReceiver(bluetoothDiscoveryReceiver)
+        safeUnregisterReceiver(helpRequestReceiver)
         
         deactivateBluetooth()
         deactivateWifiDirect()
@@ -251,6 +237,17 @@ class AdHocCommunicationService : Service() {
         deactivateUltrasoundSignaling()
         deactivateMeshNetworking()
         deactivateLocationSharing()
+    }
+    
+    /**
+     * Safely unregisters a BroadcastReceiver, ignoring errors if it was never registered.
+     */
+    private fun safeUnregisterReceiver(receiver: BroadcastReceiver) {
+        try {
+            unregisterReceiver(receiver)
+        } catch (e: IllegalArgumentException) {
+            // Receiver not registered - this is fine
+        }
     }
 
     private fun activateBluetooth() {

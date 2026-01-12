@@ -59,9 +59,20 @@ data class LocationData(
      * Properly escapes special characters to prevent JSON injection.
      */
     fun toJson(): String {
-        val escapedDeviceId = deviceId.replace("\\", "\\\\").replace("\"", "\\\"")
-        val escapedHelpMessage = (helpMessage ?: "").replace("\\", "\\\\").replace("\"", "\\\"")
+        val escapedDeviceId = escapeJsonString(deviceId)
+        val escapedHelpMessage = escapeJsonString(helpMessage ?: "")
         return """{"deviceId":"$escapedDeviceId","latitude":$latitude,"longitude":$longitude,"accuracy":$accuracy,"altitude":$altitude,"timestamp":$timestamp,"isHelpRequest":$isHelpRequest,"helpMessage":"$escapedHelpMessage"}"""
+    }
+    
+    private fun escapeJsonString(str: String): String {
+        return str
+            .replace("\\", "\\\\")  // Must be first to avoid double-escaping
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+            .replace("\b", "\\b")
+            .replace("\u000C", "\\f")
     }
     
     /**
