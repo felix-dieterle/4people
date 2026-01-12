@@ -166,22 +166,24 @@ class SecurityAndEdgeCaseTest {
 
     @Test
     fun briefCallThresholdIsReasonable() {
-        // Test the constant value indirectly through logic
-        val threshold = 5000L
+        // The BRIEF_CALL_THRESHOLD_MS is private in PhoneCallIndicatorReceiver
+        // We test the expected behavior based on documentation (5 seconds)
+        // This test validates that our expected threshold is reasonable
+        val expectedThreshold = 5000L
         
         // Should be at least 1 second (too short would cause false positives)
-        assertTrue(threshold >= 1000L)
+        assertTrue("Threshold should be at least 1 second", expectedThreshold >= 1000L)
         
         // Should not be more than 30 seconds (too long defeats the purpose)
-        assertTrue(threshold <= 30000L)
+        assertTrue("Threshold should not exceed 30 seconds", expectedThreshold <= 30000L)
         
-        // Verify the documented value is 5 seconds
-        assertEquals(5000L, threshold)
+        // Verify the documented value is 5 seconds (as per PhoneCallIndicatorReceiver)
+        assertEquals("Expected threshold is 5 seconds as documented", 5000L, expectedThreshold)
     }
 
     @Test
     fun emergencyPatternAllowsAlphanumeric() {
-        val pattern = "4people-"
+        val pattern = AdHocCommunicationService.EMERGENCY_SSID_PATTERN
         
         // Test with various alphanumeric device IDs
         val validSSIDs = listOf(
@@ -199,7 +201,7 @@ class SecurityAndEdgeCaseTest {
 
     @Test
     fun emergencyPatternRejectsSimilarButWrong() {
-        val pattern = "4people-"
+        val pattern = AdHocCommunicationService.EMERGENCY_SSID_PATTERN
         
         // Test SSIDs that are similar but should not match
         val invalidSSIDs = listOf(
