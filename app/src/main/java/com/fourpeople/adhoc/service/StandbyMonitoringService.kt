@@ -23,6 +23,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.fourpeople.adhoc.MainActivity
 import com.fourpeople.adhoc.R
+import com.fourpeople.adhoc.util.BatteryMonitor
 
 /**
  * Standby monitoring service that runs in the background to detect emergency patterns.
@@ -43,7 +44,6 @@ class StandbyMonitoringService : Service() {
         const val EMERGENCY_CHANNEL_ID = "emergency_alert_channel"
         const val ACTION_START = "com.fourpeople.adhoc.STANDBY_START"
         const val ACTION_STOP = "com.fourpeople.adhoc.STANDBY_STOP"
-        const val WIFI_SCAN_INTERVAL = 30000L // 30 seconds in standby mode
         const val EMERGENCY_SSID_PATTERN = "4people-"
         
         const val PREF_NAME = "4people_prefs"
@@ -59,7 +59,9 @@ class StandbyMonitoringService : Service() {
         override fun run() {
             if (isRunning) {
                 scanForEmergencyNetworks()
-                handler.postDelayed(this, WIFI_SCAN_INTERVAL)
+                // Use adaptive scan interval based on battery level
+                val interval = BatteryMonitor.getStandbyScanInterval(applicationContext)
+                handler.postDelayed(this, interval)
             }
         }
     }
@@ -132,7 +134,9 @@ class StandbyMonitoringService : Service() {
         // Start periodic WiFi scanning
         handler.post(wifiScanRunnable)
         
-        Log.d(TAG, "Standby monitoring active - scanning every ${WIFI_SCAN_INTERVAL/1000}s")
+        val interval = BatteryMonitor.getStandbyScanInterval(applicationContext)
+        val batteryMode = BatteryMonitor.getBatteryModeDescription(applicationContext)
+        Log.d(TAG, "Standby monitoring active - scanning every ${interval/1000}s ($batteryMode)")
     }
 
     private fun stopStandbyMonitoring() {

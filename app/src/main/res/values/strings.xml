@@ -28,4 +28,7 @@
     <!-- Auto-activation strings -->
     <string name="emergency_auto_activated_title">Emergency Mode Activated</string>
     <string name="emergency_auto_activated_text">Auto-activated due to: %s</string>
+    
+    <!-- Widget strings -->
+    <string name="widget_description">Emergency Communication Quick Activate</string>
 </resources>
