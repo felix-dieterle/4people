@@ -14,14 +14,13 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-    
-    <!-- WiFi Direct (P2P) permissions -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
 
-    <!-- Location permissions (required for WiFi scanning and Bluetooth on Android 6+) -->
+    <!-- Location permissions (required for WiFi scanning, WiFi Direct, and Bluetooth on Android 6+) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    
+    <!-- WiFi Direct (P2P) permissions -->
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
     
     <!-- Phone state permissions for call indicator detection -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />

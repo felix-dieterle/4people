@@ -31,7 +31,7 @@ object BatteryMonitor {
         return if (level >= 0 && scale > 0) {
             (level.toFloat() / scale.toFloat() * 100).toInt()
         } else {
-            100 // Default to 100% if unable to read
+            50 // Default to 50% if unable to read (conservative estimate)
         }
     }
     

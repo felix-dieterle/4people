@@ -193,6 +193,11 @@ class WiFiDirectHelper(private val context: Context) {
     
     /**
      * Set the device name to include the emergency prefix.
+     * 
+     * Note: This uses reflection to call an unofficial API method.
+     * If this fails on future Android versions, the device will still
+     * be discoverable but with the default device name. This is acceptable
+     * as WiFi Direct is a supplementary communication channel.
      */
     fun setEmergencyDeviceName(deviceId: String) {
         if (wifiP2pManager == null || channel == null) {
@@ -208,6 +213,7 @@ class WiFiDirectHelper(private val context: Context) {
         
         try {
             // Use reflection to set device name (not officially supported in public API)
+            // This may fail on some devices or future Android versions, which is acceptable
             val setDeviceNameMethod = wifiP2pManager?.javaClass?.getMethod(
                 "setDeviceName",
                 WifiP2pManager.Channel::class.java,
@@ -221,11 +227,12 @@ class WiFiDirectHelper(private val context: Context) {
                 }
                 
                 override fun onFailure(reasonCode: Int) {
-                    Log.e(TAG, "Failed to set WiFi P2P device name: $reasonCode")
+                    Log.w(TAG, "Failed to set WiFi P2P device name: $reasonCode (using default name)")
                 }
             })
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to set device name via reflection", e)
+            Log.w(TAG, "Cannot set device name via reflection (not critical): ${e.message}")
+            // This is not critical - device will use default name but still be discoverable
         }
     }
     
