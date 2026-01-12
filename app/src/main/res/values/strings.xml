@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">4people</string>
+    <string name="activate_emergency">Activate Emergency Communication</string>
+    <string name="deactivate_emergency">Deactivate Emergency Communication</string>
+    <string name="emergency_active">Emergency Mode Active</string>
+    <string name="emergency_inactive">Emergency Mode Inactive</string>
+    <string name="scanning_for_emergencies">Scanning for emergencies…</string>
+    <string name="bluetooth_status">Bluetooth: %s</string>
+    <string name="wifi_status">WiFi: %s</string>
+    <string name="hotspot_status">Hotspot: %s</string>
+    <string name="active">Active</string>
+    <string name="inactive">Inactive</string>
+    <string name="emergency_notification_title">4people Emergency Mode</string>
+    <string name="emergency_notification_text">Ad-hoc communication is active</string>
+    <string name="permission_required">Permissions Required</string>
+    <string name="permission_explanation">This app requires Bluetooth, WiFi, and Location permissions to enable emergency ad-hoc communication.</string>
+    <string name="grant_permissions">Grant Permissions</string>
+</resources>
