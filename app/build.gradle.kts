@@ -17,6 +17,21 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            // Use debug keystore for development and CI builds
+            // This ensures APKs are installable without manual signing
+            // For production Google Play Store releases, configure a proper release keystore:
+            // - Generate a release keystore: keytool -genkey -v -keystore release.keystore ...
+            // - Store keystore file securely (not in version control)
+            // - Use environment variables for credentials in CI
+            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"  
+            keyPassword = "android"
+        }
+    }
+    
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -24,6 +39,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Sign release builds with debug key for now
+            // Replace with actual release signing config for production
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

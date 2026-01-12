@@ -87,19 +87,21 @@ The app requires the following permissions for full functionality:
 # Build debug APK
 ./gradlew assembleDebug
 
-# Build release APK
+# Build release APK (signed with debug key for testing)
 ./gradlew assembleRelease
 
 # Install on connected device
 ./gradlew installDebug
 ```
 
+**Note about APK Signing**: Release builds are signed with the Android debug keystore to make them installable. For production distribution through Google Play Store, replace the signing configuration in `app/build.gradle.kts` with a proper release keystore.
+
 ## Releases
 
 This project uses automated releases through GitHub Actions. When changes are merged to the `main` branch:
 
 1. **Version is automatically incremented**: Both `versionCode` and `versionName` are bumped
-2. **Release APK is built**: A production-ready APK is generated
+2. **Release APK is built and signed**: A signed APK is generated using the debug keystore
 3. **GitHub Release is created**: A new release with the version tag is published
 4. **APK is attached**: The built APK is automatically uploaded to the release
 
