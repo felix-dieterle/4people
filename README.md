@@ -32,17 +32,23 @@ When emergency mode is activated:
 
 ### Standby Mode
 - ✓ App ready to receive activation broadcasts
-- ✓ Monitors for emergency patterns
-- ✓ Can be activated automatically by other devices (future enhancement)
+- ✓ Background WiFi scanning for emergency patterns (every 30 seconds)
+- ✓ Phone call indicator detection (brief incoming calls)
+- ✓ Automatic or manual activation on emergency detection
+- ✓ Low battery consumption
+- ✓ Starts automatically on device boot
 
 ## Technical Implementation
 
 ### Components
 
-1. **MainActivity**: Main UI with emergency activation button
-2. **AdHocCommunicationService**: Foreground service managing all communication channels
-3. **BootReceiver**: Starts standby monitoring on device boot
-4. **EmergencyBroadcastReceiver**: Handles emergency detection broadcasts
+1. **MainActivity**: Main UI with emergency activation button and settings access
+2. **SettingsActivity**: Configure standby monitoring and auto-activation preferences
+3. **AdHocCommunicationService**: Foreground service managing all communication channels
+4. **StandbyMonitoringService**: Background service for periodic emergency detection
+5. **BootReceiver**: Starts standby monitoring on device boot
+6. **EmergencyBroadcastReceiver**: Handles emergency detection broadcasts
+7. **PhoneCallIndicatorReceiver**: Detects brief incoming calls as emergency signals
 
 ### Permissions Required
 
@@ -51,6 +57,7 @@ The app requires the following permissions for full functionality:
 - `BLUETOOTH`, `BLUETOOTH_ADMIN`, `BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`, `BLUETOOTH_ADVERTISE`
 - `ACCESS_WIFI_STATE`, `CHANGE_WIFI_STATE`
 - `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`
+- `READ_PHONE_STATE` (for phone call indicator detection)
 - `FOREGROUND_SERVICE`
 - `POST_NOTIFICATIONS` (Android 13+)
 - `RECEIVE_BOOT_COMPLETED`
@@ -78,26 +85,38 @@ The app requires the following permissions for full functionality:
 ## Usage
 
 1. **Install the app** on your Android device
-2. **Grant permissions** when prompted (Bluetooth, Location, WiFi)
-3. **Click "Activate Emergency Communication"** button
-4. The app will:
+2. **Grant permissions** when prompted (Bluetooth, Location, WiFi, Phone State)
+3. **Enable Standby Monitoring** in Settings to automatically detect emergencies
+4. **Configure Auto-Activation** in Settings (recommended) or rely on notifications
+5. **Manual Activation**: Click "Activate Emergency Communication" button
+6. The app will:
    - Start a foreground service
    - Enable Bluetooth discovery
    - Scan for emergency WiFi networks
    - Attempt to create a hotspot
    - Display status of all communication channels
 
-5. Other devices with the app will automatically detect your emergency signal
+7. **Standby Mode**: The app continuously monitors for:
+   - Emergency WiFi networks (4people-*)
+   - Brief incoming phone calls (less than 5 seconds)
+   - Emergency broadcasts from other devices
+
+8. Other devices with the app will automatically detect your emergency signal
 
 ## Architecture
 
 ```
 MainActivity
-    ├── UI Layer (Button, Status Display)
-    └── AdHocCommunicationService
-            ├── Bluetooth Manager (Discovery + Advertising)
-            ├── WiFi Scanner (Pattern Detection)
-            └── Hotspot Manager (Emergency Network)
+    ├── UI Layer (Button, Status Display, Settings)
+    ├── SettingsActivity (Configure standby and auto-activation)
+    ├── AdHocCommunicationService
+    │       ├── Bluetooth Manager (Discovery + Advertising)
+    │       ├── WiFi Scanner (Pattern Detection)
+    │       └── Hotspot Manager (Emergency Network)
+    └── StandbyMonitoringService
+            ├── Periodic WiFi Scanner (30s intervals)
+            ├── Phone Call Indicator Listener
+            └── Auto-Activation Logic
 ```
 
 ## Limitations
@@ -113,8 +132,9 @@ MainActivity
 - [ ] Automatic mesh network formation
 - [ ] Emergency location sharing
 - [ ] Offline map integration
-- [ ] Battery optimization for standby mode
+- [ ] Advanced battery optimization for standby mode
 - [ ] Support for more communication protocols (WiFi Direct, NFC)
+- [ ] Contact-based emergency signaling (calling frequent contacts)
 
 ## License
 

@@ -3,11 +3,12 @@ package com.fourpeople.adhoc.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
-import com.fourpeople.adhoc.service.AdHocCommunicationService
+import com.fourpeople.adhoc.service.StandbyMonitoringService
 
 /**
- * Receiver that starts the ad-hoc communication service in standby mode on boot.
+ * Receiver that starts the standby monitoring service on device boot.
  * This allows the app to be ready for emergency activation from other devices.
  */
 class BootReceiver : BroadcastReceiver() {
@@ -17,15 +18,19 @@ class BootReceiver : BroadcastReceiver() {
     }
     
     override fun onReceive(context: Context?, intent: Intent?) {
-        if (intent?.action == Intent.ACTION_BOOT_COMPLETED) {
-            Log.d(TAG, "Boot completed, starting standby mode")
+        if (intent?.action == Intent.ACTION_BOOT_COMPLETED && context != null) {
+            Log.d(TAG, "Boot completed, starting standby monitoring service")
             
-            // In standby mode, we would start a lightweight service
-            // that listens for emergency broadcasts without full activation
-            // For now, we just log the event
+            val serviceIntent = Intent(context, StandbyMonitoringService::class.java)
+            serviceIntent.action = StandbyMonitoringService.ACTION_START
             
-            // TODO: Implement standby mode service that only listens
-            // without actively broadcasting or consuming battery
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
+            } else {
+                context.startService(serviceIntent)
+            }
+            
+            Log.d(TAG, "Standby monitoring service started")
         }
     }
 }

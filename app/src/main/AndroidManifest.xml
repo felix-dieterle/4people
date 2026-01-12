@@ -18,6 +18,9 @@
     <!-- Location permissions (required for WiFi scanning and Bluetooth on Android 6+) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    
+    <!-- Phone state permissions for call indicator detection -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <!-- Hotspot permissions - LocalOnlyHotspot doesn't require WRITE_SETTINGS -->
 
@@ -48,9 +51,22 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="Settings"
+            android:parentActivityName=".MainActivity" />
+
         <!-- Ad-hoc communication service -->
         <service
             android:name=".service.AdHocCommunicationService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
+        <!-- Standby monitoring service -->
+        <service
+            android:name=".service.StandbyMonitoringService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
@@ -72,6 +88,16 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="com.fourpeople.adhoc.EMERGENCY_DETECTED" />
+            </intent-filter>
+        </receiver>
+        
+        <!-- Phone call indicator receiver -->
+        <receiver
+            android:name=".receiver.PhoneCallIndicatorReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
             </intent-filter>
         </receiver>
     </application>
