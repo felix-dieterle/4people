@@ -119,6 +119,61 @@ MainActivity
             └── Auto-Activation Logic
 ```
 
+## Testing
+
+The app includes comprehensive unit tests to verify core functionality:
+
+### Running Tests
+
+```bash
+# Run all unit tests
+./gradlew test
+
+# Run tests with detailed output
+./gradlew test --info
+
+# Run tests for a specific module
+./gradlew app:testDebugUnitTest
+
+# Generate test coverage report
+./gradlew testDebugUnitTest jacocoTestReport
+```
+
+### Test Coverage
+
+The test suite includes **8 comprehensive test files** with **80+ test cases** covering:
+
+#### Core Component Tests
+- **AdHocCommunicationTest**: Emergency pattern matching, WiFi scan intervals, notification channels
+- **StandbyMonitoringTest**: Standby monitoring logic, scan intervals, preferences, notification IDs
+- **PhoneCallIndicatorTest**: Phone call duration logic, emergency indicator detection
+
+#### Receiver Tests
+- **BootReceiverTest**: Boot completion handling, service initialization
+- **EmergencyBroadcastReceiverTest**: Emergency broadcast handling, intent actions
+
+#### Integration & Validation Tests
+- **AppConstantsTest**: Cross-component consistency, configuration validation
+- **BroadcastIntentTest**: Intent action patterns, broadcast security, component integration
+- **SecurityAndEdgeCaseTest**: Security validation, edge cases, null safety, resource exhaustion prevention
+
+### Test Location
+
+All unit tests are located in:
+```
+app/src/test/java/com/fourpeople/adhoc/
+```
+
+### Writing New Tests
+
+When adding new features, follow these testing guidelines:
+
+1. Place unit tests in `app/src/test/java/com/fourpeople/adhoc/`
+2. Use descriptive test names that explain what is being tested
+3. Follow the existing test structure and naming conventions
+4. Test both positive and negative cases
+5. Verify constants, patterns, and cross-component consistency
+
 ## Limitations
 
 - WiFi hotspot creation is restricted on Android 8+ and requires special system permissions
