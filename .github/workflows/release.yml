@@ -33,8 +33,22 @@ jobs:
       - name: Get current version
         id: get_version
         run: |
+          # Extract version with validation
           VERSION_CODE=$(grep "versionCode = " app/build.gradle.kts | awk '{print $3}')
           VERSION_NAME=$(grep "versionName = " app/build.gradle.kts | awk '{print $3}' | tr -d '"')
+          
+          # Validate extraction
+          if [ -z "$VERSION_CODE" ] || [ -z "$VERSION_NAME" ]; then
+            echo "Error: Failed to extract version from app/build.gradle.kts"
+            exit 1
+          fi
+          
+          # Validate version code is a number
+          if ! [[ "$VERSION_CODE" =~ ^[0-9]+$ ]]; then
+            echo "Error: Invalid versionCode format: $VERSION_CODE"
+            exit 1
+          fi
+          
           echo "current_version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
           echo "current_version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
           echo "Current version: $VERSION_NAME ($VERSION_CODE)"
@@ -70,9 +84,21 @@ jobs:
           echo "new_version_name=$NEW_NAME" >> $GITHUB_OUTPUT
           echo "New version: $NEW_NAME ($NEW_CODE)"
           
-          # Update build.gradle.kts
-          sed -i "s/versionCode = $CURRENT_CODE/versionCode = $NEW_CODE/" app/build.gradle.kts
-          sed -i "s/versionName = \"$CURRENT_NAME\"/versionName = \"$NEW_NAME\"/" app/build.gradle.kts
+          # Update build.gradle.kts using perl for safer substitution
+          # Escape dots in version name for regex
+          CURRENT_NAME_ESCAPED=$(echo "$CURRENT_NAME" | sed 's/\./\\./g')
+          perl -i -pe "s/versionCode = $CURRENT_CODE/versionCode = $NEW_CODE/" app/build.gradle.kts
+          perl -i -pe "s/versionName = \"$CURRENT_NAME_ESCAPED\"/versionName = \"$NEW_NAME\"/" app/build.gradle.kts
+          
+          # Verify the changes were applied
+          if ! grep -q "versionCode = $NEW_CODE" app/build.gradle.kts; then
+            echo "Error: Failed to update versionCode"
+            exit 1
+          fi
+          if ! grep -q "versionName = \"$NEW_NAME\"" app/build.gradle.kts; then
+            echo "Error: Failed to update versionName"
+            exit 1
+          fi
       
       - name: Commit version bump
         run: |
@@ -88,7 +114,20 @@ jobs:
       - name: Find APK
         id: find_apk
         run: |
-          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          # Find APK with validation
+          APK_FILES=(app/build/outputs/apk/release/*.apk)
+          APK_PATH="${APK_FILES[0]}"
+          
+          # Validate exactly one APK was found
+          if [ ! -f "$APK_PATH" ]; then
+            echo "Error: No APK file found in app/build/outputs/apk/release/"
+            exit 1
+          fi
+          
+          if [ ${#APK_FILES[@]} -gt 1 ]; then
+            echo "Warning: Multiple APK files found, using: $APK_PATH"
+          fi
+          
           echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
           echo "APK built at: $APK_PATH"
           
