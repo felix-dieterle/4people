@@ -30,6 +30,16 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       
+      - name: Generate debug keystore
+        run: |
+          # Create .android directory if it doesn't exist
+          mkdir -p ~/.android
+          # Generate debug keystore with default Android debug key values
+          keytool -genkey -v -keystore ~/.android/debug.keystore \
+            -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+      
       - name: Get current version
         id: get_version
         run: |
