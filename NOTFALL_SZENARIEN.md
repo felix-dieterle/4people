@@ -864,24 +864,35 @@ Batterie < 10%: Alle 60s (Emergency) / 300s (Standby)
 - Netzwerk-Topologie-Optimierung
 - Batterieverbrauch-Prognose
 
-#### 13. Ultraschall-Signalisierung
+#### 13. Ultraschall-Signalisierung ✅ IMPLEMENTIERT
 **Beschreibung**: Datenübertragung über unhörbare Audio-Frequenzen.
 
+**Status**: Vollständig implementiert in Version 1.0.4+
+
 **Vorteile**:
-- Funktioniert auch bei gesperrten Geräten
-- Kein Bluetooth/WiFi erforderlich
-- Kann durch Wände gehen
-- Geringe Energieanforderung
+- ✅ Funktioniert auch bei gesperrten Geräten
+- ✅ Kein Bluetooth/WiFi erforderlich
+- ✅ Kann durch Wände gehen
+- ✅ Geringe Energieanforderung
 
 **Nachteile**:
 - Geringe Bandbreite
 - Störanfällig
 - Kurze Reichweite
 
-**Bibliotheken**:
-- Chirp SDK
-- Quietnet
-- Eigene Implementierung möglich
+**Implementierung**:
+- ✅ UltrasoundSignalHelper-Klasse erstellt
+- ✅ 19kHz Trägerfrequenz (ultrasound range)
+- ✅ 3-Puls-Notfall-Beacon-Muster
+- ✅ Automatische Signal-Erkennung
+- ✅ Einstellbar über Settings (Senden/Empfangen getrennt)
+- ✅ Reichweite: ~5-10 Meter
+
+**Technische Details**:
+- Frequenz: 19kHz (inaudible to most humans)
+- Sample Rate: 44.1kHz
+- Signal Duration: 500ms per pulse
+- Detection: Amplitude-based threshold detection
 
 #### 14. NFC Tap-to-Join
 **Beschreibung**: Schneller Netzwerkbeitritt durch NFC-Touch.
@@ -892,28 +903,49 @@ Batterie < 10%: Alle 60s (Emergency) / 300s (Standby)
 3. Automatischer Austausch von Netzwerk-Credentials
 4. Person B ist sofort im Netzwerk
 
-#### 15. Taschenlampen-Morse-Code
+#### 15. Taschenlampen-Morse-Code ✅ IMPLEMENTIERT
 **Beschreibung**: LED-basierte visuelle Signalisierung.
 
+**Status**: Vollständig implementiert in Version 1.0.4+
+
 **Verwendung**:
-- SOS-Signal bei aktivem Notfall
-- Synchronisierte Blinkmuster zur Identifikation
-- Größere Reichweite (bis zu 1km bei Sichtverbindung)
-- Backup wenn alle anderen Methoden fehlen
+- ✅ SOS-Signal bei aktivem Notfall
+- ✅ "4PEOPLE" Identifikations-Signal zur Notfall-Erkennung
+- ✅ Synchronisierte Blinkmuster zur Identifikation
+- ✅ Größere Reichweite (bis zu 1km bei Sichtverbindung)
+- ✅ Backup wenn alle anderen Methoden fehlen
 
 **Implementierung**:
+- ✅ FlashlightMorseHelper-Klasse erstellt
+- ✅ Vollständige Morse-Code-Tabelle (A-Z, 0-9)
+- ✅ Standard Morse-Timing (Dot: 200ms, Dash: 600ms)
+- ✅ SOS-Muster (... --- ...)
+- ✅ Emergency-ID-Muster ("4PEOPLE")
+- ✅ Einstellbar über Settings
+- ✅ Automatische Wiederholung
+
+**Technische Details**:
 ```kotlin
-fun sendSOSSignal() {
+// Implemented pattern
+fun startSOSSignal() {
     // S = ... (3 kurz)
     // O = --- (3 lang)
     // S = ... (3 kurz)
-    repeat(3) { shortFlash() }
-    delay(200)
-    repeat(3) { longFlash() }
-    delay(200)
-    repeat(3) { shortFlash() }
+    repeat pattern every 5 seconds
+}
+
+fun startEmergencyIdentificationSignal() {
+    // Sends "4PEOPLE" in Morse code
+    repeat pattern every 10 seconds
 }
 ```
+
+**Morse Code Timing**:
+- Dot: 200ms (short flash)
+- Dash: 600ms (long flash, 3x dot)
+- Symbol gap: 200ms
+- Letter gap: 600ms (3x dot)
+- Word gap: 1400ms (7x dot)
 
 ---
 
