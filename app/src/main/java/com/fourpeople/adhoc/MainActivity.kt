@@ -216,7 +216,7 @@ class MainActivity : AppCompatActivity() {
         if (nfcHelper?.initialize() == true) {
             // NFC is available - set a placeholder device ID
             // The actual device ID will be updated when emergency mode is activated
-            nfcHelper?.setDeviceId("waiting")
+            nfcHelper?.setDeviceId(NFCHelper.DEVICE_ID_PLACEHOLDER)
         }
     }
     

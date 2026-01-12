@@ -5,9 +5,7 @@ import android.content.Context
 import android.nfc.NdefMessage
 import android.nfc.NdefRecord
 import android.nfc.NfcAdapter
-import android.nfc.NfcEvent
 import android.util.Log
-import java.nio.charset.Charset
 
 /**
  * Helper class for NFC Tap-to-Join functionality.
@@ -29,6 +27,7 @@ class NFCHelper(private val context: Context) {
         private const val TAG = "NFCHelper"
         const val MIME_TYPE = "application/vnd.fourpeople.adhoc"
         private const val PAYLOAD_SEPARATOR = "|"
+        private const val DEVICE_ID_PLACEHOLDER = "DEVICE_ID_NOT_SET"
     }
     
     private var nfcAdapter: NfcAdapter? = null
@@ -87,7 +86,7 @@ class NFCHelper(private val context: Context) {
         
         val mimeRecord = NdefRecord.createMime(
             MIME_TYPE,
-            payload.toByteArray(Charset.forName("UTF-8"))
+            payload.toByteArray(Charsets.UTF_8)
         )
         
         // Create AAR (Android Application Record) to ensure the app opens
@@ -106,14 +105,20 @@ class NFCHelper(private val context: Context) {
         try {
             for (record in message.records) {
                 if (record.tnf == NdefRecord.TNF_MIME_MEDIA) {
-                    val mimeType = String(record.type, Charset.forName("UTF-8"))
+                    val mimeType = String(record.type, Charsets.UTF_8)
                     if (mimeType == MIME_TYPE) {
-                        val payload = String(record.payload, Charset.forName("UTF-8"))
+                        val payload = String(record.payload, Charsets.UTF_8)
                         val parts = payload.split(PAYLOAD_SEPARATOR)
                         
                         if (parts.size >= 2) {
                             val deviceId = parts[0]
-                            val timestamp = parts[1].toLongOrNull() ?: 0L
+                            val timestamp = parts[1].toLongOrNull()
+                            
+                            // Return null if timestamp is invalid - don't use 0L as fallback
+                            if (timestamp == null) {
+                                Log.w(TAG, "Invalid timestamp in NFC credentials")
+                                return null
+                            }
                             
                             Log.d(TAG, "Parsed NFC credentials: deviceId=$deviceId")
                             return NetworkCredentials(deviceId, timestamp)
