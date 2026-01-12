@@ -27,7 +27,7 @@ class NFCHelper(private val context: Context) {
         private const val TAG = "NFCHelper"
         const val MIME_TYPE = "application/vnd.fourpeople.adhoc"
         private const val PAYLOAD_SEPARATOR = "|"
-        private const val DEVICE_ID_PLACEHOLDER = "DEVICE_ID_NOT_SET"
+        const val DEVICE_ID_PLACEHOLDER = "DEVICE_ID_NOT_SET"
     }
     
     private var nfcAdapter: NfcAdapter? = null
