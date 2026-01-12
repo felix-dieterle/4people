@@ -29,6 +29,9 @@ import com.fourpeople.adhoc.util.BatteryMonitor
 import com.fourpeople.adhoc.util.EmergencySmsHelper
 import com.fourpeople.adhoc.util.FlashlightMorseHelper
 import com.fourpeople.adhoc.util.UltrasoundSignalHelper
+import com.fourpeople.adhoc.mesh.MeshRoutingManager
+import com.fourpeople.adhoc.mesh.BluetoothMeshTransport
+import com.fourpeople.adhoc.mesh.MeshMessage
 import java.util.*
 
 /**
@@ -49,6 +52,7 @@ class AdHocCommunicationService : Service() {
         const val ACTION_START = "com.fourpeople.adhoc.START"
         const val ACTION_STOP = "com.fourpeople.adhoc.STOP"
         const val EMERGENCY_SSID_PATTERN = "4people-"
+        const val WIFI_SCAN_INTERVAL = 10000L // 10 seconds (default for active mode)
     }
 
     private var isRunning = false
@@ -59,6 +63,8 @@ class AdHocCommunicationService : Service() {
     private var wifiDirectHelper: WiFiDirectHelper? = null
     private var flashlightHelper: FlashlightMorseHelper? = null
     private var ultrasoundHelper: UltrasoundSignalHelper? = null
+    private var meshRoutingManager: MeshRoutingManager? = null
+    private var bluetoothMeshTransport: BluetoothMeshTransport? = null
 
     private val wifiScanRunnable = object : Runnable {
         override fun run() {
@@ -66,6 +72,13 @@ class AdHocCommunicationService : Service() {
             // Use adaptive scan interval based on battery level
             val interval = BatteryMonitor.getEmergencyScanInterval(applicationContext)
             handler.postDelayed(this, interval)
+        }
+    }
+    
+    private val meshMaintenanceRunnable = object : Runnable {
+        override fun run() {
+            performMeshMaintenance()
+            handler.postDelayed(this, 30000L) // Every 30 seconds
         }
     }
 
@@ -112,6 +125,13 @@ class AdHocCommunicationService : Service() {
         flashlightHelper = FlashlightMorseHelper(applicationContext)
         ultrasoundHelper = UltrasoundSignalHelper()
         
+        // Initialize mesh routing
+        meshRoutingManager = MeshRoutingManager(applicationContext, deviceId)
+        bluetoothMeshTransport = BluetoothMeshTransport(applicationContext, bluetoothAdapter, deviceId)
+        
+        // Set up mesh routing callbacks
+        setupMeshRouting()
+        
         createNotificationChannel()
     }
 
@@ -143,6 +163,9 @@ class AdHocCommunicationService : Service() {
         ultrasoundHelper?.cleanup()
         wifiDirectHelper?.cleanup()
         
+        // Clean up mesh routing
+        bluetoothMeshTransport?.cleanup()
+        
         Log.d(TAG, "Service destroyed and resources cleaned up")
     }
 
@@ -158,6 +181,9 @@ class AdHocCommunicationService : Service() {
         activateWifiScanning()
         activateHotspot()
         activateWifiDirect()
+        
+        // Activate mesh networking
+        activateMeshNetworking()
         
         // Activate flashlight and ultrasound signaling if enabled
         activateFlashlightSignaling()
@@ -175,6 +201,7 @@ class AdHocCommunicationService : Service() {
         isRunning = false
         
         handler.removeCallbacks(wifiScanRunnable)
+        handler.removeCallbacks(meshMaintenanceRunnable)
         
         try {
             unregisterReceiver(wifiScanReceiver)
@@ -192,6 +219,7 @@ class AdHocCommunicationService : Service() {
         deactivateWifiDirect()
         deactivateFlashlightSignaling()
         deactivateUltrasoundSignaling()
+        deactivateMeshNetworking()
     }
 
     private fun activateBluetooth() {
@@ -338,8 +366,12 @@ class AdHocCommunicationService : Service() {
 
     private fun broadcastEmergencySignal() {
         Log.d(TAG, "Broadcasting emergency signal")
-        // This would send out emergency broadcasts
-        // Implementation depends on the communication protocol
+        
+        // Broadcast emergency message through mesh network
+        val emergencyPayload = "EMERGENCY! Device $deviceId requires assistance"
+        meshRoutingManager?.broadcastMessage(emergencyPayload)
+        
+        Log.d(TAG, "Emergency signal broadcast through mesh network")
     }
     
     private fun activateWifiDirect() {
@@ -410,6 +442,81 @@ class AdHocCommunicationService : Service() {
         ultrasoundHelper?.stopTransmitting()
         ultrasoundHelper?.stopListening()
         Log.d(TAG, "Ultrasound signaling deactivated")
+    }
+    
+    private fun setupMeshRouting() {
+        // Set up Bluetooth mesh transport message listener
+        bluetoothMeshTransport?.setMessageListener(object : BluetoothMeshTransport.MessageListener {
+            override fun onMessageReceived(message: MeshMessage, senderAddress: String) {
+                meshRoutingManager?.receiveMessage(message, senderAddress)
+            }
+        })
+        
+        // Set up mesh routing manager callbacks
+        meshRoutingManager?.setMessageForwarder(object : MeshRoutingManager.MessageForwarder {
+            override fun forwardMessage(message: MeshMessage, nextHopId: String): Boolean {
+                return bluetoothMeshTransport?.sendMessage(message, nextHopId) ?: false
+            }
+        })
+        
+        meshRoutingManager?.setMessageListener(object : MeshRoutingManager.MessageListener {
+            override fun onMessageReceived(message: MeshMessage) {
+                handleMeshMessage(message)
+            }
+        })
+        
+        Log.d(TAG, "Mesh routing configured")
+    }
+    
+    private fun activateMeshNetworking() {
+        // Start Bluetooth mesh transport
+        bluetoothMeshTransport?.startListening()
+        
+        // Start periodic neighbor discovery
+        handler.post(meshMaintenanceRunnable)
+        
+        // Discover neighbors immediately
+        meshRoutingManager?.discoverNeighbors()
+        
+        Log.d(TAG, "Mesh networking activated")
+    }
+    
+    private fun deactivateMeshNetworking() {
+        bluetoothMeshTransport?.cleanup()
+        Log.d(TAG, "Mesh networking deactivated")
+    }
+    
+    private fun performMeshMaintenance() {
+        // Perform route table maintenance
+        meshRoutingManager?.performMaintenance()
+        
+        // Discover neighbors periodically
+        meshRoutingManager?.discoverNeighbors()
+        
+        val neighborCount = meshRoutingManager?.getNeighborCount() ?: 0
+        val routeCount = meshRoutingManager?.getKnownRoutes()?.size ?: 0
+        
+        Log.d(TAG, "Mesh maintenance: $neighborCount neighbors, $routeCount routes")
+    }
+    
+    private fun handleMeshMessage(message: MeshMessage) {
+        Log.d(TAG, "Mesh message received from ${message.sourceId}: ${message.payload}")
+        
+        // Notify emergency detection for mesh messages
+        notifyEmergencyDetected("Mesh:${message.sourceId}")
+        
+        // Handle the message payload (could be extended for specific message types)
+        when {
+            message.payload.startsWith("EMERGENCY") -> {
+                Log.i(TAG, "Emergency message relayed through mesh network")
+            }
+            message.payload.startsWith("HELLO") -> {
+                // Hello message for neighbor discovery
+            }
+            else -> {
+                Log.d(TAG, "Data message received: ${message.payload}")
+            }
+        }
     }
 
     private fun createNotificationChannel() {
