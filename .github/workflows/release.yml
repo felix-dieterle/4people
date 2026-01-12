@@ -85,10 +85,13 @@ jobs:
           echo "New version: $NEW_NAME ($NEW_CODE)"
           
           # Update build.gradle.kts using perl for safer substitution
-          # Escape dots in version name for regex
-          CURRENT_NAME_ESCAPED=$(echo "$CURRENT_NAME" | sed 's/\./\\./g')
+          # versionCode is numeric (validated above), no escaping needed
           perl -i -pe "s/versionCode = $CURRENT_CODE/versionCode = $NEW_CODE/" app/build.gradle.kts
-          perl -i -pe "s/versionName = \"$CURRENT_NAME_ESCAPED\"/versionName = \"$NEW_NAME\"/" app/build.gradle.kts
+          
+          # Escape dots in version name for regex matching
+          CURRENT_NAME_ESCAPED=$(echo "$CURRENT_NAME" | sed 's/\./\\./g')
+          NEW_NAME_ESCAPED=$(echo "$NEW_NAME" | sed 's/\./\\./g')
+          perl -i -pe "s/versionName = \"$CURRENT_NAME_ESCAPED\"/versionName = \"$NEW_NAME_ESCAPED\"/" app/build.gradle.kts
           
           # Verify the changes were applied
           if ! grep -q "versionCode = $NEW_CODE" app/build.gradle.kts; then
