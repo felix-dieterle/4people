@@ -10,6 +10,7 @@ This implementation fulfills the requirement for ad-hoc emergency communication 
 - MainActivity provides a single button to activate/deactivate emergency mode
 - Handles all required Android permissions automatically
 - Shows real-time status of all communication channels
+- Settings access for configuring standby and auto-activation
 
 ### 2. Multi-Channel Communication
 
@@ -20,7 +21,8 @@ This implementation fulfills the requirement for ad-hoc emergency communication 
 - Automatically detects other devices with the same app pattern
 
 #### WiFi Scanning
-- Scans for WiFi networks every 10 seconds
+- **Active Mode**: Scans for WiFi networks every 10 seconds
+- **Standby Mode**: Scans for WiFi networks every 30 seconds
 - Detects emergency networks with pattern: `4people-<unique-id>`
 - Logs and notifies when emergency networks are detected
 
@@ -29,35 +31,50 @@ This implementation fulfills the requirement for ad-hoc emergency communication 
 - Uses emergency naming pattern for automatic recognition
 - Note: Android 8+ restricts hotspot creation; uses LocalOnlyHotspot API where available
 
-### 3. Standby Mode
-- BootReceiver starts on device boot
-- App is ready to receive emergency broadcasts
+### 3. Standby Mode (Enhanced)
+- BootReceiver starts StandbyMonitoringService on device boot
+- Periodic WiFi scanning at 30-second intervals (battery optimized)
+- Phone call indicator detection
 - Low battery consumption in standby
-- Can be activated by detecting emergency patterns from other devices
+- Can automatically activate or notify user when emergency is detected
 
-### 4. Emergency Detection
+### 4. Emergency Detection (Enhanced)
 - Automatic pattern recognition: `4people-<id>`
 - Works across Bluetooth device names and WiFi SSIDs
+- **Phone Call Indicators**: Detects brief incoming calls (< 5 seconds) as emergency signals
 - Broadcasts emergency status to other nearby devices
+- User-configurable auto-activation or notification preference
 - EmergencyBroadcastReceiver handles incoming emergency signals
+
+### 5. User Configuration
+- Settings activity for managing standby monitoring
+- Toggle auto-activation on emergency detection
+- Manual control over standby monitoring service
 
 ## Architecture
 
 ### Service Layer
 **AdHocCommunicationService** (Foreground Service)
-- Manages all communication channels
+- Manages all communication channels in active emergency mode
 - Runs as foreground service to prevent Android from killing it
 - Shows persistent notification when active
 - Implements:
   - Bluetooth discovery and advertising
-  - WiFi scanning with periodic updates
+  - WiFi scanning with periodic updates (10 seconds)
   - Hotspot creation (platform-dependent)
   - Emergency broadcast handling
 
+**StandbyMonitoringService** (Foreground Service)
+- Lightweight background monitoring service
+- Periodic WiFi scanning at 30-second intervals (battery optimized)
+- Listens for phone call indicators
+- Can auto-activate emergency mode or show notification
+- Runs continuously after boot
+
 ### Receiver Layer
 **BootReceiver**
-- Starts on device boot
-- Initializes standby mode
+- Starts StandbyMonitoringService on device boot
+- Initializes standby mode automatically
 - Ready for emergency activation
 
 **EmergencyBroadcastReceiver**
@@ -65,12 +82,23 @@ This implementation fulfills the requirement for ad-hoc emergency communication 
 - Can trigger automatic activation
 - Notifies user of detected emergencies
 
+**PhoneCallIndicatorReceiver**
+- Monitors phone state changes
+- Detects brief incoming calls (< 5 seconds)
+- Sends emergency indicators to StandbyMonitoringService
+
 ### UI Layer
 **MainActivity**
 - Emergency activation/deactivation button
 - Real-time status display
 - Permission management
 - User notifications
+- Settings access
+
+**SettingsActivity**
+- Configure standby monitoring
+- Toggle auto-activation preference
+- View emergency indicators information
 
 ## Permission Handling
 
@@ -78,6 +106,7 @@ The app implements runtime permission requests for:
 - Bluetooth (BLUETOOTH_SCAN, BLUETOOTH_CONNECT, BLUETOOTH_ADVERTISE)
 - Location (ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION)
 - WiFi (ACCESS_WIFI_STATE, CHANGE_WIFI_STATE)
+- Phone State (READ_PHONE_STATE for call indicator detection)
 - Notifications (POST_NOTIFICATIONS on Android 13+)
 
 All permissions are requested with proper rationale dialogs.
@@ -93,11 +122,14 @@ Example:
 
 ### Detection Algorithm
 1. Start periodic scanning (Bluetooth + WiFi)
-2. For each discovered device/network:
-   - Check if name starts with "4people-"
+   - Active Mode: WiFi scans every 10 seconds
+   - Standby Mode: WiFi scans every 30 seconds
+2. Monitor phone state for brief incoming calls (< 5 seconds)
+3. For each discovered device/network/indicator:
+   - Check if name starts with "4people-" or if it's a phone indicator
    - If match found, trigger emergency detection
    - Broadcast to app components
-   - Notify user
+   - Notify user or auto-activate based on preferences
 
 ## Platform Considerations
 
@@ -120,19 +152,27 @@ Example:
 
 ### Manual Testing
 1. Install app on multiple devices
-2. Activate emergency mode on one device
-3. Verify other devices detect the emergency pattern
-4. Check Bluetooth device name changes
-5. Verify WiFi scanning detects emergency networks
-6. Test permission flows
-7. Test boot receiver initialization
+2. Enable standby monitoring in Settings
+3. Test phone call indicator:
+   - Call one device and hang up immediately
+   - Verify brief call is detected as emergency indicator
+4. Activate emergency mode on one device
+5. Verify other devices detect the emergency pattern
+6. Test auto-activation vs. notification preference
+7. Check Bluetooth device name changes
+8. Verify WiFi scanning detects emergency networks
+9. Test permission flows
+10. Test boot receiver initialization
+11. Verify standby mode battery consumption
 
 ### Integration Testing
 - Test with airplane mode enabled
 - Test with WiFi/mobile data disabled
 - Test cross-device detection
-- Test battery consumption over time
+- Test battery consumption over time in standby
 - Test in areas with many WiFi networks
+- Test phone call indicator with various call durations
+- Test auto-activation behavior
 
 ## Known Limitations
 
@@ -145,16 +185,18 @@ Example:
 ## Future Enhancements
 
 ### Short-term
-- [ ] Battery optimization for standby mode
-- [ ] Automatic activation when emergency detected
+- [x] Battery optimization for standby mode (30s scan intervals)
+- [x] Automatic activation when emergency detected
 - [ ] Better hotspot management UI
 - [ ] Signal strength indicators
+- [x] Phone call indicator detection
 
 ### Medium-term
 - [ ] Peer-to-peer messaging protocol
 - [ ] Mesh network formation
 - [ ] Emergency location sharing
 - [ ] Offline map integration
+- [ ] Contact-based emergency signaling (calling frequent contacts)
 
 ### Long-term
 - [ ] WiFi Direct support
