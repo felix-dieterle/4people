@@ -19,11 +19,15 @@ android {
 
     signingConfigs {
         create("release") {
-            // For GitHub Actions or local debug builds, use debug keystore
-            // In production, replace with actual release keystore
+            // Use debug keystore for development and CI builds
+            // This ensures APKs are installable without manual signing
+            // For production Google Play Store releases, configure a proper release keystore:
+            // - Generate a release keystore: keytool -genkey -v -keystore release.keystore ...
+            // - Store keystore file securely (not in version control)
+            // - Use environment variables for credentials in CI
             storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
             storePassword = "android"
-            keyAlias = "androiddebugkey"
+            keyAlias = "androiddebugkey"  
             keyPassword = "android"
         }
     }
