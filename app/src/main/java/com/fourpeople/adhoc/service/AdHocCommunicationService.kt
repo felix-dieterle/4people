@@ -29,6 +29,7 @@ import com.fourpeople.adhoc.util.BatteryMonitor
 import com.fourpeople.adhoc.util.EmergencySmsHelper
 import com.fourpeople.adhoc.util.FlashlightMorseHelper
 import com.fourpeople.adhoc.util.UltrasoundSignalHelper
+import com.fourpeople.adhoc.util.NFCHelper
 import com.fourpeople.adhoc.mesh.MeshRoutingManager
 import com.fourpeople.adhoc.mesh.BluetoothMeshTransport
 import com.fourpeople.adhoc.mesh.MeshMessage
@@ -65,6 +66,7 @@ class AdHocCommunicationService : Service() {
     private var ultrasoundHelper: UltrasoundSignalHelper? = null
     private var meshRoutingManager: MeshRoutingManager? = null
     private var bluetoothMeshTransport: BluetoothMeshTransport? = null
+    private var nfcHelper: NFCHelper? = null
 
     private val wifiScanRunnable = object : Runnable {
         override fun run() {
@@ -124,6 +126,12 @@ class AdHocCommunicationService : Service() {
         // Initialize flashlight and ultrasound helpers
         flashlightHelper = FlashlightMorseHelper(applicationContext)
         ultrasoundHelper = UltrasoundSignalHelper()
+        
+        // Initialize NFC helper
+        nfcHelper = NFCHelper(applicationContext)
+        if (nfcHelper?.initialize() == true) {
+            Log.d(TAG, "NFC helper initialized")
+        }
         
         // Initialize mesh routing
         meshRoutingManager = MeshRoutingManager(applicationContext, deviceId)
@@ -188,6 +196,9 @@ class AdHocCommunicationService : Service() {
         // Activate flashlight and ultrasound signaling if enabled
         activateFlashlightSignaling()
         activateUltrasoundSignaling()
+        
+        // Set device ID for NFC sharing
+        nfcHelper?.setDeviceId(deviceId)
         
         // Broadcast local emergency
         broadcastEmergencySignal()
