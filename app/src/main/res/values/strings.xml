@@ -15,4 +15,17 @@
     <string name="permission_required">Permissions Required</string>
     <string name="permission_explanation">This app requires Bluetooth, WiFi, and Location permissions to enable emergency ad-hoc communication.</string>
     <string name="grant_permissions">Grant Permissions</string>
+    
+    <!-- Standby monitoring strings -->
+    <string name="standby_monitoring_title">4people Standby</string>
+    <string name="standby_monitoring_text">Monitoring for emergency signals</string>
+    
+    <!-- Emergency detection strings -->
+    <string name="emergency_detected_title">Emergency Detected!</string>
+    <string name="emergency_detected_text">Emergency signal from: %s</string>
+    <string name="emergency_detected_description">Emergency detected via %1$s: %2$s\n\nTap to activate emergency mode.</string>
+    
+    <!-- Auto-activation strings -->
+    <string name="emergency_auto_activated_title">Emergency Mode Activated</string>
+    <string name="emergency_auto_activated_text">Auto-activated due to: %s</string>
 </resources>

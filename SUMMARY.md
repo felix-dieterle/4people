@@ -14,6 +14,7 @@ A complete Android application that enables ad-hoc emergency communication when 
 - One button to activate all emergency communication channels
 - Clean Material Design UI with status indicators
 - Proper Android permission handling
+- Settings UI for configuring standby behavior
 
 ### Multi-Channel Communication ✓
 
@@ -24,7 +25,8 @@ A complete Android application that enables ad-hoc emergency communication when 
    - Automatic detection of matching patterns
 
 2. **WiFi Scanning**
-   - Periodic scanning every 10 seconds
+   - Active mode: Periodic scanning every 10 seconds
+   - Standby mode: Periodic scanning every 30 seconds (battery optimized)
    - Pattern detection for `4people-` networks
    - Automatic emergency notification on detection
 
@@ -33,17 +35,20 @@ A complete Android application that enables ad-hoc emergency communication when 
    - System-generated SSID (Android limitations)
    - Note: Custom naming requires system permissions
 
-### Standby Mode ✓
-- Boot receiver ready for device startup
-- Listens for emergency broadcasts
+### Standby Mode ✓ (Enhanced)
+- Boot receiver starts StandbyMonitoringService automatically
+- Periodic WiFi scanning at 30-second intervals
+- Phone call indicator detection (brief calls < 5 seconds)
 - Low battery consumption in standby
-- Ready for automatic activation (framework in place)
+- User-configurable auto-activation or notification
 
-### Emergency Pattern Recognition ✓
+### Emergency Pattern Recognition ✓ (Enhanced)
 - Consistent pattern: `4people-<8-char-uuid>`
 - Works across Bluetooth and WiFi
+- **Phone Call Indicators**: Detects brief incoming calls as emergency signals
 - Automatic detection and notification
 - Broadcast system for device-to-device communication
+- Auto-activation based on user preferences
 
 ## Project Structure
 
@@ -54,16 +59,21 @@ A complete Android application that enables ad-hoc emergency communication when 
 │   │   ├── main/
 │   │   │   ├── java/com/fourpeople/adhoc/
 │   │   │   │   ├── MainActivity.kt              # UI and activation
+│   │   │   │   ├── SettingsActivity.kt          # Configuration UI
 │   │   │   │   ├── service/
-│   │   │   │   │   └── AdHocCommunicationService.kt  # Core service
+│   │   │   │   │   ├── AdHocCommunicationService.kt  # Active mode service
+│   │   │   │   │   └── StandbyMonitoringService.kt   # Standby mode service
 │   │   │   │   └── receiver/
 │   │   │   │       ├── BootReceiver.kt          # Standby initialization
-│   │   │   │       └── EmergencyBroadcastReceiver.kt # Emergency detection
+│   │   │   │       ├── EmergencyBroadcastReceiver.kt # Emergency detection
+│   │   │   │       └── PhoneCallIndicatorReceiver.kt # Phone call detection
 │   │   │   ├── AndroidManifest.xml              # Permissions & components
 │   │   │   └── res/                             # UI resources
 │   │   └── test/
 │   │       └── java/com/fourpeople/adhoc/
-│   │           └── AdHocCommunicationTest.kt    # Unit tests
+│   │           ├── AdHocCommunicationTest.kt    # Unit tests
+│   │           ├── StandbyMonitoringTest.kt     # Standby tests
+│   │           └── PhoneCallIndicatorTest.kt    # Phone indicator tests
 │   └── build.gradle.kts                         # App dependencies
 ├── build.gradle.kts                             # Project config
 ├── settings.gradle.kts                          # Module settings
@@ -90,11 +100,15 @@ A complete Android application that enables ad-hoc emergency communication when 
 ✅ Hotspot creation (platform-dependent)
 ✅ Emergency pattern `4people-<id>` recognition
 ✅ Standby mode with boot initialization
+✅ **Periodic WiFi scanning in standby (30s intervals)**
+✅ **Phone call indicator detection (brief calls < 5s)**
+✅ **Automatic emergency activation (user-configurable)**
+✅ **Settings UI for configuration**
 ✅ Broadcast system for device communication
 ✅ Foreground service with notification
 ✅ Comprehensive permission handling
 ✅ Material Design UI
-✅ Unit tests
+✅ Unit tests for all components
 ✅ Complete documentation
 
 ## How to Use
@@ -117,9 +131,14 @@ A complete Android application that enables ad-hoc emergency communication when 
 
 ## Files Changed/Created
 
-- 20 new files created
-- Complete Android project from scratch
-- All requirements from problem statement fulfilled
+This update adds **maximum spreadability** features:
+- 3 new service/receiver files
+- 1 new Settings activity with layout
+- 2 new test files
+- Updated 6 existing files
+- Enhanced documentation in 3 files
+
+Total: 15 files modified/created for maximum spreadability
 
 ## Code Quality
 
