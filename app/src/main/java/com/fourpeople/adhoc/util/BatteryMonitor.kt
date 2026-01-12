@@ -31,7 +31,11 @@ object BatteryMonitor {
         return if (level >= 0 && scale > 0) {
             (level.toFloat() / scale.toFloat() * 100).toInt()
         } else {
-            50 // Default to 50% if unable to read (conservative estimate)
+            // Default to 50% if unable to read. This balances responsiveness and battery:
+            // - Higher than critical (10%) to avoid overly aggressive battery saving
+            // - Lower than high (>50%) to enable medium-level optimizations
+            // - Represents "unknown but cautious" state
+            50
         }
     }
     

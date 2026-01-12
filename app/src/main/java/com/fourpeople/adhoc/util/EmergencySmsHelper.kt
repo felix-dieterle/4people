@@ -57,12 +57,16 @@ object EmergencySmsHelper {
         
         contacts.forEach { phoneNumber ->
             try {
+                // Note: sentIntent and deliveryIntent are null for simplicity
+                // In a production system, these could be used to track delivery status
+                // However, in an emergency situation, we prioritize sending quickly
+                // over tracking delivery. SMS delivery is not guaranteed anyway.
                 smsManager.sendTextMessage(
                     phoneNumber,
                     null,
                     message,
-                    null,
-                    null
+                    null,  // sentIntent - could add delivery tracking here
+                    null   // deliveryIntent - could add delivery confirmation here
                 )
                 Log.d(TAG, "Emergency SMS sent to: $phoneNumber")
                 sentCount++

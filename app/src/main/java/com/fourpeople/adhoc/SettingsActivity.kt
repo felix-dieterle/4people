@@ -91,19 +91,19 @@ class SettingsActivity : AppCompatActivity() {
     
     private fun showConfigureContactsDialog() {
         val contacts = EmergencySmsHelper.getEmergencyContacts(this)
-        val contactsText = contacts.joinToString("\n")
+        val contactsText = contacts.joinToString(", ")  // Use comma separator for consistency
         
         val input = android.widget.EditText(this)
         input.setText(contactsText)
-        input.hint = "Enter phone numbers (one per line)"
+        input.hint = "Enter phone numbers (comma-separated)"
         
         AlertDialog.Builder(this)
             .setTitle("Emergency Contacts")
-            .setMessage("Enter phone numbers to notify via SMS when emergency mode is activated:")
+            .setMessage("Enter phone numbers to notify via SMS when emergency mode is activated.\nSeparate multiple numbers with commas:")
             .setView(input)
             .setPositiveButton("Save") { _, _ ->
                 val text = input.text.toString()
-                val newContacts = text.split("\n").map { it.trim() }.filter { it.isNotEmpty() }
+                val newContacts = text.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                 EmergencySmsHelper.saveEmergencyContacts(this, newContacts)
                 updateContactsDisplay()
                 Toast.makeText(this, "Contacts saved", Toast.LENGTH_SHORT).show()

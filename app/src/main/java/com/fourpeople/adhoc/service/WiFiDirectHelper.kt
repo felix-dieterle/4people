@@ -198,22 +198,28 @@ class WiFiDirectHelper(private val context: Context) {
      * If this fails on future Android versions, the device will still
      * be discoverable but with the default device name. This is acceptable
      * as WiFi Direct is a supplementary communication channel.
+     * 
+     * The reflection approach is necessary because setDeviceName() is not
+     * in the public API. If it fails, WiFi Direct discovery will still work,
+     * just without the custom emergency name pattern.
      */
     fun setEmergencyDeviceName(deviceId: String) {
         if (wifiP2pManager == null || channel == null) {
+            Log.w(TAG, "WiFi P2P not initialized, cannot set device name")
             return
         }
         
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) 
             != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "Location permission not granted, cannot set device name")
             return
         }
         
         val emergencyName = "$EMERGENCY_DEVICE_NAME_PREFIX$deviceId"
         
         try {
-            // Use reflection to set device name (not officially supported in public API)
-            // This may fail on some devices or future Android versions, which is acceptable
+            // Attempt to set device name via reflection
+            // This may not work on all devices/Android versions - that's OK
             val setDeviceNameMethod = wifiP2pManager?.javaClass?.getMethod(
                 "setDeviceName",
                 WifiP2pManager.Channel::class.java,
@@ -221,19 +227,28 @@ class WiFiDirectHelper(private val context: Context) {
                 WifiP2pManager.ActionListener::class.java
             )
             
-            setDeviceNameMethod?.invoke(wifiP2pManager, channel, emergencyName, object : WifiP2pManager.ActionListener {
-                override fun onSuccess() {
-                    Log.d(TAG, "WiFi P2P device name set to: $emergencyName")
-                }
-                
-                override fun onFailure(reasonCode: Int) {
-                    Log.w(TAG, "Failed to set WiFi P2P device name: $reasonCode (using default name)")
-                }
-            })
+            if (setDeviceNameMethod != null) {
+                setDeviceNameMethod.invoke(wifiP2pManager, channel, emergencyName, object : WifiP2pManager.ActionListener {
+                    override fun onSuccess() {
+                        Log.d(TAG, "WiFi P2P device name set to: $emergencyName")
+                    }
+                    
+                    override fun onFailure(reasonCode: Int) {
+                        Log.w(TAG, "Failed to set WiFi P2P device name: $reasonCode (graceful degradation: using default name)")
+                    }
+                })
+            } else {
+                Log.w(TAG, "setDeviceName method not found (graceful degradation: using default name)")
+            }
+        } catch (e: NoSuchMethodException) {
+            Log.w(TAG, "setDeviceName method not available on this Android version (graceful degradation: using default name)")
+        } catch (e: SecurityException) {
+            Log.w(TAG, "Security exception when setting device name (graceful degradation: using default name)")
         } catch (e: Exception) {
-            Log.w(TAG, "Cannot set device name via reflection (not critical): ${e.message}")
-            // This is not critical - device will use default name but still be discoverable
+            Log.w(TAG, "Cannot set device name via reflection (graceful degradation: using default name): ${e.javaClass.simpleName}")
         }
+        // Note: Failure to set device name is non-critical - WiFi Direct discovery
+        // will still work, devices just won't have the emergency pattern in their name
     }
     
     /**
