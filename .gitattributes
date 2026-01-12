@@ -1,0 +1,4 @@
+# Ensure gradle wrapper scripts maintain proper line endings
+gradlew text eol=lf
+*.bat text eol=crlf
+*.sh text eol=lf
