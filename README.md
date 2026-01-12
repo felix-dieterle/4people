@@ -38,6 +38,7 @@ When emergency mode is activated:
 - ✓ App ready to receive activation broadcasts
 - ✓ Background WiFi scanning for emergency patterns (every 30 seconds)
 - ✓ Phone call indicator detection (brief incoming calls)
+- ✓ **Ultrasound listening for emergency beacons** (continuous passive detection)
 - ✓ Automatic or manual activation on emergency detection
 - ✓ Low battery consumption
 - ✓ Starts automatically on device boot

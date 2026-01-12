@@ -7,6 +7,50 @@ Diese Funktionen erweitern die 4people-App um zwei zusätzliche Kommunikationska
 1. **Flashlight Morse Code** - Visuelle LED-basierte Signalisierung
 2. **Ultrasound Signaling** - Audio-basierte Signalisierung über unhörbare Frequenzen
 
+## Betriebsmodi
+
+Die App arbeitet in zwei Hauptmodi, die unterschiedliche Überwachungsstrategien verwenden:
+
+### Standby-Modus (Passive Überwachung)
+In diesem Modus läuft die App im Hintergrund mit minimalem Batterieverbrauch:
+- **WiFi-Scanning**: Alle 30 Sekunden (adaptiv je nach Batteriestand)
+- **Telefon-Anruf-Indikatoren**: Kontinuierliche Überwachung auf kurze Anrufe
+- **Ultrasound-Listening**: **Kontinuierliche passive Erkennung** von Ultraschall-Notfall-Signalen
+- **Flashlight**: Nicht aktiv (nur visuell erkennbar wenn manuell gesendet)
+
+**Überwachte Kanäle im Standby:**
+1. WiFi-Netzwerke mit "4people-*" Pattern (periodisch)
+2. Kurze Telefonanrufe < 5 Sekunden (ereignisbasiert)
+3. Ultraschall-Notfall-Beacons (kontinuierlich)
+4. Emergency-Broadcasts von anderen Geräten (ereignisbasiert)
+
+### Emergency-Modus (Aktive Signalisierung + Überwachung)
+In diesem Modus sind alle Kommunikationskanäle voll aktiviert:
+- **WiFi-Scanning**: Alle 10 Sekunden (häufigere Überprüfung)
+- **Bluetooth**: Discovery und Advertising aktiv
+- **WiFi Hotspot**: Aktiv (falls unterstützt)
+- **WiFi Direct**: Peer-to-Peer Discovery aktiv
+- **Ultrasound-Transmission**: **Aktives Senden** von 3-Puls-Notfall-Beacons (falls aktiviert)
+- **Ultrasound-Listening**: Weiterhin aktiv
+- **Flashlight Morse**: **Aktives Senden** von "4PEOPLE" Identifikations-Signal (falls aktiviert)
+- **SMS-Broadcast**: Notfall-SMS an Kontakte (falls aktiviert)
+
+**Alle Kanäle im Emergency-Modus:**
+1. WiFi-Netzwerk-Scanning (häufiger)
+2. Bluetooth Discovery & Advertising
+3. WiFi Hotspot Creation
+4. WiFi Direct P2P
+5. Telefon-Anruf-Indikatoren (weiterhin)
+6. Ultraschall-Transmission + Listening
+7. Flashlight Morse-Code-Signalisierung
+8. SMS Emergency Broadcast
+
+### Übergang zwischen Modi
+- **Standby → Emergency**: Automatisch bei Erkennung eines Notfall-Indikators (wenn Auto-Aktivierung an) oder manuell
+- **Emergency → Standby**: Manuell durch Benutzer
+
+---
+
 ## Flashlight Morse Code (Taschenlampen-Morse-Code)
 
 ### Beschreibung
@@ -81,11 +125,14 @@ Sendet und empfängt Notfall-Signale über hochfrequente Audio-Töne (19 kHz), d
 1. Öffne die **Settings** in der App
 2. Aktiviere **"Transmit ultrasound emergency signals"**
 3. Bei Notfall-Aktivierung sendet die App automatisch Ultraschall-Signale
+   - **Nur im Emergency-Modus** (aktive Signalisierung)
 
 #### Empfang aktivieren (empfohlen)
 1. Öffne die **Settings** in der App
 2. Aktiviere **"Listen for ultrasound emergency signals"** (standardmäßig aktiv)
-3. Die App hört auch im Standby-Modus auf Signale
+3. Die App hört kontinuierlich auf Signale in zwei Modi:
+   - **Standby-Modus**: Passive Überwachung mit geringem Batterieverbrauch
+   - **Emergency-Modus**: Aktive Überwachung zusammen mit anderen Kanälen
 
 ### Technische Details
 
