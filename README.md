@@ -199,6 +199,16 @@ When adding new features, follow these testing guidelines:
 - Location permission is required for WiFi scanning on Android 6+
 - Battery consumption increases significantly in active mode
 
+## Documentation
+
+For detailed information about the project, see:
+
+- **[NOTFALL_SZENARIEN.md](NOTFALL_SZENARIEN.md)**: Comprehensive emergency scenarios, flowcharts, and improvement recommendations (German)
+- **[IMPLEMENTATION.md](IMPLEMENTATION.md)**: Technical implementation details
+- **[FLOW.md](FLOW.md)**: System flow diagrams and architecture
+- **[SUMMARY.md](SUMMARY.md)**: Project summary and overview
+- **[TESTING.md](TESTING.md)**: Testing guide and procedures
+
 ## Future Enhancements
 
 - [ ] Peer-to-peer messaging over ad-hoc connections
@@ -208,6 +218,8 @@ When adding new features, follow these testing guidelines:
 - [ ] Advanced battery optimization for standby mode
 - [ ] Support for more communication protocols (WiFi Direct, NFC)
 - [ ] Contact-based emergency signaling (calling frequent contacts)
+
+For a complete list of potential improvements with detailed analysis, see [NOTFALL_SZENARIEN.md](NOTFALL_SZENARIEN.md#verbesserungsvorschläge).
 
 ## License
 
