@@ -63,14 +63,19 @@ class BluetoothMeshTransport(
      * Sends a message to a specific device.
      */
     fun sendMessage(message: MeshMessage, deviceAddress: String): Boolean {
-        var connection = connections[deviceAddress]
-        
-        // Create connection if it doesn't exist
-        if (connection == null || !connection.isConnected) {
-            val device = bluetoothAdapter.getRemoteDevice(deviceAddress)
-            connection = ConnectedThread(device)
-            connection.start()
-            connections[deviceAddress] = connection
+        // Thread-safe connection retrieval or creation
+        val connection = synchronized(connections) {
+            var conn = connections[deviceAddress]
+            
+            // Create connection if it doesn't exist or is not connected
+            if (conn == null || !conn.isConnected) {
+                val device = bluetoothAdapter.getRemoteDevice(deviceAddress)
+                conn = ConnectedThread(device)
+                conn.start()
+                connections[deviceAddress] = conn
+            }
+            
+            conn
         }
         
         return connection.write(message)
@@ -157,6 +162,9 @@ class BluetoothMeshTransport(
             }
             
             if (socket == null || !isConnected) {
+                Log.w(TAG, "Failed to establish connection to ${device.address}")
+                // Remove failed connection from pool
+                connections.remove(device.address)
                 return
             }
             

@@ -34,6 +34,9 @@ class MeshRoutingManager(private val context: Context, private val deviceId: Str
     // Track pending route requests
     private val pendingRouteRequests = ConcurrentHashMap<String, RouteRequestInfo>()
     
+    // Queue for messages waiting for route discovery
+    private val pendingMessages = ConcurrentHashMap<String, MutableList<MeshMessage>>()
+    
     // Listener for message forwarding
     private var messageForwarder: MessageForwarder? = null
     
@@ -164,12 +167,17 @@ class MeshRoutingManager(private val context: Context, private val deviceId: Str
             // Route exists, forward message
             return forwardMessage(message, route.nextHopId)
         } else {
-            // No route, initiate route discovery
+            // No route, initiate route discovery and queue message
             Log.d(TAG, "No route to ${message.destinationId}, initiating route discovery")
-            initiateRouteDiscovery(message.destinationId)
             
-            // Queue message for later (simplified - in production would have a proper queue)
-            // For now, return false indicating message couldn't be sent immediately
+            // Queue message for later delivery
+            queueMessage(message)
+            
+            // Initiate route discovery if not already in progress
+            if (!pendingRouteRequests.containsKey(message.destinationId)) {
+                initiateRouteDiscovery(message.destinationId)
+            }
+            
             return false
         }
     }
@@ -248,6 +256,10 @@ class MeshRoutingManager(private val context: Context, private val deviceId: Str
         if (message.destinationId == deviceId) {
             // Route reply reached the originator
             Log.d(TAG, "Route established to ${message.sourceId}")
+            
+            // Process any pending messages for this destination
+            processPendingMessages(message.sourceId)
+            
             return true
         } else if (message.canForward()) {
             // Forward route reply towards originator
@@ -385,6 +397,31 @@ class MeshRoutingManager(private val context: Context, private val deviceId: Str
         
         if (expiredKeys.isNotEmpty()) {
             Log.d(TAG, "Cleaned up ${expiredKeys.size} expired message records")
+        }
+    }
+    
+    private fun queueMessage(message: MeshMessage) {
+        val queue = pendingMessages.getOrPut(message.destinationId) { mutableListOf() }
+        queue.add(message)
+        Log.d(TAG, "Message queued for ${message.destinationId}, queue size: ${queue.size}")
+    }
+    
+    private fun processPendingMessages(destinationId: String) {
+        val messages = pendingMessages.remove(destinationId)
+        
+        if (messages != null && messages.isNotEmpty()) {
+            Log.d(TAG, "Processing ${messages.size} pending messages for $destinationId")
+            
+            val route = routeTable.getRoute(destinationId)
+            if (route != null) {
+                messages.forEach { message ->
+                    forwardMessage(message, route.nextHopId)
+                }
+            } else {
+                Log.w(TAG, "Route no longer available for $destinationId, re-queuing messages")
+                // Re-queue if route disappeared
+                messages.forEach { queueMessage(it) }
+            }
         }
     }
     

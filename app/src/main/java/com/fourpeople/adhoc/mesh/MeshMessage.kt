@@ -16,7 +16,7 @@ data class MeshMessage(
     val payload: String,
     val messageType: MessageType = MessageType.DATA,
     val timestamp: Long = System.currentTimeMillis(),
-    var ttl: Int = DEFAULT_TTL,
+    val ttl: Int = DEFAULT_TTL,
     val sequenceNumber: Int = 0,
     val hopCount: Int = 0
 ) : Serializable {
