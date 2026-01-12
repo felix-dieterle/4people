@@ -49,10 +49,12 @@ data class MeshMessage(
     fun isBroadcast(): Boolean = destinationId == BROADCAST_DESTINATION
     
     enum class MessageType {
-        DATA,           // Regular data message
-        ROUTE_REQUEST,  // Route discovery request (RREQ)
-        ROUTE_REPLY,    // Route discovery reply (RREP)
-        ROUTE_ERROR,    // Route error notification (RERR)
-        HELLO           // Periodic hello message for neighbor discovery
+        DATA,              // Regular data message
+        ROUTE_REQUEST,     // Route discovery request (RREQ)
+        ROUTE_REPLY,       // Route discovery reply (RREP)
+        ROUTE_ERROR,       // Route error notification (RERR)
+        HELLO,             // Periodic hello message for neighbor discovery
+        LOCATION_UPDATE,   // Location sharing broadcast
+        HELP_REQUEST       // Emergency help request with location
     }
 }

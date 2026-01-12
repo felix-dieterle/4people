@@ -31,4 +31,14 @@
     
     <!-- Widget strings -->
     <string name="widget_description">Emergency Communication Quick Activate</string>
+    
+    <!-- Location sharing strings -->
+    <string name="location_map_title">Participant Locations</string>
+    <string name="location_map_active">Location map is active</string>
+    <string name="participants_title">Emergency Network Participants</string>
+    <string name="view_locations">View Participant Map</string>
+    <string name="send_help_request">Send Help Request</string>
+    <string name="location_sharing_status">Location Sharing: %s</string>
+    <string name="help_request_sent">Help request sent to network</string>
+    <string name="help_request_message">Enter help message (optional)</string>
 </resources>
