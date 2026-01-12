@@ -27,6 +27,8 @@ import com.fourpeople.adhoc.MainActivity
 import com.fourpeople.adhoc.R
 import com.fourpeople.adhoc.util.BatteryMonitor
 import com.fourpeople.adhoc.util.EmergencySmsHelper
+import com.fourpeople.adhoc.util.FlashlightMorseHelper
+import com.fourpeople.adhoc.util.UltrasoundSignalHelper
 import java.util.*
 
 /**
@@ -55,6 +57,8 @@ class AdHocCommunicationService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private var deviceId: String = ""
     private var wifiDirectHelper: WiFiDirectHelper? = null
+    private var flashlightHelper: FlashlightMorseHelper? = null
+    private var ultrasoundHelper: UltrasoundSignalHelper? = null
 
     private val wifiScanRunnable = object : Runnable {
         override fun run() {
@@ -104,6 +108,10 @@ class AdHocCommunicationService : Service() {
         wifiDirectHelper = WiFiDirectHelper(applicationContext)
         wifiDirectHelper?.initialize()
         
+        // Initialize flashlight and ultrasound helpers
+        flashlightHelper = FlashlightMorseHelper(applicationContext)
+        ultrasoundHelper = UltrasoundSignalHelper()
+        
         createNotificationChannel()
     }
 
@@ -137,6 +145,10 @@ class AdHocCommunicationService : Service() {
         activateHotspot()
         activateWifiDirect()
         
+        // Activate flashlight and ultrasound signaling if enabled
+        activateFlashlightSignaling()
+        activateUltrasoundSignaling()
+        
         // Broadcast local emergency
         broadcastEmergencySignal()
         
@@ -164,6 +176,8 @@ class AdHocCommunicationService : Service() {
         
         deactivateBluetooth()
         deactivateWifiDirect()
+        deactivateFlashlightSignaling()
+        deactivateUltrasoundSignaling()
     }
 
     private fun activateBluetooth() {
@@ -331,6 +345,57 @@ class AdHocCommunicationService : Service() {
         if (sentCount > 0) {
             Log.d(TAG, "Emergency SMS sent to $sentCount contacts")
         }
+    }
+    
+    private fun activateFlashlightSignaling() {
+        val prefs = getSharedPreferences("emergency_prefs", Context.MODE_PRIVATE)
+        val enabled = prefs.getBoolean("flashlight_morse_enabled", false)
+        
+        if (!enabled) {
+            Log.d(TAG, "Flashlight signaling is disabled in settings")
+            return
+        }
+        
+        if (flashlightHelper?.isFlashlightAvailable() == true) {
+            flashlightHelper?.startEmergencyIdentificationSignal()
+            Log.d(TAG, "Flashlight Morse signaling activated")
+        } else {
+            Log.w(TAG, "Flashlight not available on this device")
+        }
+    }
+    
+    private fun deactivateFlashlightSignaling() {
+        flashlightHelper?.stopSignal()
+        Log.d(TAG, "Flashlight signaling deactivated")
+    }
+    
+    private fun activateUltrasoundSignaling() {
+        val prefs = getSharedPreferences("emergency_prefs", Context.MODE_PRIVATE)
+        val transmitEnabled = prefs.getBoolean("ultrasound_transmit_enabled", false)
+        val listenEnabled = prefs.getBoolean("ultrasound_listen_enabled", true)
+        
+        if (ultrasoundHelper?.isSupported() == true) {
+            if (transmitEnabled) {
+                ultrasoundHelper?.startTransmitting()
+                Log.d(TAG, "Ultrasound transmission activated")
+            }
+            
+            if (listenEnabled) {
+                ultrasoundHelper?.startListening {
+                    Log.i(TAG, "Ultrasound emergency signal detected!")
+                    notifyEmergencyDetected("Ultrasound Signal")
+                }
+                Log.d(TAG, "Ultrasound listening activated")
+            }
+        } else {
+            Log.w(TAG, "Ultrasound not supported on this device")
+        }
+    }
+    
+    private fun deactivateUltrasoundSignaling() {
+        ultrasoundHelper?.stopTransmitting()
+        ultrasoundHelper?.stopListening()
+        Log.d(TAG, "Ultrasound signaling deactivated")
     }
 
     private fun createNotificationChannel() {

@@ -46,6 +46,20 @@ class SettingsActivity : AppCompatActivity() {
         binding.configureContactsButton.setOnClickListener {
             showConfigureContactsDialog()
         }
+        
+        // Flashlight Morse code setting
+        binding.flashlightMorseSwitch.setOnCheckedChangeListener { _, isChecked ->
+            saveFlashlightMorseSetting(isChecked)
+        }
+        
+        // Ultrasound signaling settings
+        binding.ultrasoundTransmitSwitch.setOnCheckedChangeListener { _, isChecked ->
+            saveUltrasoundTransmitSetting(isChecked)
+        }
+        
+        binding.ultrasoundListenSwitch.setOnCheckedChangeListener { _, isChecked ->
+            saveUltrasoundListenSetting(isChecked)
+        }
     }
 
     private fun loadSettings() {
@@ -61,6 +75,12 @@ class SettingsActivity : AppCompatActivity() {
         // Load SMS settings
         binding.smsEnabledSwitch.isChecked = EmergencySmsHelper.isSmsEnabled(this)
         updateContactsDisplay()
+        
+        // Load flashlight and ultrasound settings
+        val emergencyPrefs = getSharedPreferences("emergency_prefs", Context.MODE_PRIVATE)
+        binding.flashlightMorseSwitch.isChecked = emergencyPrefs.getBoolean("flashlight_morse_enabled", false)
+        binding.ultrasoundTransmitSwitch.isChecked = emergencyPrefs.getBoolean("ultrasound_transmit_enabled", false)
+        binding.ultrasoundListenSwitch.isChecked = emergencyPrefs.getBoolean("ultrasound_listen_enabled", true)
     }
 
     private fun saveAutoActivateSetting(enabled: Boolean) {
@@ -116,5 +136,23 @@ class SettingsActivity : AppCompatActivity() {
         val contacts = EmergencySmsHelper.getEmergencyContacts(this)
         val count = contacts.size
         binding.contactsCountText.text = "$count contact(s) configured"
+    }
+    
+    private fun saveFlashlightMorseSetting(enabled: Boolean) {
+        val preferences = getSharedPreferences("emergency_prefs", Context.MODE_PRIVATE)
+        preferences.edit().putBoolean("flashlight_morse_enabled", enabled).apply()
+        Toast.makeText(this, if (enabled) "Flashlight signaling enabled" else "Flashlight signaling disabled", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun saveUltrasoundTransmitSetting(enabled: Boolean) {
+        val preferences = getSharedPreferences("emergency_prefs", Context.MODE_PRIVATE)
+        preferences.edit().putBoolean("ultrasound_transmit_enabled", enabled).apply()
+        Toast.makeText(this, if (enabled) "Ultrasound transmission enabled" else "Ultrasound transmission disabled", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun saveUltrasoundListenSetting(enabled: Boolean) {
+        val preferences = getSharedPreferences("emergency_prefs", Context.MODE_PRIVATE)
+        preferences.edit().putBoolean("ultrasound_listen_enabled", enabled).apply()
+        Toast.makeText(this, if (enabled) "Ultrasound listening enabled" else "Ultrasound listening disabled", Toast.LENGTH_SHORT).show()
     }
 }
