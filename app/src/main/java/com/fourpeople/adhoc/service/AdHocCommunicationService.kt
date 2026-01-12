@@ -25,6 +25,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.fourpeople.adhoc.MainActivity
 import com.fourpeople.adhoc.R
+import com.fourpeople.adhoc.util.BatteryMonitor
+import com.fourpeople.adhoc.util.EmergencySmsHelper
 import java.util.*
 
 /**
@@ -44,7 +46,6 @@ class AdHocCommunicationService : Service() {
         const val CHANNEL_ID = "emergency_channel"
         const val ACTION_START = "com.fourpeople.adhoc.START"
         const val ACTION_STOP = "com.fourpeople.adhoc.STOP"
-        const val WIFI_SCAN_INTERVAL = 10000L // 10 seconds
         const val EMERGENCY_SSID_PATTERN = "4people-"
     }
 
@@ -53,11 +54,14 @@ class AdHocCommunicationService : Service() {
     private lateinit var bluetoothAdapter: BluetoothAdapter
     private val handler = Handler(Looper.getMainLooper())
     private var deviceId: String = ""
+    private var wifiDirectHelper: WiFiDirectHelper? = null
 
     private val wifiScanRunnable = object : Runnable {
         override fun run() {
             scanForEmergencyNetworks()
-            handler.postDelayed(this, WIFI_SCAN_INTERVAL)
+            // Use adaptive scan interval based on battery level
+            val interval = BatteryMonitor.getEmergencyScanInterval(applicationContext)
+            handler.postDelayed(this, interval)
         }
     }
 
@@ -96,6 +100,10 @@ class AdHocCommunicationService : Service() {
         // Generate unique device ID
         deviceId = UUID.randomUUID().toString().substring(0, 8)
         
+        // Initialize WiFi Direct
+        wifiDirectHelper = WiFiDirectHelper(applicationContext)
+        wifiDirectHelper?.initialize()
+        
         createNotificationChannel()
     }
 
@@ -127,9 +135,13 @@ class AdHocCommunicationService : Service() {
         activateBluetooth()
         activateWifiScanning()
         activateHotspot()
+        activateWifiDirect()
         
         // Broadcast local emergency
         broadcastEmergencySignal()
+        
+        // Send emergency SMS if enabled
+        sendEmergencySms()
     }
 
     private fun stopEmergencyMode() {
@@ -151,6 +163,7 @@ class AdHocCommunicationService : Service() {
         }
         
         deactivateBluetooth()
+        deactivateWifiDirect()
     }
 
     private fun activateBluetooth() {
@@ -299,6 +312,25 @@ class AdHocCommunicationService : Service() {
         Log.d(TAG, "Broadcasting emergency signal")
         // This would send out emergency broadcasts
         // Implementation depends on the communication protocol
+    }
+    
+    private fun activateWifiDirect() {
+        wifiDirectHelper?.setEmergencyDeviceName(deviceId)
+        wifiDirectHelper?.startDiscovery()
+        Log.d(TAG, "WiFi Direct activated")
+    }
+    
+    private fun deactivateWifiDirect() {
+        wifiDirectHelper?.stopDiscovery()
+        Log.d(TAG, "WiFi Direct deactivated")
+    }
+    
+    private fun sendEmergencySms() {
+        val message = "EMERGENCY! 4people app activated. Device ID: $deviceId. I need assistance."
+        val sentCount = EmergencySmsHelper.sendEmergencySms(applicationContext, message)
+        if (sentCount > 0) {
+            Log.d(TAG, "Emergency SMS sent to $sentCount contacts")
+        }
     }
 
     private fun createNotificationChannel() {
