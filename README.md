@@ -82,6 +82,24 @@ The app requires the following permissions for full functionality:
 ./gradlew installDebug
 ```
 
+## Releases
+
+This project uses automated releases through GitHub Actions. When changes are merged to the `main` branch:
+
+1. **Version is automatically incremented**: Both `versionCode` and `versionName` are bumped
+2. **Release APK is built**: A production-ready APK is generated
+3. **GitHub Release is created**: A new release with the version tag is published
+4. **APK is attached**: The built APK is automatically uploaded to the release
+
+### Download Latest Release
+
+Visit the [Releases page](https://github.com/felix-dieterle/4people/releases) to download the latest APK.
+
+### Version Numbering
+
+- **versionCode**: Incremented by 1 with each release (used by Android)
+- **versionName**: Follows semantic versioning (e.g., 1.0.0 → 1.0.1)
+
 ## Usage
 
 1. **Install the app** on your Android device
