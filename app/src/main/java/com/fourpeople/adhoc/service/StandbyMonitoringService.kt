@@ -184,8 +184,10 @@ class StandbyMonitoringService : Service() {
     /**
      * Called when an emergency indicator is detected.
      * Depending on user preferences, either auto-activates or shows notification.
+     * 
+     * This is an internal method that should only be called by this service.
      */
-    fun onEmergencyDetected(source: String, type: String) {
+    private fun onEmergencyDetected(source: String, type: String) {
         Log.d(TAG, "Emergency detected - Source: $source, Type: $type")
         
         // Send broadcast to notify app components

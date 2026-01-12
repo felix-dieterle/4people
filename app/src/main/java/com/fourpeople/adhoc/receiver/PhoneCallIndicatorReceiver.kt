@@ -24,10 +24,11 @@ class PhoneCallIndicatorReceiver : BroadcastReceiver() {
     companion object {
         private const val TAG = "PhoneCallIndicator"
         private const val BRIEF_CALL_THRESHOLD_MS = 5000L // 5 seconds
-        
-        private var callStartTime: Long = 0
-        private var lastState: String = TelephonyManager.EXTRA_STATE_IDLE
     }
+    
+    // Instance variables to track call state per receiver instance
+    private var callStartTime: Long = 0
+    private var lastState: String = TelephonyManager.EXTRA_STATE_IDLE
     
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context == null || intent == null) return
@@ -70,18 +71,10 @@ class PhoneCallIndicatorReceiver : BroadcastReceiver() {
     private fun handleEmergencyIndicator(context: Context) {
         Log.d(TAG, "Emergency indicator detected via phone call")
         
-        // Send broadcast to standby monitoring service
-        val intent = Intent(context, StandbyMonitoringService::class.java)
-        
-        // We need to notify the service through a custom action
+        // Send broadcast to notify the StandbyMonitoringService
+        // The service listens for this specific action
         val broadcastIntent = Intent("com.fourpeople.adhoc.PHONE_INDICATOR")
         broadcastIntent.setPackage(context.packageName)
         context.sendBroadcast(broadcastIntent)
-        
-        // If standby monitoring service is running, it will pick this up
-        // If not, we can start it or directly trigger emergency mode
-        
-        // Alternatively, check if standby service is running and notify it
-        // For now, send a broadcast that can be picked up by the service
     }
 }
