@@ -1,0 +1,173 @@
+name: Build and Release APK
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    # Skip if commit message is a version bump from this workflow
+    if: "!contains(github.event.head_commit.message, 'Bump version to')"
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      
+      - name: Get current version
+        id: get_version
+        run: |
+          # Extract version with validation
+          VERSION_CODE=$(grep "versionCode = " app/build.gradle.kts | awk '{print $3}')
+          VERSION_NAME=$(grep "versionName = " app/build.gradle.kts | awk '{print $3}' | tr -d '"')
+          
+          # Validate extraction
+          if [ -z "$VERSION_CODE" ] || [ -z "$VERSION_NAME" ]; then
+            echo "Error: Failed to extract version from app/build.gradle.kts"
+            exit 1
+          fi
+          
+          # Validate version code is a number
+          if ! [[ "$VERSION_CODE" =~ ^[0-9]+$ ]]; then
+            echo "Error: Invalid versionCode format: $VERSION_CODE"
+            exit 1
+          fi
+          
+          echo "current_version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "current_version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION_NAME ($VERSION_CODE)"
+      
+      - name: Increment version
+        id: increment_version
+        run: |
+          CURRENT_CODE=${{ steps.get_version.outputs.current_version_code }}
+          CURRENT_NAME=${{ steps.get_version.outputs.current_version_name }}
+          
+          # Increment version code
+          NEW_CODE=$((CURRENT_CODE + 1))
+          
+          # Increment version name (semver patch)
+          # Handle both X.Y and X.Y.Z format
+          if [[ "$CURRENT_NAME" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            PATCH="${BASH_REMATCH[3]}"
+            NEW_PATCH=$((PATCH + 1))
+            NEW_NAME="${MAJOR}.${MINOR}.${NEW_PATCH}"
+          elif [[ "$CURRENT_NAME" =~ ^([0-9]+)\.([0-9]+)$ ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            NEW_MINOR=$((MINOR + 1))
+            NEW_NAME="${MAJOR}.${NEW_MINOR}.0"
+          else
+            echo "Error: Unsupported version format: $CURRENT_NAME"
+            exit 1
+          fi
+          
+          echo "new_version_code=$NEW_CODE" >> $GITHUB_OUTPUT
+          echo "new_version_name=$NEW_NAME" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_NAME ($NEW_CODE)"
+          
+          # Update build.gradle.kts using perl for safer substitution
+          # versionCode is numeric (validated above), no escaping needed
+          perl -i -pe "s/versionCode = $CURRENT_CODE/versionCode = $NEW_CODE/" app/build.gradle.kts
+          
+          # Escape dots in version name for regex matching
+          CURRENT_NAME_ESCAPED=$(echo "$CURRENT_NAME" | sed 's/\./\\./g')
+          NEW_NAME_ESCAPED=$(echo "$NEW_NAME" | sed 's/\./\\./g')
+          perl -i -pe "s/versionName = \"$CURRENT_NAME_ESCAPED\"/versionName = \"$NEW_NAME_ESCAPED\"/" app/build.gradle.kts
+          
+          # Verify the changes were applied
+          if ! grep -q "versionCode = $NEW_CODE" app/build.gradle.kts; then
+            echo "Error: Failed to update versionCode"
+            exit 1
+          fi
+          if ! grep -q "versionName = \"$NEW_NAME\"" app/build.gradle.kts; then
+            echo "Error: Failed to update versionName"
+            exit 1
+          fi
+      
+      - name: Commit version bump
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add app/build.gradle.kts
+          git commit -m "Bump version to ${{ steps.increment_version.outputs.new_version_name }} (build ${{ steps.increment_version.outputs.new_version_code }})"
+          git push
+      
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
+      
+      - name: Find APK
+        id: find_apk
+        run: |
+          # Find APK with validation
+          APK_FILES=(app/build/outputs/apk/release/*.apk)
+          APK_PATH="${APK_FILES[0]}"
+          
+          # Validate exactly one APK was found
+          if [ ! -f "$APK_PATH" ]; then
+            echo "Error: No APK file found in app/build/outputs/apk/release/"
+            exit 1
+          fi
+          
+          if [ ${#APK_FILES[@]} -gt 1 ]; then
+            echo "Warning: Multiple APK files found, using: $APK_PATH"
+          fi
+          
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+          echo "APK built at: $APK_PATH"
+          
+          # Rename APK with version
+          NEW_APK_NAME="4people-v${{ steps.increment_version.outputs.new_version_name }}.apk"
+          cp "$APK_PATH" "$NEW_APK_NAME"
+          echo "renamed_apk=$NEW_APK_NAME" >> $GITHUB_OUTPUT
+      
+      - name: Create Release and Upload APK
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.increment_version.outputs.new_version_name }}
+          name: Release v${{ steps.increment_version.outputs.new_version_name }}
+          body: |
+            ## 4people v${{ steps.increment_version.outputs.new_version_name }}
+            
+            Automatic release build from commit ${{ github.sha }}
+            
+            ### Changes
+            Build ${{ steps.increment_version.outputs.new_version_code }}
+            
+            ### Download
+            Download the APK below to install on your Android device.
+            
+            **Installation Instructions:**
+            1. Download the APK file
+            2. Enable "Install from Unknown Sources" in your Android settings
+            3. Open the APK file to install
+          files: ${{ steps.find_apk.outputs.renamed_apk }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 4people-v${{ steps.increment_version.outputs.new_version_name }}-apk
+          path: ${{ steps.find_apk.outputs.apk_path }}
+          retention-days: 90
