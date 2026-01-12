@@ -31,6 +31,8 @@ When emergency mode is activated:
 - ✓ Emergency broadcast signaling
 - ✓ WiFi Direct peer-to-peer discovery
 - ✓ SMS emergency broadcast to contacts
+- ✓ **Mesh network routing** - Multi-hop message forwarding through intermediate devices
+- ✓ **Automatic route discovery** - AODV-like protocol for finding paths to distant devices
 - ✓ **Flashlight Morse code signaling (optional)**
 - ✓ **Ultrasound emergency beacon (optional)**
 
@@ -54,6 +56,8 @@ When emergency mode is activated:
 5. **BootReceiver**: Starts standby monitoring on device boot
 6. **EmergencyBroadcastReceiver**: Handles emergency detection broadcasts
 7. **PhoneCallIndicatorReceiver**: Detects brief incoming calls as emergency signals
+8. **MeshRoutingManager**: Manages mesh network routing and multi-hop message forwarding
+9. **BluetoothMeshTransport**: Handles Bluetooth communication for mesh messages
 
 ### Permissions Required
 
@@ -216,11 +220,12 @@ For detailed information about the project, see:
 - **[FLOW.md](FLOW.md)**: System flow diagrams and architecture
 - **[SUMMARY.md](SUMMARY.md)**: Project summary and overview
 - **[TESTING.md](TESTING.md)**: Testing guide and procedures
+- **[MESH_ROUTING.md](MESH_ROUTING.md)**: Mesh network routing implementation and protocol details
 
 ## Future Enhancements
 
 - [ ] Peer-to-peer messaging over ad-hoc connections
-- [ ] Automatic mesh network formation
+- [x] **Mesh network with multi-hop routing** - Implemented! Messages relay through intermediate devices
 - [ ] Emergency location sharing
 - [ ] Offline map integration
 - [ ] Advanced battery optimization for standby mode
