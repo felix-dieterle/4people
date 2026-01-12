@@ -127,5 +127,5 @@ grep -A 1 "versionCode\|versionName" app/build.gradle.kts
 - The workflow only runs on pushes to `main` branch
 - Each merge creates exactly one release
 - APK artifacts are retained for 90 days
-- Release APKs are unsigned (for development/testing)
-- For production releases, consider adding APK signing
+- **Release APKs are now signed with the Android debug keystore** to make them installable
+- For production releases with Google Play Store, replace the debug signing configuration with a proper release keystore
