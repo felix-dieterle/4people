@@ -141,14 +141,21 @@ The app includes comprehensive unit tests to verify core functionality:
 
 ### Test Coverage
 
-The test suite covers:
+The test suite includes **8 comprehensive test files** with **80+ test cases** covering:
 
+#### Core Component Tests
 - **AdHocCommunicationTest**: Emergency pattern matching, WiFi scan intervals, notification channels
 - **StandbyMonitoringTest**: Standby monitoring logic, scan intervals, preferences, notification IDs
 - **PhoneCallIndicatorTest**: Phone call duration logic, emergency indicator detection
+
+#### Receiver Tests
 - **BootReceiverTest**: Boot completion handling, service initialization
 - **EmergencyBroadcastReceiverTest**: Emergency broadcast handling, intent actions
+
+#### Integration & Validation Tests
 - **AppConstantsTest**: Cross-component consistency, configuration validation
+- **BroadcastIntentTest**: Intent action patterns, broadcast security, component integration
+- **SecurityAndEdgeCaseTest**: Security validation, edge cases, null safety, resource exhaustion prevention
 
 ### Test Location
 
