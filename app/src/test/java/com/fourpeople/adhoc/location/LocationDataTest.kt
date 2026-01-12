@@ -153,4 +153,32 @@ class LocationDataTest {
         assertEquals(original.isHelpRequest, parsed?.isHelpRequest)
         assertEquals(original.helpMessage, parsed?.helpMessage)
     }
+
+    @Test
+    fun testLocationDataJsonEscaping() {
+        val location = LocationData(
+            deviceId = "test\"device\\with\nspecial\tcharacters",
+            latitude = 0.0,
+            longitude = 0.0,
+            accuracy = 10.0f,
+            isHelpRequest = true,
+            helpMessage = "Help\nme\tplease\"urgent\\"
+        )
+
+        val json = location.toJson()
+        
+        // Verify that special characters are properly escaped
+        assertTrue(json.contains("\\\""))  // Escaped quotes
+        assertTrue(json.contains("\\\\"))  // Escaped backslashes
+        assertTrue(json.contains("\\n"))   // Escaped newlines
+        assertTrue(json.contains("\\t"))   // Escaped tabs
+        assertFalse(json.contains("\n"))   // No raw newlines
+        assertFalse(json.contains("\t"))   // No raw tabs
+
+        // Verify round-trip preserves data
+        val parsed = LocationData.fromJson(json)
+        assertNotNull(parsed)
+        assertEquals(location.deviceId, parsed?.deviceId)
+        assertEquals(location.helpMessage, parsed?.helpMessage)
+    }
 }
