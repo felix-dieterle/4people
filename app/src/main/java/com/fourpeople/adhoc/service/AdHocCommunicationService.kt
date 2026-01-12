@@ -243,10 +243,10 @@ class AdHocCommunicationService : Service() {
     private fun activateHotspot() {
         // Note: Creating WiFi hotspot programmatically requires system permissions
         // or is deprecated in newer Android versions. This is a simplified approach.
-        // In production, you would need to use WifiManager.LocalOnlyHotspotReservation
-        // for Android O+ or guide users to manually enable hotspot.
+        // LocalOnlyHotspot creates a network with a system-generated SSID that cannot
+        // be customized to follow the emergency naming pattern.
         
-        Log.d(TAG, "Hotspot activation requested (may require manual setup on newer Android versions)")
+        Log.d(TAG, "Hotspot activation requested (system-generated SSID)")
         
         // On Android O and above, we can request a local-only hotspot
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -254,9 +254,7 @@ class AdHocCommunicationService : Service() {
                 wifiManager.startLocalOnlyHotspot(object : WifiManager.LocalOnlyHotspotCallback() {
                     override fun onStarted(reservation: WifiManager.LocalOnlyHotspotReservation?) {
                         Log.d(TAG, "Local-only hotspot started")
-                        reservation?.let {
-                            Log.d(TAG, "Hotspot SSID: ${it.wifiConfiguration?.SSID}")
-                        }
+                        // Note: SSID is system-generated and cannot be customized
                     }
 
                     override fun onStopped() {
@@ -290,8 +288,9 @@ class AdHocCommunicationService : Service() {
     }
 
     private fun notifyEmergencyDetected(source: String) {
-        // Send broadcast to notify the app
+        // Send local broadcast to notify the app (more secure than implicit broadcasts)
         val intent = Intent("com.fourpeople.adhoc.EMERGENCY_DETECTED")
+        intent.setPackage(packageName)
         intent.putExtra("source", source)
         sendBroadcast(intent)
     }

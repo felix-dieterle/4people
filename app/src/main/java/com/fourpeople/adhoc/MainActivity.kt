@@ -131,7 +131,7 @@ class MainActivity : AppCompatActivity() {
     private fun requestPermissions() {
         val requiredPermissions = getRequiredPermissions()
         
-        if (shouldShowRequestPermissionRationale(requiredPermissions.first())) {
+        if (requiredPermissions.isNotEmpty() && shouldShowRequestPermissionRationale(requiredPermissions.first())) {
             showPermissionRationaleDialog()
         } else {
             requestPermissionsLauncher.launch(requiredPermissions.toTypedArray())
