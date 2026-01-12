@@ -203,19 +203,20 @@ class SecurityAndEdgeCaseTest {
     fun emergencyPatternRejectsSimilarButWrong() {
         val pattern = AdHocCommunicationService.EMERGENCY_SSID_PATTERN
         
-        // Test SSIDs that are similar but should not match
+        // Test SSIDs that are similar but should NOT match the emergency pattern
+        // Pattern is "4people-" so it requires the exact prefix including the dash
         val invalidSSIDs = listOf(
-            "4people",         // Missing dash
-            "4people_abc",     // Wrong separator
-            "4 people-abc",    // Space in middle
-            "fourpeople-abc",  // Spelled out
+            "4people",         // Missing dash - does NOT start with "4people-"
+            "4people_abc",     // Wrong separator (underscore instead of dash)
+            "4 people-abc",    // Space in middle (breaks the pattern)
+            "fourpeople-abc",  // Spelled out number (not "4people-")
             "4ppl-abc",        // Abbreviated differently
             "3people-abc",     // Wrong number
             "5people-abc"      // Wrong number
         )
         
         invalidSSIDs.forEach { ssid ->
-            assertFalse("$ssid should not match pattern", ssid.startsWith(pattern))
+            assertFalse("$ssid should not match pattern $pattern", ssid.startsWith(pattern))
         }
     }
 }
