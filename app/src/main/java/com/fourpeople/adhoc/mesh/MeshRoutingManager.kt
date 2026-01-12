@@ -97,6 +97,23 @@ class MeshRoutingManager(private val context: Context, private val deviceId: Str
     }
     
     /**
+     * Sends a broadcast message to all reachable nodes with a specific message type.
+     */
+    fun broadcastMessage(payload: String, messageType: MeshMessage.MessageType): Boolean {
+        Log.d(TAG, "Broadcasting message with type: $messageType")
+        
+        val message = MeshMessage(
+            sourceId = deviceId,
+            destinationId = MeshMessage.BROADCAST_DESTINATION,
+            payload = payload,
+            messageType = messageType,
+            sequenceNumber = sequenceNumber.incrementAndGet()
+        )
+        
+        return forwardToNeighbors(message)
+    }
+    
+    /**
      * Processes a received message.
      * Handles routing, forwarding, and delivery to application layer.
      */
@@ -120,6 +137,8 @@ class MeshRoutingManager(private val context: Context, private val deviceId: Str
             MeshMessage.MessageType.ROUTE_REPLY -> handleRouteReply(message, senderId)
             MeshMessage.MessageType.ROUTE_ERROR -> handleRouteError(message, senderId)
             MeshMessage.MessageType.HELLO -> handleHelloMessage(message, senderId)
+            MeshMessage.MessageType.LOCATION_UPDATE -> handleDataMessage(message, senderId) // Handle like data
+            MeshMessage.MessageType.HELP_REQUEST -> handleDataMessage(message, senderId) // Handle like data
         }
     }
     

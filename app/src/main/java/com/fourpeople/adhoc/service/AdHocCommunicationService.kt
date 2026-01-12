@@ -593,13 +593,7 @@ class AdHocCommunicationService : Service() {
             override fun onLocationUpdate(locationData: LocationData) {
                 // Broadcast location update to all participants
                 val payload = locationData.toJson()
-                val message = MeshMessage(
-                    sourceId = deviceId,
-                    destinationId = MeshMessage.BROADCAST_DESTINATION,
-                    payload = payload,
-                    messageType = MeshMessage.MessageType.LOCATION_UPDATE
-                )
-                meshRoutingManager?.broadcastMessage(payload)
+                meshRoutingManager?.broadcastMessage(payload, MeshMessage.MessageType.LOCATION_UPDATE)
                 Log.d(TAG, "Location update broadcast to network")
             }
         })
@@ -624,13 +618,7 @@ class AdHocCommunicationService : Service() {
         if (helpRequest != null) {
             // Broadcast help request to network
             val payload = helpRequest.toJson()
-            val meshMessage = MeshMessage(
-                sourceId = deviceId,
-                destinationId = MeshMessage.BROADCAST_DESTINATION,
-                payload = payload,
-                messageType = MeshMessage.MessageType.HELP_REQUEST
-            )
-            meshRoutingManager?.broadcastMessage(payload)
+            meshRoutingManager?.broadcastMessage(payload, MeshMessage.MessageType.HELP_REQUEST)
             Log.i(TAG, "Help request sent to network: ${message ?: "No message"}")
         } else {
             Log.w(TAG, "Failed to send help request - location not available")

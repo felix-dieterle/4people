@@ -1,18 +1,12 @@
 package com.fourpeople.adhoc
 
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.IBinder
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.fourpeople.adhoc.databinding.ActivityLocationMapBinding
 import com.fourpeople.adhoc.location.LocationData
-import com.fourpeople.adhoc.service.AdHocCommunicationService
 
 /**
  * Activity to display locations of all participants in the emergency network.
@@ -96,11 +90,16 @@ class LocationMapActivity : AppCompatActivity() {
                 location.deviceId
             }
             
+            // Sanitize help message by limiting length and removing control characters
+            val sanitizedHelpMessage = location.helpMessage
+                ?.take(100)  // Limit to 100 characters
+                ?.replace(Regex("[\\p{C}]"), "")  // Remove control characters
+            
             text1.text = deviceLabel
             text2.text = "Lat: ${String.format("%.6f", location.latitude)}, " +
                         "Lon: ${String.format("%.6f", location.longitude)}\n" +
                         "Accuracy: ${location.accuracy}m" +
-                        if (location.helpMessage != null) " - ${location.helpMessage}" else ""
+                        if (sanitizedHelpMessage != null) " - $sanitizedHelpMessage" else ""
         }
     }
 }

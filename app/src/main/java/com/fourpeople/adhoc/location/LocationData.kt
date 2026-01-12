@@ -56,9 +56,12 @@ data class LocationData(
     
     /**
      * Converts location data to JSON string for transmission.
+     * Properly escapes special characters to prevent JSON injection.
      */
     fun toJson(): String {
-        return """{"deviceId":"$deviceId","latitude":$latitude,"longitude":$longitude,"accuracy":$accuracy,"altitude":$altitude,"timestamp":$timestamp,"isHelpRequest":$isHelpRequest,"helpMessage":"${helpMessage ?: ""}"}"""
+        val escapedDeviceId = deviceId.replace("\\", "\\\\").replace("\"", "\\\"")
+        val escapedHelpMessage = (helpMessage ?: "").replace("\\", "\\\\").replace("\"", "\\\"")
+        return """{"deviceId":"$escapedDeviceId","latitude":$latitude,"longitude":$longitude,"accuracy":$accuracy,"altitude":$altitude,"timestamp":$timestamp,"isHelpRequest":$isHelpRequest,"helpMessage":"$escapedHelpMessage"}"""
     }
     
     /**
