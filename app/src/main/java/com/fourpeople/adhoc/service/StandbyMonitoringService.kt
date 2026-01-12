@@ -46,6 +46,7 @@ class StandbyMonitoringService : Service() {
         const val ACTION_START = "com.fourpeople.adhoc.STANDBY_START"
         const val ACTION_STOP = "com.fourpeople.adhoc.STANDBY_STOP"
         const val EMERGENCY_SSID_PATTERN = "4people-"
+        const val WIFI_SCAN_INTERVAL = 30000L // 30 seconds (standby mode)
         
         const val PREF_NAME = "4people_prefs"
         const val PREF_AUTO_ACTIVATE = "auto_activate"

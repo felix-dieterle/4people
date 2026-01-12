@@ -52,6 +52,7 @@ class AdHocCommunicationService : Service() {
         const val ACTION_START = "com.fourpeople.adhoc.START"
         const val ACTION_STOP = "com.fourpeople.adhoc.STOP"
         const val EMERGENCY_SSID_PATTERN = "4people-"
+        const val WIFI_SCAN_INTERVAL = 10000L // 10 seconds (default for active mode)
     }
 
     private var isRunning = false
