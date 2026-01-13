@@ -25,7 +25,7 @@ data class MeshMessage(
     companion object {
         const val DEFAULT_TTL = 10
         const val BROADCAST_DESTINATION = "BROADCAST"
-        private const val serialVersionUID = 2L // Incremented due to schema change
+        private const val serialVersionUID = 2L // Incremented due to schema changes
     }
     
     /**

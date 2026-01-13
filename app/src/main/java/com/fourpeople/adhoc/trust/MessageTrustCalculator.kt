@@ -30,20 +30,21 @@ class MessageTrustCalculator(private val trustManager: TrustManager) {
     companion object {
         private const val TAG = "MessageTrustCalculator"
         
-        // Weight factors for the algorithm (adjusted to accommodate security factor)
+        // Base weight factors for the algorithm (total: 0.8 for base score)
+        // Note: VERIFICATION_WEIGHT (0.15) is an adjustment, not a base weight
         private const val SENDER_TRUST_WEIGHT = 0.5 // 50% weight on sender trust
         private const val HOP_COUNT_WEIGHT = 0.3 // 30% weight on hop count
-        private const val CONNECTION_SECURITY_WEIGHT = 0.1 // 10% weight on connection security
+        
+        // Connection security bonus/penalty values
+        private const val SECURE_CONNECTION_BONUS = 0.1 // +10% for fully secure paths
+        private const val INSECURE_CONNECTION_PENALTY = -0.1 // -10% for paths with insecure hops
         
         // Hop penalty: each hop reduces trust score
         private const val HOP_PENALTY_FACTOR = 0.1 // 10% reduction per hop
         private const val MAX_HOP_PENALTY = 0.5 // Maximum 50% reduction from hops
         
-        // Verification adjustment factors
-        private const val VERIFICATION_WEIGHT = 0.15 // Max 15% adjustment from verifications
-        
-        // Connection security bonus/penalty
-        private const val INSECURE_CONNECTION_PENALTY = -0.1 // Penalty for insecure paths
+        // Verification adjustment factor (applied separately from base score)
+        private const val VERIFICATION_WEIGHT = 0.15 // Max ±15% adjustment from verifications
     }
     
     /**
@@ -76,7 +77,7 @@ class MessageTrustCalculator(private val trustManager: TrustManager) {
         val securityScore = if (hasInsecureHop) {
             INSECURE_CONNECTION_PENALTY
         } else {
-            CONNECTION_SECURITY_WEIGHT
+            SECURE_CONNECTION_BONUS
         }
         
         // Calculate base score before verifications
