@@ -52,6 +52,9 @@
     <string name="panic_massive_alert_duration">Massive Alert Duration</string>
     <string name="panic_emergency_contacts">Emergency Contacts</string>
     <string name="panic_add_contact">Add Emergency Contact</string>
+    <string name="panic_warning_vibration">Vibration only</string>
+    <string name="panic_warning_sound">Sound only</string>
+    <string name="panic_warning_both">Vibration and Sound</string>
     
     <!-- Location sharing strings -->
     <string name="location_map_title">Participant Locations</string>

@@ -420,14 +420,22 @@ class PanicModeService : Service() {
                 "Signal strength: $lastSignalStrength dBm\n\n" +
                 "Please check on me immediately!"
         
-        // Send SMS
+        // Send SMS using SmsManager directly for individual contact
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) == 
             PackageManager.PERMISSION_GRANTED) {
-            EmergencySmsHelper.sendEmergencySms(
-                applicationContext,
-                contact.phoneNumber,
-                message
-            )
+            try {
+                val smsManager = android.telephony.SmsManager.getDefault()
+                smsManager.sendTextMessage(
+                    contact.phoneNumber,
+                    null,
+                    message,
+                    null,
+                    null
+                )
+                Log.d(TAG, "Panic alert SMS sent to ${contact.name}: ${contact.phoneNumber}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to send panic SMS to ${contact.phoneNumber}", e)
+            }
         }
         
         // TODO: Add other notification channels (email, push notification, etc.)

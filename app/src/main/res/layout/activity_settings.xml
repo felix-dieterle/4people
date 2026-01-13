@@ -322,19 +322,19 @@
             android:id="@+id/panicWarningVibration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Vibration only" />
+            android:text="@string/panic_warning_vibration" />
 
         <RadioButton
             android:id="@+id/panicWarningSound"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sound only" />
+            android:text="@string/panic_warning_sound" />
 
         <RadioButton
             android:id="@+id/panicWarningBoth"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Vibration and Sound" />
+            android:text="@string/panic_warning_both" />
     </RadioGroup>
 
     <TextView
