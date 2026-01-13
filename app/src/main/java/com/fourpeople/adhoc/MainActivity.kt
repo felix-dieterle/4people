@@ -122,7 +122,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun registerEmergencyReceiver() {
         val filter = IntentFilter("com.fourpeople.adhoc.EMERGENCY_DETECTED")
-        registerReceiver(emergencyReceiver, filter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(emergencyReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(emergencyReceiver, filter)
+        }
     }
 
     private fun toggleEmergencyMode() {
