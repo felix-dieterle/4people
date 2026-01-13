@@ -220,10 +220,27 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkPermissions(): Boolean {
-        val requiredPermissions = getRequiredPermissions()
-        return requiredPermissions.all {
+        val requiredPermissions = getRequiredPermissions().filter {
+            // Background location is checked separately on Android 10+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                it != Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            } else {
+                true
+            }
+        }
+        
+        val foregroundPermissionsGranted = requiredPermissions.all {
             ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
         }
+        
+        // For Android 10+, also check background location separately
+        val backgroundLocationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            hasBackgroundLocationPermission()
+        } else {
+            true
+        }
+        
+        return foregroundPermissionsGranted && backgroundLocationGranted
     }
 
     private fun hasBackgroundLocationPermission(): Boolean {
@@ -431,7 +448,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun togglePanicMode() {
         if (!checkPermissions()) {
-            pendingEmergencyActivation = false // Not activating emergency mode, just panic mode
+            // Panic mode requires permissions but not emergency mode activation
+            // Request permissions without setting pendingEmergencyActivation flag
             requestPermissions()
             return
         }
