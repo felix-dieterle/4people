@@ -14,6 +14,11 @@
     <string name="emergency_notification_text">Ad-hoc communication is active</string>
     <string name="permission_required">Permissions Required</string>
     <string name="permission_explanation">This app requires Bluetooth, WiFi, and Location permissions to enable emergency ad-hoc communication.</string>
+    <string name="permission_detailed_explanation">This app requires multiple permissions to function properly:\n\n• Location: For WiFi scanning and GPS sharing\n• Bluetooth: For device-to-device communication\n• Camera: For flashlight Morse code signaling\n• Microphone: For ultrasound emergency signals\n• Phone: For detecting emergency call patterns\n• SMS: For emergency contact notifications\n• Notifications: For emergency alerts\n\nThese permissions enable the app to detect and respond to emergency situations even when running in the background.</string>
+    <string name="permission_denied_message">Some permissions were denied. The app requires all permissions to function properly, especially for background emergency detection and critical messaging features.\n\nPlease grant all requested permissions to use this app.</string>
+    <string name="background_location_explanation">Background location permission is required for the app to monitor for emergency signals even when the app is not in use. This enables the standby monitoring feature to work on device boot and in the background.</string>
+    <string name="panic_permission_message">Panic mode requires all app permissions to function properly. Please grant all requested permissions first.</string>
+    <string name="standby_permission_message">Standby monitoring requires all app permissions to function properly. Please grant all permissions in the main screen before enabling standby monitoring.</string>
     <string name="grant_permissions">Grant Permissions</string>
     
     <!-- Standby monitoring strings -->

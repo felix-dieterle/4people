@@ -258,9 +258,7 @@ class MainActivity : AppCompatActivity() {
             // Show rationale for background location
             AlertDialog.Builder(this)
                 .setTitle(R.string.permission_required)
-                .setMessage("Background location permission is required for the app to monitor " +
-                        "for emergency signals even when the app is not in use. This enables " +
-                        "the standby monitoring feature to work on device boot and in the background.")
+                .setMessage(R.string.background_location_explanation)
                 .setPositiveButton(R.string.grant_permissions) { _, _ ->
                     requestBackgroundLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
                 }
@@ -325,16 +323,7 @@ class MainActivity : AppCompatActivity() {
     private fun showPermissionRationaleDialog() {
         AlertDialog.Builder(this)
             .setTitle(R.string.permission_required)
-            .setMessage("This app requires multiple permissions to function properly:\n\n" +
-                    "• Location: For WiFi scanning and GPS sharing\n" +
-                    "• Bluetooth: For device-to-device communication\n" +
-                    "• Camera: For flashlight Morse code signaling\n" +
-                    "• Microphone: For ultrasound emergency signals\n" +
-                    "• Phone: For detecting emergency call patterns\n" +
-                    "• SMS: For emergency contact notifications\n" +
-                    "• Notifications: For emergency alerts\n\n" +
-                    "These permissions enable the app to detect and respond to emergency situations " +
-                    "even when running in the background.")
+            .setMessage(R.string.permission_detailed_explanation)
             .setPositiveButton(R.string.grant_permissions) { _, _ ->
                 val requiredPermissions = getRequiredPermissions().filter {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -352,10 +341,7 @@ class MainActivity : AppCompatActivity() {
     private fun showPermissionDeniedDialog() {
         AlertDialog.Builder(this)
             .setTitle(R.string.permission_required)
-            .setMessage("Some permissions were denied. The app requires all permissions to " +
-                    "function properly, especially for background emergency detection and " +
-                    "critical messaging features.\n\n" +
-                    "Please grant all requested permissions to use this app.")
+            .setMessage(R.string.permission_denied_message)
             .setPositiveButton(android.R.string.ok, null)
             .show()
     }
@@ -453,8 +439,7 @@ class MainActivity : AppCompatActivity() {
             // Show a specific message for panic mode
             AlertDialog.Builder(this)
                 .setTitle(R.string.permission_required)
-                .setMessage("Panic mode requires all app permissions to function properly. " +
-                        "Please grant all requested permissions first.")
+                .setMessage(R.string.panic_permission_message)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
                     requestPermissions()
                 }

@@ -121,9 +121,8 @@ class SettingsActivity : AppCompatActivity() {
         if (enabled && !hasRequiredPermissions()) {
             // Show a message that permissions are needed
             AlertDialog.Builder(this)
-                .setTitle("Permissions Required")
-                .setMessage("Standby monitoring requires all app permissions to function properly. " +
-                        "Please grant all permissions in the main screen before enabling standby monitoring.")
+                .setTitle(R.string.permission_required)
+                .setMessage(R.string.standby_permission_message)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
                     // Reset the switch since we can't enable it
                     binding.standbyMonitoringSwitch.isChecked = false
