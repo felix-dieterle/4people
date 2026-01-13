@@ -36,6 +36,9 @@ When emergency mode is activated:
 - ✓ **Flashlight Morse code signaling (optional)**
 - ✓ **Ultrasound emergency beacon (optional)**
 - ✓ **NFC Tap-to-Join** - Quick network joining through device-to-device NFC touch
+- ✓ **GPS location sharing** - Automatic GPS coordinate broadcasting to all network participants
+- ✓ **Participant location map** - View all participants' locations in the emergency network
+- ✓ **Help requests with location** - Send emergency help requests with GPS coordinates
 
 ### Standby Mode
 - ✓ App ready to receive activation broadcasts
@@ -52,13 +55,15 @@ When emergency mode is activated:
 
 1. **MainActivity**: Main UI with emergency activation button and settings access
 2. **SettingsActivity**: Configure standby monitoring and auto-activation preferences
-3. **AdHocCommunicationService**: Foreground service managing all communication channels
-4. **StandbyMonitoringService**: Background service for periodic emergency detection
-5. **BootReceiver**: Starts standby monitoring on device boot
-6. **EmergencyBroadcastReceiver**: Handles emergency detection broadcasts
-7. **PhoneCallIndicatorReceiver**: Detects brief incoming calls as emergency signals
-8. **MeshRoutingManager**: Manages mesh network routing and multi-hop message forwarding
-9. **BluetoothMeshTransport**: Handles Bluetooth communication for mesh messages
+3. **LocationMapActivity**: View GPS locations of all participants in the emergency network
+4. **AdHocCommunicationService**: Foreground service managing all communication channels
+5. **StandbyMonitoringService**: Background service for periodic emergency detection
+6. **BootReceiver**: Starts standby monitoring on device boot
+7. **EmergencyBroadcastReceiver**: Handles emergency detection broadcasts
+8. **PhoneCallIndicatorReceiver**: Detects brief incoming calls as emergency signals
+9. **MeshRoutingManager**: Manages mesh network routing and multi-hop message forwarding
+10. **BluetoothMeshTransport**: Handles Bluetooth communication for mesh messages
+11. **LocationSharingManager**: Manages GPS location capture and broadcasting to network participants
 
 ### Permissions Required
 
@@ -66,7 +71,7 @@ The app requires the following permissions for full functionality:
 
 - `BLUETOOTH`, `BLUETOOTH_ADMIN`, `BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`, `BLUETOOTH_ADVERTISE`
 - `ACCESS_WIFI_STATE`, `CHANGE_WIFI_STATE`
-- `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`
+- `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `ACCESS_BACKGROUND_LOCATION` (for GPS location sharing)
 - `READ_PHONE_STATE` (for phone call indicator detection)
 - `SEND_SMS` (for emergency SMS broadcast)
 - `CAMERA` (for flashlight Morse code signaling)
@@ -129,6 +134,7 @@ Visit the [Releases page](https://github.com/felix-dieterle/4people/releases) to
    - Enable Bluetooth discovery
    - Scan for emergency WiFi networks
    - Attempt to create a hotspot
+   - **Start GPS location sharing** - Broadcast your location to all network participants
    - Display status of all communication channels
 
 8. **Standby Mode**: The app continuously monitors for:
@@ -136,7 +142,15 @@ Visit the [Releases page](https://github.com/felix-dieterle/4people/releases) to
    - Brief incoming phone calls (less than 5 seconds)
    - Emergency broadcasts from other devices
 
-9. Other devices with the app will automatically detect your emergency signal
+9. **Location Sharing Features**:
+   - **View Participant Map**: Click "View Participant Map" to see GPS locations of all emergency network participants
+   - **Send Help Request**: Click "Send Help Request" to broadcast your location with an emergency message to all participants
+   - Locations are automatically updated every 30 seconds
+   - Help requests are highlighted with 🆘 indicator
+
+10. Other devices with the app will automatically detect your emergency signal
+    
+11. Other devices with the app will automatically detect your emergency signal
 
 ### NFC Tap-to-Join Feature
 
@@ -159,7 +173,6 @@ The NFC Tap-to-Join feature allows for quick and seamless network joining:
 - **Secure** - Credentials expire after 1 hour
 - **Easy to use** - Simply tap devices together
 - **Works offline** - No internet connection required
-
 ## Architecture
 
 ```
@@ -253,7 +266,9 @@ For detailed information about the project, see:
 
 - [ ] Peer-to-peer messaging over ad-hoc connections
 - [x] **Mesh network with multi-hop routing** - Implemented! Messages relay through intermediate devices
-- [ ] Emergency location sharing
+- [x] **Emergency location sharing** - Implemented! GPS coordinates broadcast to network participants
+- [x] **Help requests with location** - Implemented! Send emergency help requests with GPS position
+- [ ] Interactive map visualization with real-time updates
 - [ ] Offline map integration
 - [ ] Advanced battery optimization for standby mode
 - [x] **Flashlight Morse code signaling** - Implemented! Visual emergency signals using LED

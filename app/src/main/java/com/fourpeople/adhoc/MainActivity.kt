@@ -103,6 +103,14 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
+        binding.viewLocationsButton.setOnClickListener {
+            startActivity(Intent(this, LocationMapActivity::class.java))
+        }
+
+        binding.sendHelpButton.setOnClickListener {
+            sendHelpRequest()
+        }
+
         updateUI()
     }
 
@@ -137,12 +145,18 @@ class MainActivity : AppCompatActivity() {
             binding.bluetoothStatusTextView.text = getString(R.string.bluetooth_status, getString(R.string.active))
             binding.wifiStatusTextView.text = getString(R.string.wifi_status, getString(R.string.active))
             binding.hotspotStatusTextView.text = getString(R.string.hotspot_status, getString(R.string.active))
+            binding.locationStatusTextView.text = getString(R.string.location_sharing_status, getString(R.string.active))
+            binding.viewLocationsButton.isEnabled = true
+            binding.sendHelpButton.isEnabled = true
         } else {
             binding.statusTextView.text = getString(R.string.emergency_inactive)
             binding.activateButton.text = getString(R.string.activate_emergency)
             binding.bluetoothStatusTextView.text = getString(R.string.bluetooth_status, getString(R.string.inactive))
             binding.wifiStatusTextView.text = getString(R.string.wifi_status, getString(R.string.inactive))
             binding.hotspotStatusTextView.text = getString(R.string.hotspot_status, getString(R.string.inactive))
+            binding.locationStatusTextView.text = getString(R.string.location_sharing_status, getString(R.string.inactive))
+            binding.viewLocationsButton.isEnabled = false
+            binding.sendHelpButton.isEnabled = false
         }
     }
 
@@ -265,5 +279,35 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun sendHelpRequest() {
+        if (!isEmergencyActive) {
+            Toast.makeText(this, "Please activate emergency mode first", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Show dialog to enter help message
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle(R.string.send_help_request)
+        builder.setMessage(R.string.help_request_message)
+
+        val input = android.widget.EditText(this)
+        input.hint = getString(R.string.help_request_message)
+        builder.setView(input)
+
+        builder.setPositiveButton(android.R.string.ok) { _, _ ->
+            val message = input.text.toString().takeIf { it.isNotEmpty() }
+            
+            // Send help request via broadcast to service
+            val intent = Intent("com.fourpeople.adhoc.SEND_HELP_REQUEST")
+            intent.setPackage(packageName)
+            message?.let { intent.putExtra("help_message", it) }
+            sendBroadcast(intent)
+            
+            Toast.makeText(this, R.string.help_request_sent, Toast.LENGTH_SHORT).show()
+        }
+        builder.setNegativeButton(android.R.string.cancel, null)
+        builder.show()
     }
 }

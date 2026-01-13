@@ -18,6 +18,7 @@
     <!-- Location permissions (required for WiFi scanning, WiFi Direct, and Bluetooth on Android 6+) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     
     <!-- WiFi Direct (P2P) permissions -->
     <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
@@ -81,6 +82,12 @@
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="Settings"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".LocationMapActivity"
+            android:exported="false"
+            android:label="@string/location_map_title"
             android:parentActivityName=".MainActivity" />
 
         <!-- Ad-hoc communication service -->

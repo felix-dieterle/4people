@@ -33,6 +33,8 @@ import com.fourpeople.adhoc.util.NFCHelper
 import com.fourpeople.adhoc.mesh.MeshRoutingManager
 import com.fourpeople.adhoc.mesh.BluetoothMeshTransport
 import com.fourpeople.adhoc.mesh.MeshMessage
+import com.fourpeople.adhoc.location.LocationSharingManager
+import com.fourpeople.adhoc.location.LocationData
 import java.util.*
 
 /**
@@ -67,6 +69,7 @@ class AdHocCommunicationService : Service() {
     private var meshRoutingManager: MeshRoutingManager? = null
     private var bluetoothMeshTransport: BluetoothMeshTransport? = null
     private var nfcHelper: NFCHelper? = null
+    private var locationSharingManager: LocationSharingManager? = null
 
     private val wifiScanRunnable = object : Runnable {
         override fun run() {
@@ -110,6 +113,15 @@ class AdHocCommunicationService : Service() {
         }
     }
 
+    private val helpRequestReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "com.fourpeople.adhoc.SEND_HELP_REQUEST") {
+                val message = intent.getStringExtra("help_message")
+                handleSendHelpRequest(message)
+            }
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
@@ -137,8 +149,14 @@ class AdHocCommunicationService : Service() {
         meshRoutingManager = MeshRoutingManager(applicationContext, deviceId)
         bluetoothMeshTransport = BluetoothMeshTransport(applicationContext, bluetoothAdapter, deviceId)
         
+        // Initialize location sharing
+        locationSharingManager = LocationSharingManager(applicationContext, deviceId)
+        
         // Set up mesh routing callbacks
         setupMeshRouting()
+        
+        // Set up location sharing callbacks
+        setupLocationSharing()
         
         createNotificationChannel()
     }
@@ -174,6 +192,9 @@ class AdHocCommunicationService : Service() {
         // Clean up mesh routing
         bluetoothMeshTransport?.cleanup()
         
+        // Clean up location sharing
+        locationSharingManager?.stopLocationSharing()
+        
         Log.d(TAG, "Service destroyed and resources cleaned up")
     }
 
@@ -200,6 +221,9 @@ class AdHocCommunicationService : Service() {
         // Set device ID for NFC sharing
         nfcHelper?.setDeviceId(deviceId)
         
+        // Activate location sharing
+        activateLocationSharing()
+        
         // Broadcast local emergency
         broadcastEmergencySignal()
         
@@ -214,23 +238,27 @@ class AdHocCommunicationService : Service() {
         handler.removeCallbacks(wifiScanRunnable)
         handler.removeCallbacks(meshMaintenanceRunnable)
         
-        try {
-            unregisterReceiver(wifiScanReceiver)
-        } catch (e: IllegalArgumentException) {
-            // Receiver not registered
-        }
-        
-        try {
-            unregisterReceiver(bluetoothDiscoveryReceiver)
-        } catch (e: IllegalArgumentException) {
-            // Receiver not registered
-        }
+        safeUnregisterReceiver(wifiScanReceiver)
+        safeUnregisterReceiver(bluetoothDiscoveryReceiver)
+        safeUnregisterReceiver(helpRequestReceiver)
         
         deactivateBluetooth()
         deactivateWifiDirect()
         deactivateFlashlightSignaling()
         deactivateUltrasoundSignaling()
         deactivateMeshNetworking()
+        deactivateLocationSharing()
+    }
+    
+    /**
+     * Safely unregisters a BroadcastReceiver, ignoring errors if it was never registered.
+     */
+    private fun safeUnregisterReceiver(receiver: BroadcastReceiver) {
+        try {
+            unregisterReceiver(receiver)
+        } catch (e: IllegalArgumentException) {
+            // Receiver not registered - this is fine
+        }
     }
 
     private fun activateBluetooth() {
@@ -286,6 +314,10 @@ class AdHocCommunicationService : Service() {
         // Register WiFi scan receiver
         val filter = IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
         registerReceiver(wifiScanReceiver, filter)
+        
+        // Register help request receiver
+        val helpFilter = IntentFilter("com.fourpeople.adhoc.SEND_HELP_REQUEST")
+        registerReceiver(helpRequestReceiver, helpFilter)
         
         // Start periodic WiFi scanning
         handler.post(wifiScanRunnable)
@@ -513,20 +545,91 @@ class AdHocCommunicationService : Service() {
     private fun handleMeshMessage(message: MeshMessage) {
         Log.d(TAG, "Mesh message received from ${message.sourceId}: ${message.payload}")
         
-        // Notify emergency detection for mesh messages
-        notifyEmergencyDetected("Mesh:${message.sourceId}")
-        
-        // Handle the message payload (could be extended for specific message types)
-        when {
-            message.payload.startsWith("EMERGENCY") -> {
-                Log.i(TAG, "Emergency message relayed through mesh network")
+        // Handle different message types
+        when (message.messageType) {
+            MeshMessage.MessageType.LOCATION_UPDATE -> {
+                handleLocationUpdate(message)
             }
-            message.payload.startsWith("HELLO") -> {
-                // Hello message for neighbor discovery
+            MeshMessage.MessageType.HELP_REQUEST -> {
+                handleHelpRequest(message)
             }
             else -> {
-                Log.d(TAG, "Data message received: ${message.payload}")
+                // Notify emergency detection for mesh messages
+                notifyEmergencyDetected("Mesh:${message.sourceId}")
+                
+                // Handle the message payload (could be extended for specific message types)
+                when {
+                    message.payload.startsWith("EMERGENCY") -> {
+                        Log.i(TAG, "Emergency message relayed through mesh network")
+                    }
+                    message.payload.startsWith("HELLO") -> {
+                        // Hello message for neighbor discovery
+                    }
+                    else -> {
+                        Log.d(TAG, "Data message received: ${message.payload}")
+                    }
+                }
             }
+        }
+    }
+    
+    private fun handleLocationUpdate(message: MeshMessage) {
+        val locationData = LocationData.fromJson(message.payload)
+        if (locationData != null) {
+            locationSharingManager?.updateParticipantLocation(locationData)
+            Log.d(TAG, "Location updated for device ${locationData.deviceId}")
+        } else {
+            Log.w(TAG, "Failed to parse location data from message")
+        }
+    }
+    
+    private fun handleHelpRequest(message: MeshMessage) {
+        val locationData = LocationData.fromJson(message.payload)
+        if (locationData != null && locationData.isHelpRequest) {
+            locationSharingManager?.updateParticipantLocation(locationData)
+            Log.i(TAG, "HELP REQUEST from ${locationData.deviceId}: ${locationData.helpMessage}")
+            
+            // Notify user of help request
+            notifyEmergencyDetected("HELP:${locationData.deviceId}")
+        } else {
+            Log.w(TAG, "Failed to parse help request from message")
+        }
+    }
+    
+    private fun setupLocationSharing() {
+        locationSharingManager?.setLocationUpdateListener(object : LocationSharingManager.LocationUpdateListener {
+            override fun onLocationUpdate(locationData: LocationData) {
+                // Broadcast location update to all participants
+                val payload = locationData.toJson()
+                meshRoutingManager?.broadcastMessage(payload, MeshMessage.MessageType.LOCATION_UPDATE)
+                Log.d(TAG, "Location update broadcast to network")
+            }
+        })
+    }
+    
+    private fun activateLocationSharing() {
+        val success = locationSharingManager?.startLocationSharing() ?: false
+        if (success) {
+            Log.d(TAG, "Location sharing activated")
+        } else {
+            Log.w(TAG, "Failed to activate location sharing")
+        }
+    }
+    
+    private fun deactivateLocationSharing() {
+        locationSharingManager?.stopLocationSharing()
+        Log.d(TAG, "Location sharing deactivated")
+    }
+    
+    private fun handleSendHelpRequest(message: String?) {
+        val helpRequest = locationSharingManager?.sendHelpRequest(message)
+        if (helpRequest != null) {
+            // Broadcast help request to network
+            val payload = helpRequest.toJson()
+            meshRoutingManager?.broadcastMessage(payload, MeshMessage.MessageType.HELP_REQUEST)
+            Log.i(TAG, "Help request sent to network: ${message ?: "No message"}")
+        } else {
+            Log.w(TAG, "Failed to send help request - location not available")
         }
     }
 

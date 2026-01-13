@@ -84,7 +84,44 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/hotspot_status"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/locationStatusTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/location_sharing_status"
             android:textSize="16sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/locationButtonsLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/detailsLayout">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/viewLocationsButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/view_locations"
+            android:layout_marginEnd="8dp"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/sendHelpButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/send_help_request"
+            android:backgroundTint="#FF5722"
+            android:layout_marginStart="8dp" />
     </LinearLayout>
 
     <TextView
@@ -96,7 +133,7 @@
         android:textStyle="italic"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/detailsLayout"
+        app:layout_constraintTop_toBottomOf="@id/locationButtonsLayout"
         android:layout_marginTop="24dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
