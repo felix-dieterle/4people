@@ -124,6 +124,19 @@
             android:layout_marginStart="8dp" />
     </LinearLayout>
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/panicModeButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/activate_panic"
+        android:textSize="18sp"
+        android:padding="16dp"
+        android:backgroundTint="#D32F2F"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/locationButtonsLayout"
+        android:layout_marginTop="32dp" />
+
     <TextView
         android:id="@+id/scanningTextView"
         android:layout_width="wrap_content"
@@ -133,7 +146,7 @@
         android:textStyle="italic"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/locationButtonsLayout"
+        app:layout_constraintTop_toBottomOf="@id/panicModeButton"
         android:layout_marginTop="24dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
