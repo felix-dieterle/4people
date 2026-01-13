@@ -9,6 +9,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.fourpeople.adhoc.databinding.ActivitySettingsBinding
 import com.fourpeople.adhoc.service.StandbyMonitoringService
+import com.fourpeople.adhoc.service.PanicModeService
 import com.fourpeople.adhoc.util.EmergencySmsHelper
 
 /**
@@ -60,6 +61,21 @@ class SettingsActivity : AppCompatActivity() {
         binding.ultrasoundListenSwitch.setOnCheckedChangeListener { _, isChecked ->
             saveUltrasoundListenSetting(isChecked)
         }
+        
+        // Panic mode settings
+        binding.panicWarningTypeGroup.setOnCheckedChangeListener { _, checkedId ->
+            val warningType = when (checkedId) {
+                R.id.panicWarningVibration -> PanicModeService.WARNING_VIBRATION
+                R.id.panicWarningSound -> PanicModeService.WARNING_SOUND
+                R.id.panicWarningBoth -> PanicModeService.WARNING_BOTH
+                else -> PanicModeService.WARNING_VIBRATION
+            }
+            savePanicWarningTypeSetting(warningType)
+        }
+        
+        binding.panicAutoDataSwitch.setOnCheckedChangeListener { _, isChecked ->
+            savePanicAutoDataSetting(isChecked)
+        }
     }
 
     private fun loadSettings() {
@@ -81,6 +97,16 @@ class SettingsActivity : AppCompatActivity() {
         binding.flashlightMorseSwitch.isChecked = emergencyPrefs.getBoolean("flashlight_morse_enabled", false)
         binding.ultrasoundTransmitSwitch.isChecked = emergencyPrefs.getBoolean("ultrasound_transmit_enabled", false)
         binding.ultrasoundListenSwitch.isChecked = emergencyPrefs.getBoolean("ultrasound_listen_enabled", true)
+        
+        // Load panic mode settings
+        val panicPrefs = getSharedPreferences("panic_settings", Context.MODE_PRIVATE)
+        val warningType = panicPrefs.getString(PanicModeService.PREF_GENTLE_WARNING_TYPE, PanicModeService.WARNING_VIBRATION)
+        when (warningType) {
+            PanicModeService.WARNING_VIBRATION -> binding.panicWarningVibration.isChecked = true
+            PanicModeService.WARNING_SOUND -> binding.panicWarningSound.isChecked = true
+            PanicModeService.WARNING_BOTH -> binding.panicWarningBoth.isChecked = true
+        }
+        binding.panicAutoDataSwitch.isChecked = panicPrefs.getBoolean(PanicModeService.PREF_AUTO_ACTIVATE_DATA, false)
     }
 
     private fun saveAutoActivateSetting(enabled: Boolean) {
@@ -154,5 +180,23 @@ class SettingsActivity : AppCompatActivity() {
         val preferences = getSharedPreferences("emergency_prefs", Context.MODE_PRIVATE)
         preferences.edit().putBoolean("ultrasound_listen_enabled", enabled).apply()
         Toast.makeText(this, if (enabled) "Ultrasound listening enabled" else "Ultrasound listening disabled", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun savePanicWarningTypeSetting(warningType: String) {
+        val preferences = getSharedPreferences("panic_settings", Context.MODE_PRIVATE)
+        preferences.edit().putString(PanicModeService.PREF_GENTLE_WARNING_TYPE, warningType).apply()
+        val message = when (warningType) {
+            PanicModeService.WARNING_VIBRATION -> "Gentle warning: vibration only"
+            PanicModeService.WARNING_SOUND -> "Gentle warning: sound only"
+            PanicModeService.WARNING_BOTH -> "Gentle warning: vibration and sound"
+            else -> "Warning type updated"
+        }
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun savePanicAutoDataSetting(enabled: Boolean) {
+        val preferences = getSharedPreferences("panic_settings", Context.MODE_PRIVATE)
+        preferences.edit().putBoolean(PanicModeService.PREF_AUTO_ACTIVATE_DATA, enabled).apply()
+        Toast.makeText(this, if (enabled) "Auto-activate data enabled" else "Auto-activate data disabled", Toast.LENGTH_SHORT).show()
     }
 }
