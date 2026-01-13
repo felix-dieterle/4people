@@ -18,7 +18,7 @@
             android:id="@+id/panic_widget_icon"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/ic_launcher_foreground"
+            android:src="@android:drawable/ic_dialog_alert"
             android:contentDescription="@string/panic_widget_description"
             android:tint="@android:color/white" />
 
