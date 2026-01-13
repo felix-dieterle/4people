@@ -31,6 +31,27 @@
     
     <!-- Widget strings -->
     <string name="widget_description">Emergency Communication Quick Activate</string>
+    <string name="panic_widget_description">Panic Mode Quick Activate</string>
+    
+    <!-- Panic mode strings -->
+    <string name="panic_mode">PANIC MODE</string>
+    <string name="activate_panic">Activate Panic Mode</string>
+    <string name="deactivate_panic">Deactivate Panic Mode</string>
+    <string name="panic_active">Panic Mode Active</string>
+    <string name="panic_inactive">Panic Mode Inactive</string>
+    <string name="panic_confirm">I\'m OK</string>
+    <string name="panic_confirmation_needed">Are you OK? Please confirm.</string>
+    <string name="panic_gentle_warning">Please confirm you\'re OK</string>
+    <string name="panic_massive_alert">EMERGENCY ALERT - Confirm immediately!</string>
+    <string name="panic_notifying_contacts">Notifying emergency contacts</string>
+    <string name="panic_settings">Panic Mode Settings</string>
+    <string name="panic_gentle_warning_type">Gentle Warning Type</string>
+    <string name="panic_auto_activate_data">Auto-activate Mobile Data/WiFi</string>
+    <string name="panic_confirmation_interval">Confirmation Interval</string>
+    <string name="panic_gentle_warning_duration">Gentle Warning Duration</string>
+    <string name="panic_massive_alert_duration">Massive Alert Duration</string>
+    <string name="panic_emergency_contacts">Emergency Contacts</string>
+    <string name="panic_add_contact">Add Emergency Contact</string>
     
     <!-- Location sharing strings -->
     <string name="location_map_title">Participant Locations</string>

@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.fourpeople.adhoc.databinding.ActivityMainBinding
 import com.fourpeople.adhoc.service.AdHocCommunicationService
+import com.fourpeople.adhoc.service.PanicModeService
 import com.fourpeople.adhoc.util.NFCHelper
 
 /**
@@ -27,6 +28,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var isEmergencyActive = false
+    private var isPanicModeActive = false
     private var nfcHelper: NFCHelper? = null
 
     private val emergencyReceiver = object : BroadcastReceiver() {
@@ -109,6 +111,10 @@ class MainActivity : AppCompatActivity() {
 
         binding.sendHelpButton.setOnClickListener {
             sendHelpRequest()
+        }
+
+        binding.panicModeButton.setOnClickListener {
+            togglePanicMode()
         }
 
         updateUI()
@@ -309,5 +315,58 @@ class MainActivity : AppCompatActivity() {
         }
         builder.setNegativeButton(android.R.string.cancel, null)
         builder.show()
+    }
+
+    private fun togglePanicMode() {
+        if (!checkPermissions()) {
+            requestPermissions()
+            return
+        }
+
+        isPanicModeActive = !isPanicModeActive
+
+        val intent = Intent(this, PanicModeService::class.java)
+        if (isPanicModeActive) {
+            // Show confirmation dialog before activating panic mode
+            AlertDialog.Builder(this)
+                .setTitle(R.string.activate_panic)
+                .setMessage("Activating panic mode will:\n\n" +
+                        "• Request confirmation every 30 seconds\n" +
+                        "• Alert with vibration if no confirmation\n" +
+                        "• Escalate to full alarm if still no response\n" +
+                        "• Notify emergency contacts if necessary\n\n" +
+                        "Are you sure you want to activate panic mode?")
+                .setPositiveButton(android.R.string.yes) { _, _ ->
+                    intent.action = PanicModeService.ACTION_START
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startForegroundService(intent)
+                    } else {
+                        startService(intent)
+                    }
+                    updatePanicModeUI()
+                    Toast.makeText(this, R.string.panic_active, Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton(android.R.string.no) { _, _ ->
+                    isPanicModeActive = false
+                }
+                .show()
+        } else {
+            intent.action = PanicModeService.ACTION_STOP
+            startService(intent)
+            updatePanicModeUI()
+            Toast.makeText(this, R.string.panic_inactive, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun updatePanicModeUI() {
+        if (isPanicModeActive) {
+            binding.panicModeButton.text = getString(R.string.deactivate_panic)
+            binding.panicModeButton.backgroundTintList = 
+                ContextCompat.getColorStateList(this, android.R.color.holo_orange_dark)
+        } else {
+            binding.panicModeButton.text = getString(R.string.activate_panic)
+            binding.panicModeButton.backgroundTintList = 
+                ContextCompat.getColorStateList(this, android.R.color.holo_red_dark)
+        }
     }
 }
