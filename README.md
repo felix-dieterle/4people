@@ -40,6 +40,17 @@ When emergency mode is activated:
 - ✓ **GPS location sharing** - Automatic GPS coordinate broadcasting to all network participants
 - ✓ **Participant location map** - View all participants' locations in the emergency network
 - ✓ **Help requests with location** - Send emergency help requests with GPS coordinates
+- ✓ **Panic Mode** - Progressive escalation system with confirmation checks, alerts, and emergency contact notification
+
+### Panic Mode
+Panic Mode provides automatic escalation when user cannot respond:
+- ✓ Regular confirmation requests (every 30 seconds)
+- ✓ Gentle warning phase (vibration/sound alerts)
+- ✓ Massive alert phase (flashlight, alarm, GPS activation, backend notification)
+- ✓ Progressive contact notification (intervals double: 3min, 6min, 12min, etc.)
+- ✓ Home screen widget for quick activation
+- ✓ Configurable warning types and auto-network activation
+- ✓ See [PANIC_MODE.md](PANIC_MODE.md) for detailed documentation
 
 ### Standby Mode
 - ✓ App ready to receive activation broadcasts
@@ -59,12 +70,15 @@ When emergency mode is activated:
 3. **LocationMapActivity**: View GPS locations of all participants in the emergency network
 4. **AdHocCommunicationService**: Foreground service managing all communication channels
 5. **StandbyMonitoringService**: Background service for periodic emergency detection
-6. **BootReceiver**: Starts standby monitoring on device boot
-7. **EmergencyBroadcastReceiver**: Handles emergency detection broadcasts
-8. **PhoneCallIndicatorReceiver**: Detects brief incoming calls as emergency signals
-9. **MeshRoutingManager**: Manages mesh network routing and multi-hop message forwarding
-10. **BluetoothMeshTransport**: Handles Bluetooth communication for mesh messages
-11. **LocationSharingManager**: Manages GPS location capture and broadcasting to network participants
+6. **PanicModeService**: Foreground service managing panic mode with progressive escalation
+7. **BootReceiver**: Starts standby monitoring on device boot
+8. **EmergencyBroadcastReceiver**: Handles emergency detection broadcasts
+9. **PhoneCallIndicatorReceiver**: Detects brief incoming calls as emergency signals
+10. **MeshRoutingManager**: Manages mesh network routing and multi-hop message forwarding
+11. **BluetoothMeshTransport**: Handles Bluetooth communication for mesh messages
+12. **LocationSharingManager**: Manages GPS location capture and broadcasting to network participants
+13. **EmergencyWidget**: Home screen widget for quick emergency mode activation
+14. **PanicWidget**: Home screen widget for quick panic mode activation
 
 ### Permissions Required
 

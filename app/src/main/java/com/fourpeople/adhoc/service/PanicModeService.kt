@@ -503,9 +503,13 @@ class PanicModeService : Service() {
     }
 
     private fun getEmergencyContacts(): List<EmergencyContact> {
-        // TODO: Implement proper emergency contacts storage/retrieval
-        // For now, return empty list
-        return emptyList()
+        // Get emergency contacts from shared preferences (same as EmergencySmsHelper)
+        val contacts = EmergencySmsHelper.getEmergencyContacts(applicationContext)
+        
+        // Convert phone numbers to EmergencyContact objects
+        return contacts.mapIndexed { index, phoneNumber ->
+            EmergencyContact("Contact ${index + 1}", phoneNumber)
+        }
     }
 
     private fun createNotificationChannel() {
