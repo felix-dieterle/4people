@@ -1,12 +1,15 @@
 package com.fourpeople.adhoc
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.fourpeople.adhoc.databinding.ActivitySettingsBinding
 import com.fourpeople.adhoc.service.StandbyMonitoringService
 import com.fourpeople.adhoc.service.PanicModeService
@@ -115,6 +118,19 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun toggleStandbyMonitoring(enabled: Boolean) {
+        if (enabled && !hasRequiredPermissions()) {
+            // Reset the switch immediately since we can't enable it
+            binding.standbyMonitoringSwitch.isChecked = false
+            
+            // Show a message that permissions are needed
+            AlertDialog.Builder(this)
+                .setTitle(R.string.permission_required)
+                .setMessage(R.string.standby_permission_message)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+            return
+        }
+        
         val intent = Intent(this, StandbyMonitoringService::class.java)
         
         if (enabled) {
@@ -128,6 +144,38 @@ class SettingsActivity : AppCompatActivity() {
             intent.action = StandbyMonitoringService.ACTION_STOP
             startService(intent)
         }
+    }
+    
+    private fun hasRequiredPermissions(): Boolean {
+        // Check critical permissions needed for standby monitoring
+        val criticalPermissions = mutableListOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            criticalPermissions.add(Manifest.permission.BLUETOOTH_SCAN)
+        }
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            criticalPermissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        
+        val foregroundPermissionsGranted = criticalPermissions.all {
+            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+        }
+        
+        // Background location is required for standby monitoring on boot
+        val backgroundLocationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContextCompat.checkSelfPermission(
+                this, 
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+        
+        return foregroundPermissionsGranted && backgroundLocationGranted
     }
 
     override fun onSupportNavigateUp(): Boolean {
