@@ -33,6 +33,7 @@ When emergency mode is activated:
 - ✓ SMS emergency broadcast to contacts
 - ✓ **Mesh network routing** - Multi-hop message forwarding through intermediate devices
 - ✓ **Automatic route discovery** - AODV-like protocol for finding paths to distant devices
+- ✓ **Trust-based message evaluation** - Assess message trustworthiness based on sender trust level, hop count, and peer verifications
 - ✓ **Flashlight Morse code signaling (optional)**
 - ✓ **Ultrasound emergency beacon (optional)**
 - ✓ **NFC Tap-to-Join** - Quick network joining through device-to-device NFC touch
@@ -261,6 +262,8 @@ For detailed information about the project, see:
 - **[SUMMARY.md](SUMMARY.md)**: Project summary and overview
 - **[TESTING.md](TESTING.md)**: Testing guide and procedures
 - **[MESH_ROUTING.md](MESH_ROUTING.md)**: Mesh network routing implementation and protocol details
+- **[TRUST_SYSTEM.md](TRUST_SYSTEM.md)**: Trust-based message evaluation system with algorithm documentation
+- **[SECURE_CONNECTIONS.md](SECURE_CONNECTIONS.md)**: Secure connection tracking in mesh routing
 
 ## Future Enhancements
 
@@ -268,6 +271,8 @@ For detailed information about the project, see:
 - [x] **Mesh network with multi-hop routing** - Implemented! Messages relay through intermediate devices
 - [x] **Emergency location sharing** - Implemented! GPS coordinates broadcast to network participants
 - [x] **Help requests with location** - Implemented! Send emergency help requests with GPS position
+- [x] **Trust-based message evaluation** - Implemented! Evaluate message trustworthiness based on sender trust, hop count, and connection security
+- [x] **Secure connection tracking** - Implemented! Track and prefer secure routes in mesh network
 - [ ] Interactive map visualization with real-time updates
 - [ ] Offline map integration
 - [ ] Advanced battery optimization for standby mode

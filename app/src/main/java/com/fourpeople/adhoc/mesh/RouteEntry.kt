@@ -12,10 +12,30 @@ data class RouteEntry(
     val hopCount: Int,
     val sequenceNumber: Int,
     val timestamp: Long = System.currentTimeMillis(),
-    val isValid: Boolean = true
+    val isValid: Boolean = true,
+    val connectionSecurity: ConnectionSecurity = ConnectionSecurity.UNKNOWN
 ) {
     companion object {
         const val ROUTE_TIMEOUT_MS = 30_000L // 30 seconds
+    }
+    
+    /**
+     * Represents the security level of a connection in the route.
+     * 
+     * SECURE: Encrypted connection (e.g., Bluetooth with pairing, WPA2/WPA3 WiFi)
+     * INSECURE: Unencrypted connection (e.g., open WiFi, unpaired Bluetooth)
+     * UNKNOWN: Security level not determined or mixed security in path
+     * 
+     * Note: This is a rudimentary implementation. Future improvements could include:
+     * - Multiple security levels (e.g., LOW, MEDIUM, HIGH)
+     * - Per-hop security tracking for the entire path
+     * - Certificate validation for end-to-end encryption
+     * - Dynamic security assessment based on connection type
+     */
+    enum class ConnectionSecurity {
+        SECURE,    // Encrypted/authenticated connection
+        INSECURE,  // Unencrypted or unauthenticated connection
+        UNKNOWN    // Security status not determined
     }
     
     /**
@@ -26,8 +46,16 @@ data class RouteEntry(
     }
     
     /**
+     * Checks if the route uses a secure connection.
+     */
+    fun isSecure(): Boolean {
+        return connectionSecurity == ConnectionSecurity.SECURE
+    }
+    
+    /**
      * Checks if this route is better than another route.
      * A route is better if it has fewer hops or a higher sequence number.
+     * If routes are otherwise equal, prefer secure connections.
      */
     fun isBetterThan(other: RouteEntry?): Boolean {
         if (other == null || !other.isValid || other.isExpired()) return true
@@ -37,6 +65,13 @@ data class RouteEntry(
         if (sequenceNumber < other.sequenceNumber) return false
         
         // Same sequence number, prefer fewer hops
-        return hopCount < other.hopCount
+        if (hopCount < other.hopCount) return true
+        if (hopCount > other.hopCount) return false
+        
+        // Same hops, prefer secure connections
+        if (connectionSecurity == ConnectionSecurity.SECURE && 
+            other.connectionSecurity != ConnectionSecurity.SECURE) return true
+        
+        return false
     }
 }

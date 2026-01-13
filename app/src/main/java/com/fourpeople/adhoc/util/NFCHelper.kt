@@ -137,23 +137,21 @@ class NFCHelper(private val context: Context) {
      * Enable NFC foreground dispatch for an activity.
      * This ensures the activity receives NFC intents even when in the foreground.
      * 
+     * Note: Android Beam (setNdefPushMessage) was deprecated in API 29 and removed in API 30.
+     * For sharing credentials, apps should use alternative methods like QR codes or WiFi Direct.
+     * 
      * @param activity The activity to enable foreground dispatch for
      */
     fun enableForegroundDispatch(activity: Activity) {
         nfcAdapter?.let { adapter ->
             if (adapter.isEnabled) {
                 try {
-                    // For API 29+, we use static handover instead of Android Beam
-                    // Set NDEF push message for sharing credentials when tapped
+                    // Android Beam is no longer available in modern Android versions (API 30+)
+                    // NFC tag reading/writing can still be used for credential sharing
                     currentDeviceId?.let { deviceId ->
                         val message = createNdefMessage(deviceId)
-                        
-                        // For older Android versions with Android Beam support
-                        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
-                            @Suppress("DEPRECATION")
-                            adapter.setNdefPushMessage(message, activity)
-                            Log.d(TAG, "NFC push message set (Android Beam)")
-                        }
+                        Log.d(TAG, "NFC message created for device: $deviceId")
+                        // Message can be written to NFC tags or shared via other mechanisms
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error enabling NFC foreground dispatch", e)
@@ -165,16 +163,15 @@ class NFCHelper(private val context: Context) {
     /**
      * Disable NFC foreground dispatch for an activity.
      * 
+     * Note: Android Beam is no longer available, so this is a no-op for cleanup purposes.
+     * 
      * @param activity The activity to disable foreground dispatch for
      */
     fun disableForegroundDispatch(activity: Activity) {
         nfcAdapter?.let { adapter ->
             try {
-                // Clear Android Beam message
-                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
-                    @Suppress("DEPRECATION")
-                    adapter.setNdefPushMessage(null, activity)
-                }
+                // Android Beam was removed in API 30, no cleanup needed
+                Log.d(TAG, "NFC foreground dispatch disabled")
             } catch (e: Exception) {
                 Log.e(TAG, "Error disabling NFC foreground dispatch", e)
             }

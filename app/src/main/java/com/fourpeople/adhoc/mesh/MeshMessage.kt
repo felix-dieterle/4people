@@ -18,23 +18,27 @@ data class MeshMessage(
     val timestamp: Long = System.currentTimeMillis(),
     val ttl: Int = DEFAULT_TTL,
     val sequenceNumber: Int = 0,
-    val hopCount: Int = 0
+    val hopCount: Int = 0,
+    val hasInsecureHop: Boolean = false
 ) : Serializable {
     
     companion object {
         const val DEFAULT_TTL = 10
         const val BROADCAST_DESTINATION = "BROADCAST"
-        private const val serialVersionUID = 1L
+        private const val serialVersionUID = 2L // Incremented due to schema changes
     }
     
     /**
      * Creates a copy of the message with incremented hop count and decremented TTL.
      * Used when forwarding the message to the next hop.
+     * 
+     * @param isSecureHop Whether the current hop uses a secure connection
      */
-    fun forward(): MeshMessage {
+    fun forward(isSecureHop: Boolean = true): MeshMessage {
         return copy(
             ttl = ttl - 1,
-            hopCount = hopCount + 1
+            hopCount = hopCount + 1,
+            hasInsecureHop = hasInsecureHop || !isSecureHop
         )
     }
     
@@ -47,6 +51,11 @@ data class MeshMessage(
      * Checks if this is a broadcast message.
      */
     fun isBroadcast(): Boolean = destinationId == BROADCAST_DESTINATION
+    
+    /**
+     * Checks if all hops in the message path are secure.
+     */
+    fun isFullySecure(): Boolean = !hasInsecureHop
     
     enum class MessageType {
         DATA,              // Regular data message
