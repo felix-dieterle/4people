@@ -221,12 +221,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkPermissions(): Boolean {
         val requiredPermissions = getRequiredPermissions().filter {
-            // Background location is checked separately on Android 10+
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                it != Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            } else {
-                true
-            }
+            !shouldFilterBackgroundLocation(it)
         }
         
         val foregroundPermissionsGranted = requiredPermissions.all {
@@ -252,6 +247,12 @@ class MainActivity : AppCompatActivity() {
         }
         return true // Not required on older versions
     }
+    
+    private fun shouldFilterBackgroundLocation(permission: String): Boolean {
+        // Background location is checked separately on Android 10+
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && 
+               permission == Manifest.permission.ACCESS_BACKGROUND_LOCATION
+    }
 
     private fun requestBackgroundLocationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -270,11 +271,7 @@ class MainActivity : AppCompatActivity() {
     private fun requestPermissions() {
         // Get base permissions (excluding background location on Android 10+)
         val requiredPermissions = getRequiredPermissions().filter {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                it != Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            } else {
-                true
-            }
+            !shouldFilterBackgroundLocation(it)
         }
         
         if (requiredPermissions.isNotEmpty() && shouldShowRequestPermissionRationale(requiredPermissions.first())) {
@@ -309,13 +306,6 @@ class MainActivity : AppCompatActivity() {
             permissions.add(Manifest.permission.POST_NOTIFICATIONS)
             permissions.add(Manifest.permission.NEARBY_WIFI_DEVICES)
         }
-        
-        // Background location is required for standby monitoring on boot
-        // Note: On Android 10+, this must be requested separately after foreground location
-        // On earlier versions, foreground location permissions automatically include background access
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            permissions.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-        }
 
         return permissions
     }
@@ -326,11 +316,7 @@ class MainActivity : AppCompatActivity() {
             .setMessage(R.string.permission_detailed_explanation)
             .setPositiveButton(R.string.grant_permissions) { _, _ ->
                 val requiredPermissions = getRequiredPermissions().filter {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        it != Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    } else {
-                        true
-                    }
+                    !shouldFilterBackgroundLocation(it)
                 }
                 requestPermissionsLauncher.launch(requiredPermissions.toTypedArray())
             }

@@ -119,14 +119,14 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun toggleStandbyMonitoring(enabled: Boolean) {
         if (enabled && !hasRequiredPermissions()) {
+            // Reset the switch immediately since we can't enable it
+            binding.standbyMonitoringSwitch.isChecked = false
+            
             // Show a message that permissions are needed
             AlertDialog.Builder(this)
                 .setTitle(R.string.permission_required)
                 .setMessage(R.string.standby_permission_message)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    // Reset the switch since we can't enable it
-                    binding.standbyMonitoringSwitch.isChecked = false
-                }
+                .setPositiveButton(android.R.string.ok, null)
                 .show()
             return
         }
