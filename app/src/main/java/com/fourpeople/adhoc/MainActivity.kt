@@ -30,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     private var isEmergencyActive = false
     private var isPanicModeActive = false
     private var nfcHelper: NFCHelper? = null
+    private var pendingEmergencyActivation = false
 
     private val emergencyReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -51,9 +52,32 @@ class MainActivity : AppCompatActivity() {
     ) { permissions ->
         val allGranted = permissions.all { it.value }
         if (allGranted) {
-            toggleEmergencyMode()
+            // Check if we need to request background location separately
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && 
+                !hasBackgroundLocationPermission()) {
+                requestBackgroundLocationPermission()
+            } else if (pendingEmergencyActivation) {
+                pendingEmergencyActivation = false
+                toggleEmergencyMode()
+            }
         } else {
-            showPermissionDeniedDialog()
+            if (pendingEmergencyActivation) {
+                pendingEmergencyActivation = false
+                showPermissionDeniedDialog()
+            }
+        }
+    }
+
+    private val requestBackgroundLocationLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (pendingEmergencyActivation) {
+            pendingEmergencyActivation = false
+            if (checkPermissions()) {
+                toggleEmergencyMode()
+            } else {
+                showPermissionDeniedDialog()
+            }
         }
     }
 
@@ -66,6 +90,10 @@ class MainActivity : AppCompatActivity() {
         registerEmergencyReceiver()
         setupNFC()
         handleNfcIntent(intent)
+        
+        // Request all permissions on startup to ensure they're available
+        // for critical services (standby monitoring, boot receiver, etc.)
+        requestPermissionsOnStartup()
     }
     
     override fun onNewIntent(intent: Intent) {
@@ -76,6 +104,12 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         nfcHelper?.enableForegroundDispatch(this)
+        
+        // Check if permissions were revoked and update UI accordingly
+        if (!checkPermissions()) {
+            // Update UI to reflect that permissions are needed
+            updateUI()
+        }
     }
     
     override fun onPause() {
@@ -97,6 +131,7 @@ class MainActivity : AppCompatActivity() {
             if (checkPermissions()) {
                 toggleEmergencyMode()
             } else {
+                pendingEmergencyActivation = true
                 requestPermissions()
             }
         }
@@ -122,6 +157,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         updateUI()
+    }
+
+    private fun requestPermissionsOnStartup() {
+        // Check if we already have all permissions
+        if (checkPermissions()) {
+            return
+        }
+        
+        // Request permissions on startup to ensure they're available for background services
+        requestPermissions()
     }
 
     private fun registerEmergencyReceiver() {
@@ -181,8 +226,41 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun hasBackgroundLocationPermission(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return ContextCompat.checkSelfPermission(
+                this, 
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+        return true // Not required on older versions
+    }
+
+    private fun requestBackgroundLocationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Show rationale for background location
+            AlertDialog.Builder(this)
+                .setTitle(R.string.permission_required)
+                .setMessage("Background location permission is required for the app to monitor " +
+                        "for emergency signals even when the app is not in use. This enables " +
+                        "the standby monitoring feature to work on device boot and in the background.")
+                .setPositiveButton(R.string.grant_permissions) { _, _ ->
+                    requestBackgroundLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+    }
+
     private fun requestPermissions() {
-        val requiredPermissions = getRequiredPermissions()
+        // Get base permissions (excluding background location on Android 10+)
+        val requiredPermissions = getRequiredPermissions().filter {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                it != Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            } else {
+                true
+            }
+        }
         
         if (requiredPermissions.isNotEmpty() && shouldShowRequestPermissionRationale(requiredPermissions.first())) {
             showPermissionRationaleDialog()
@@ -216,6 +294,12 @@ class MainActivity : AppCompatActivity() {
             permissions.add(Manifest.permission.POST_NOTIFICATIONS)
             permissions.add(Manifest.permission.NEARBY_WIFI_DEVICES)
         }
+        
+        // Background location is required for standby monitoring on boot
+        // Note: On Android 10+, this must be requested separately after foreground location
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            permissions.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        }
 
         return permissions
     }
@@ -223,9 +307,25 @@ class MainActivity : AppCompatActivity() {
     private fun showPermissionRationaleDialog() {
         AlertDialog.Builder(this)
             .setTitle(R.string.permission_required)
-            .setMessage(R.string.permission_explanation)
+            .setMessage("This app requires multiple permissions to function properly:\n\n" +
+                    "• Location: For WiFi scanning and GPS sharing\n" +
+                    "• Bluetooth: For device-to-device communication\n" +
+                    "• Camera: For flashlight Morse code signaling\n" +
+                    "• Microphone: For ultrasound emergency signals\n" +
+                    "• Phone: For detecting emergency call patterns\n" +
+                    "• SMS: For emergency contact notifications\n" +
+                    "• Notifications: For emergency alerts\n\n" +
+                    "These permissions enable the app to detect and respond to emergency situations " +
+                    "even when running in the background.")
             .setPositiveButton(R.string.grant_permissions) { _, _ ->
-                requestPermissionsLauncher.launch(getRequiredPermissions().toTypedArray())
+                val requiredPermissions = getRequiredPermissions().filter {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        it != Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    } else {
+                        true
+                    }
+                }
+                requestPermissionsLauncher.launch(requiredPermissions.toTypedArray())
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -234,7 +334,10 @@ class MainActivity : AppCompatActivity() {
     private fun showPermissionDeniedDialog() {
         AlertDialog.Builder(this)
             .setTitle(R.string.permission_required)
-            .setMessage(R.string.permission_explanation)
+            .setMessage("Some permissions were denied. The app requires all permissions to " +
+                    "function properly, especially for background emergency detection and " +
+                    "critical messaging features.\n\n" +
+                    "Please grant all requested permissions to use this app.")
             .setPositiveButton(android.R.string.ok, null)
             .show()
     }
@@ -288,6 +391,7 @@ class MainActivity : AppCompatActivity() {
                         Toast.LENGTH_LONG
                     ).show()
                 } else {
+                    pendingEmergencyActivation = true
                     requestPermissions()
                 }
             }
@@ -327,6 +431,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun togglePanicMode() {
         if (!checkPermissions()) {
+            pendingEmergencyActivation = false // Not activating emergency mode, just panic mode
             requestPermissions()
             return
         }
