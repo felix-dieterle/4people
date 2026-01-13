@@ -90,6 +90,12 @@
             android:label="@string/location_map_title"
             android:parentActivityName=".MainActivity" />
 
+        <activity
+            android:name=".SimulationActivity"
+            android:exported="false"
+            android:label="@string/simulation_title"
+            android:parentActivityName=".MainActivity" />
+
         <!-- Ad-hoc communication service -->
         <service
             android:name=".service.AdHocCommunicationService"

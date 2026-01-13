@@ -65,4 +65,8 @@
     <string name="location_sharing_status">Location Sharing: %s</string>
     <string name="help_request_sent">Help request sent to network</string>
     <string name="help_request_message">Enter help message (optional)</string>
+    
+    <!-- Simulation strings -->
+    <string name="simulation_title">Emergency Propagation Simulation</string>
+    <string name="open_simulation">Open Simulation</string>
 </resources>
