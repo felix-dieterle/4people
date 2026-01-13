@@ -24,7 +24,9 @@ class MessageVerificationManager(context: Context) {
         private const val TAG = "MessageVerificationMgr"
         private const val PREF_NAME = "message_verification_prefs"
         private const val KEY_VERIFICATIONS = "message_verifications"
-        private const val MAX_STORED_VERIFICATIONS = 1000 // Limit storage size
+        // Limit storage to prevent unbounded growth. When exceeded, oldest verifications are removed
+        // during cleanup to keep storage at ~80% of limit (800 verifications)
+        private const val MAX_STORED_VERIFICATIONS = 1000
     }
     
     private val preferences: SharedPreferences = 

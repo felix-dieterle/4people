@@ -154,15 +154,16 @@ class TrustManager(context: Context) {
         }
         
         trustLevels.values.forEach { contact ->
-            byLevel[contact.trustLevel] = byLevel[contact.trustLevel]!! + 1
+            // Defensive programming: use safe access and default to 0
+            byLevel[contact.trustLevel] = (byLevel[contact.trustLevel] ?: 0) + 1
         }
         
         return TrustStatistics(
             totalContacts = trustLevels.size,
-            unknownCount = byLevel[ContactTrustLevel.UNKNOWN]!!,
-            knownContactCount = byLevel[ContactTrustLevel.KNOWN_CONTACT]!!,
-            friendCount = byLevel[ContactTrustLevel.FRIEND]!!,
-            closeFamilyCount = byLevel[ContactTrustLevel.CLOSE_FAMILY]!!
+            unknownCount = byLevel[ContactTrustLevel.UNKNOWN] ?: 0,
+            knownContactCount = byLevel[ContactTrustLevel.KNOWN_CONTACT] ?: 0,
+            friendCount = byLevel[ContactTrustLevel.FRIEND] ?: 0,
+            closeFamilyCount = byLevel[ContactTrustLevel.CLOSE_FAMILY] ?: 0
         )
     }
     
