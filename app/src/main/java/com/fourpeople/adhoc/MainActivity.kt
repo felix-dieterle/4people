@@ -117,6 +117,10 @@ class MainActivity : AppCompatActivity() {
             togglePanicMode()
         }
 
+        binding.simulationButton.setOnClickListener {
+            startActivity(Intent(this, SimulationActivity::class.java))
+        }
+
         updateUI()
     }
 
