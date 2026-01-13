@@ -41,6 +41,16 @@ When emergency mode is activated:
 - ✓ **Participant location map** - View all participants' locations in the emergency network
 - ✓ **Help requests with location** - Send emergency help requests with GPS coordinates
 - ✓ **Panic Mode** - Progressive escalation system with confirmation checks, alerts, and emergency contact notification
+- ✓ **Emergency Propagation Simulation** - Visual simulation tool to demonstrate message spread through the network
+
+### Emergency Propagation Simulation
+The app includes an interactive simulation mode that visualizes how emergency messages spread:
+- ✓ Visual map showing people, WiFi networks, and events
+- ✓ Configurable parameters (people count, app adoption rate 5-90%)
+- ✓ Time controls with adjustable speed (1x, 2x, 5x, 10x)
+- ✓ Real-time statistics and coverage metrics
+- ✓ Movement simulation with realistic walking patterns
+- ✓ See [SIMULATION.md](SIMULATION.md) for detailed documentation
 
 ### Panic Mode
 Panic Mode provides automatic escalation when user cannot respond:
@@ -278,6 +288,7 @@ For detailed information about the project, see:
 - **[MESH_ROUTING.md](MESH_ROUTING.md)**: Mesh network routing implementation and protocol details
 - **[TRUST_SYSTEM.md](TRUST_SYSTEM.md)**: Trust-based message evaluation system with algorithm documentation
 - **[SECURE_CONNECTIONS.md](SECURE_CONNECTIONS.md)**: Secure connection tracking in mesh routing
+- **[SIMULATION.md](SIMULATION.md)**: Emergency propagation simulation tool documentation
 
 ## Future Enhancements
 
@@ -287,6 +298,7 @@ For detailed information about the project, see:
 - [x] **Help requests with location** - Implemented! Send emergency help requests with GPS position
 - [x] **Trust-based message evaluation** - Implemented! Evaluate message trustworthiness based on sender trust, hop count, and connection security
 - [x] **Secure connection tracking** - Implemented! Track and prefer secure routes in mesh network
+- [x] **Emergency propagation simulation** - Implemented! Visual simulation of message spread through network
 - [ ] Interactive map visualization with real-time updates
 - [ ] Offline map integration
 - [ ] Advanced battery optimization for standby mode
