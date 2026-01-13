@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.nfc.NdefMessage
+import android.nfc.NfcAdapter
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -15,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.fourpeople.adhoc.databinding.ActivityMainBinding
 import com.fourpeople.adhoc.service.AdHocCommunicationService
+import com.fourpeople.adhoc.util.NFCHelper
 
 /**
  * Main activity for the 4people ad-hoc communication app.
@@ -24,6 +27,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var isEmergencyActive = false
+    private var nfcHelper: NFCHelper? = null
 
     private val emergencyReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -58,6 +62,23 @@ class MainActivity : AppCompatActivity() {
 
         setupUI()
         registerEmergencyReceiver()
+        setupNFC()
+        handleNfcIntent(intent)
+    }
+    
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleNfcIntent(intent)
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        nfcHelper?.enableForegroundDispatch(this)
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        nfcHelper?.disableForegroundDispatch(this)
     }
 
     override fun onDestroy() {
@@ -201,6 +222,62 @@ class MainActivity : AppCompatActivity() {
             .setTitle(R.string.permission_required)
             .setMessage(R.string.permission_explanation)
             .setPositiveButton(android.R.string.ok, null)
+            .show()
+    }
+    
+    private fun setupNFC() {
+        nfcHelper = NFCHelper(this)
+        if (nfcHelper?.initialize() == true) {
+            // NFC is available - set a placeholder device ID
+            // The actual device ID will be updated when emergency mode is activated
+            nfcHelper?.setDeviceId(NFCHelper.DEVICE_ID_PLACEHOLDER)
+        }
+    }
+    
+    private fun handleNfcIntent(intent: Intent?) {
+        if (intent?.action == NfcAdapter.ACTION_NDEF_DISCOVERED) {
+            val rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
+            if (rawMessages != null && rawMessages.isNotEmpty()) {
+                val message = rawMessages[0] as NdefMessage
+                val credentials = nfcHelper?.parseNdefMessage(message)
+                
+                if (credentials != null && credentials.isValid()) {
+                    onNetworkCredentialsReceived(credentials)
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Invalid or expired NFC credentials",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+    
+    private fun onNetworkCredentialsReceived(credentials: NFCHelper.NetworkCredentials) {
+        val networkSsid = credentials.getNetworkSsid()
+        
+        AlertDialog.Builder(this)
+            .setTitle("NFC Tap-to-Join")
+            .setMessage("Emergency network detected via NFC tap:\n\n" +
+                    "Network: $networkSsid\n\n" +
+                    "Do you want to activate emergency mode and join this network?")
+            .setPositiveButton("Join Network") { _, _ ->
+                // Activate emergency mode to join the network
+                if (checkPermissions()) {
+                    if (!isEmergencyActive) {
+                        toggleEmergencyMode()
+                    }
+                    Toast.makeText(
+                        this,
+                        "Joining emergency network: $networkSsid",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    requestPermissions()
+                }
+            }
+            .setNegativeButton("Cancel", null)
             .show()
     }
 

@@ -35,6 +35,7 @@ When emergency mode is activated:
 - ✓ **Automatic route discovery** - AODV-like protocol for finding paths to distant devices
 - ✓ **Flashlight Morse code signaling (optional)**
 - ✓ **Ultrasound emergency beacon (optional)**
+- ✓ **NFC Tap-to-Join** - Quick network joining through device-to-device NFC touch
 - ✓ **GPS location sharing** - Automatic GPS coordinate broadcasting to all network participants
 - ✓ **Participant location map** - View all participants' locations in the emergency network
 - ✓ **Help requests with location** - Send emergency help requests with GPS coordinates
@@ -75,6 +76,7 @@ The app requires the following permissions for full functionality:
 - `SEND_SMS` (for emergency SMS broadcast)
 - `CAMERA` (for flashlight Morse code signaling)
 - `RECORD_AUDIO` (for ultrasound signal detection)
+- `NFC` (for tap-to-join functionality)
 - `FOREGROUND_SERVICE`
 - `POST_NOTIFICATIONS` (Android 13+)
 - `RECEIVE_BOOT_COMPLETED`
@@ -126,7 +128,8 @@ Visit the [Releases page](https://github.com/felix-dieterle/4people/releases) to
 3. **Enable Standby Monitoring** in Settings to automatically detect emergencies
 4. **Configure Auto-Activation** in Settings (recommended) or rely on notifications
 5. **Manual Activation**: Click "Activate Emergency Communication" button
-6. The app will:
+6. **NFC Tap-to-Join**: To quickly join an active emergency network, tap your device against another device that has emergency mode active. Network credentials will be automatically exchanged via NFC, and you'll be prompted to join.
+7. The app will:
    - Start a foreground service
    - Enable Bluetooth discovery
    - Scan for emergency WiFi networks
@@ -134,19 +137,42 @@ Visit the [Releases page](https://github.com/felix-dieterle/4people/releases) to
    - **Start GPS location sharing** - Broadcast your location to all network participants
    - Display status of all communication channels
 
-7. **Standby Mode**: The app continuously monitors for:
+8. **Standby Mode**: The app continuously monitors for:
    - Emergency WiFi networks (4people-*)
    - Brief incoming phone calls (less than 5 seconds)
    - Emergency broadcasts from other devices
 
-8. **Location Sharing Features**:
+9. **Location Sharing Features**:
    - **View Participant Map**: Click "View Participant Map" to see GPS locations of all emergency network participants
    - **Send Help Request**: Click "Send Help Request" to broadcast your location with an emergency message to all participants
    - Locations are automatically updated every 30 seconds
    - Help requests are highlighted with 🆘 indicator
 
-9. Other devices with the app will automatically detect your emergency signal
+10. Other devices with the app will automatically detect your emergency signal
+    
+11. Other devices with the app will automatically detect your emergency signal
 
+### NFC Tap-to-Join Feature
+
+The NFC Tap-to-Join feature allows for quick and seamless network joining:
+
+**How it works:**
+1. **Person A** has emergency mode activated
+2. **Person B** taps their NFC-enabled device against Person A's device
+3. Network credentials are automatically exchanged via NFC
+4. **Person B** receives a prompt to join the emergency network
+5. Upon confirmation, Person B immediately joins the network
+
+**Requirements:**
+- Both devices must have NFC hardware
+- NFC must be enabled in device settings
+- The app must be in the foreground or have been recently used
+
+**Benefits:**
+- **Instant network sharing** - No manual configuration needed
+- **Secure** - Credentials expire after 1 hour
+- **Easy to use** - Simply tap devices together
+- **Works offline** - No internet connection required
 ## Architecture
 
 ```
@@ -249,7 +275,7 @@ For detailed information about the project, see:
 - [x] **Ultrasound signaling** - Implemented! Inaudible audio-based emergency beacon
 - [x] Support for WiFi Direct communication
 - [x] SMS emergency broadcast to contacts
-- [ ] NFC tap-to-join for quick network setup
+- [x] **NFC tap-to-join for quick network setup** - Implemented! Tap devices together to share credentials
 - [ ] Contact-based emergency signaling (calling frequent contacts)
 
 For a complete list of potential improvements with detailed analysis, see [NOTFALL_SZENARIEN.md](NOTFALL_SZENARIEN.md#verbesserungsvorschläge).

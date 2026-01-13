@@ -34,6 +34,9 @@
     
     <!-- Microphone permissions for ultrasound signaling -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    
+    <!-- NFC permissions for tap-to-join -->
+    <uses-permission android:name="android.permission.NFC" />
 
     <!-- Hotspot permissions - LocalOnlyHotspot doesn't require WRITE_SETTINGS -->
 
@@ -49,6 +52,7 @@
     <uses-feature android:name="android.hardware.wifi.direct" android:required="false" />
     <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.nfc" android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -60,10 +64,17 @@
         
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- NFC NDEF discovery intent filter -->
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/vnd.fourpeople.adhoc" />
             </intent-filter>
         </activity>
 
