@@ -5,12 +5,17 @@
 Das Trust-System bewertet die Vertrauenswürdigkeit von Nachrichten im Notfall-Kommunikationsnetz basierend auf:
 1. **Vertrauensstufe des Absenders** (Trust level of the sender)
 2. **Anzahl der Stationen (Hops)** vom ursprünglichen Absender (Number of hops from original sender)
-3. **Bestätigungen und Ablehnungen** von anderen Kontakten (Confirmations and rejections from other contacts)
+3. **Verbindungssicherheit** über den Nachrichten-Pfad (Connection security across the message path)
+4. **Bestätigungen und Ablehnungen** von anderen Kontakten (Confirmations and rejections from other contacts)
 
 The trust system evaluates message trustworthiness in the emergency communication network based on:
 1. **Sender's trust level** - How much you trust the original sender
 2. **Hop count** - Number of intermediate devices the message passed through
-3. **Verifications** - Confirmations or rejections from other contacts
+3. **Connection security** - Whether the path contains insecure connections
+4. **Verifications** - Confirmations or rejections from other contacts
+
+> **Neu / New:** Siehe [SECURE_CONNECTIONS.md](SECURE_CONNECTIONS.md) für Details zur Verbindungssicherheit im Mesh-Routing.
+> See [SECURE_CONNECTIONS.md](SECURE_CONNECTIONS.md) for details on connection security in mesh routing.
 
 ---
 
@@ -46,15 +51,19 @@ The system uses four trust levels:
 
 ### Formel / Formula
 
-Der Trust Score wird wie folgt berechnet:
+Der Trust Score wird wie folgt berechnet (aktualisiert mit Verbindungssicherheit):
 
-The trust score is calculated as follows:
+The trust score is calculated as follows (updated with connection security):
 
 ```
-Base Score = (Sender Trust Factor × 0.6) + (Hop Score × 0.4)
+Base Score = (Sender Trust Factor × 0.5) + (Hop Score × 0.3) + (Connection Security × 0.1)
 
 Hop Score = max(0, 1 - (hop_count × 0.1))
   - Maximum penalty: 50% (5+ hops)
+
+Connection Security Score:
+  - Secure path (no insecure hops): +0.1 (10% bonus)
+  - Insecure path (≥1 insecure hop): -0.1 (10% penalty)
 
 Verification Adjustment = ±0.15 maximum
   - Based on weighted confirmations/rejections
@@ -66,8 +75,9 @@ Final Score = Base Score + Verification Adjustment
 
 ### Gewichtung / Weighting
 
-- **60%** Vertrauensstufe des Absenders / Sender's trust level
-- **40%** Hop-Anzahl (Nähe zum Original) / Hop count (proximity to source)
+- **50%** Vertrauensstufe des Absenders / Sender's trust level
+- **30%** Hop-Anzahl (Nähe zum Original) / Hop count (proximity to source)
+- **10%** Verbindungssicherheit (neu!) / Connection security (new!)
 - **±15%** Bestätigungen/Ablehnungen / Verifications
 
 ### Hop-Penalty

@@ -40,12 +40,13 @@ class TrustSystemExample(context: Context) {
         // Get any existing verifications for this message
         val verifications = verificationManager.getVerifications(message.messageId)
         
-        // Calculate trust score
+        // Calculate trust score (now includes connection security)
         val evaluation = calculator.evaluateMessage(
             messageId = message.messageId,
             originalSenderId = message.sourceId,
             hopCount = message.hopCount,
-            verifications = verifications
+            verifications = verifications,
+            hasInsecureHop = message.hasInsecureHop
         )
         
         return evaluation

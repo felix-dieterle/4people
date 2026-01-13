@@ -30,9 +30,10 @@ class MessageTrustCalculator(private val trustManager: TrustManager) {
     companion object {
         private const val TAG = "MessageTrustCalculator"
         
-        // Weight factors for the algorithm
-        private const val SENDER_TRUST_WEIGHT = 0.6 // 60% weight on sender trust
-        private const val HOP_COUNT_WEIGHT = 0.4 // 40% weight on hop count
+        // Weight factors for the algorithm (adjusted to accommodate security factor)
+        private const val SENDER_TRUST_WEIGHT = 0.5 // 50% weight on sender trust
+        private const val HOP_COUNT_WEIGHT = 0.3 // 30% weight on hop count
+        private const val CONNECTION_SECURITY_WEIGHT = 0.1 // 10% weight on connection security
         
         // Hop penalty: each hop reduces trust score
         private const val HOP_PENALTY_FACTOR = 0.1 // 10% reduction per hop
@@ -40,6 +41,9 @@ class MessageTrustCalculator(private val trustManager: TrustManager) {
         
         // Verification adjustment factors
         private const val VERIFICATION_WEIGHT = 0.15 // Max 15% adjustment from verifications
+        
+        // Connection security bonus/penalty
+        private const val INSECURE_CONNECTION_PENALTY = -0.1 // Penalty for insecure paths
     }
     
     /**
@@ -48,12 +52,14 @@ class MessageTrustCalculator(private val trustManager: TrustManager) {
      * @param originalSenderId The ID of the contact who originally sent the message
      * @param hopCount Number of hops the message traveled (0 = direct)
      * @param verifications List of verifications for this message
+     * @param hasInsecureHop Whether the message path contains at least one insecure connection
      * @return Trust score between 0.0 (no trust) and 1.0 (complete trust)
      */
     fun calculateTrustScore(
         originalSenderId: String,
         hopCount: Int,
-        verifications: List<MessageVerification> = emptyList()
+        verifications: List<MessageVerification> = emptyList(),
+        hasInsecureHop: Boolean = false
     ): Double {
         // Get sender's trust level
         val senderTrust = trustManager.getTrustLevel(originalSenderId)
@@ -66,8 +72,15 @@ class MessageTrustCalculator(private val trustManager: TrustManager) {
         val hopPenalty = min(hopCount * HOP_PENALTY_FACTOR, MAX_HOP_PENALTY)
         val hopScore = max(0.0, (1.0 - hopPenalty)) * HOP_COUNT_WEIGHT
         
+        // Calculate connection security score
+        val securityScore = if (hasInsecureHop) {
+            INSECURE_CONNECTION_PENALTY
+        } else {
+            CONNECTION_SECURITY_WEIGHT
+        }
+        
         // Calculate base score before verifications
-        val baseScore = baseTrustFromSender + hopScore
+        val baseScore = baseTrustFromSender + hopScore + securityScore
         
         // Calculate verification adjustment
         val verificationAdjustment = calculateVerificationAdjustment(verifications)
@@ -76,8 +89,8 @@ class MessageTrustCalculator(private val trustManager: TrustManager) {
         val finalScore = (baseScore + verificationAdjustment).coerceIn(0.0, 1.0)
         
         Log.d(TAG, "Trust score calculated: sender=${senderTrust.trustLevel}, hops=$hopCount, " +
-                "base=${"%.2f".format(baseScore)}, verifications=${verifications.size}, " +
-                "final=${"%.2f".format(finalScore)}")
+                "secure=${!hasInsecureHop}, base=${"%.2f".format(baseScore)}, " +
+                "verifications=${verifications.size}, final=${"%.2f".format(finalScore)}")
         
         return finalScore
     }
@@ -89,16 +102,18 @@ class MessageTrustCalculator(private val trustManager: TrustManager) {
      * @param originalSenderId The ID of the contact who originally sent the message
      * @param hopCount Number of hops the message traveled
      * @param verifications List of verifications for this message
+     * @param hasInsecureHop Whether the message path contains at least one insecure connection
      * @return Complete trust evaluation with all details
      */
     fun evaluateMessage(
         messageId: String,
         originalSenderId: String,
         hopCount: Int,
-        verifications: List<MessageVerification> = emptyList()
+        verifications: List<MessageVerification> = emptyList(),
+        hasInsecureHop: Boolean = false
     ): MessageTrustEvaluation {
         val senderTrust = trustManager.getTrustLevel(originalSenderId)
-        val trustScore = calculateTrustScore(originalSenderId, hopCount, verifications)
+        val trustScore = calculateTrustScore(originalSenderId, hopCount, verifications, hasInsecureHop)
         
         val confirmations = verifications.count { it.isConfirmed }
         val rejections = verifications.count { !it.isConfirmed }
