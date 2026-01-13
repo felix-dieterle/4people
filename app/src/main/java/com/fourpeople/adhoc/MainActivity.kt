@@ -314,6 +314,7 @@ class MainActivity : AppCompatActivity() {
         
         // Background location is required for standby monitoring on boot
         // Note: On Android 10+, this must be requested separately after foreground location
+        // On earlier versions, foreground location permissions automatically include background access
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             permissions.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
         }
@@ -449,8 +450,16 @@ class MainActivity : AppCompatActivity() {
     private fun togglePanicMode() {
         if (!checkPermissions()) {
             // Panic mode requires permissions but not emergency mode activation
-            // Request permissions without setting pendingEmergencyActivation flag
-            requestPermissions()
+            // Show a specific message for panic mode
+            AlertDialog.Builder(this)
+                .setTitle(R.string.permission_required)
+                .setMessage("Panic mode requires all app permissions to function properly. " +
+                        "Please grant all requested permissions first.")
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    requestPermissions()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
             return
         }
 

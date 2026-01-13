@@ -162,9 +162,21 @@ class SettingsActivity : AppCompatActivity() {
             criticalPermissions.add(Manifest.permission.POST_NOTIFICATIONS)
         }
         
-        return criticalPermissions.all {
+        val foregroundPermissionsGranted = criticalPermissions.all {
             ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
         }
+        
+        // Background location is required for standby monitoring on boot
+        val backgroundLocationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContextCompat.checkSelfPermission(
+                this, 
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+        
+        return foregroundPermissionsGranted && backgroundLocationGranted
     }
 
     override fun onSupportNavigateUp(): Boolean {
