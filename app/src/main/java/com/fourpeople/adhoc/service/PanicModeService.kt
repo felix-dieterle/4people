@@ -334,7 +334,7 @@ class PanicModeService : Service() {
     }
 
     private fun stopMassiveAlert() {
-        flashlightHelper?.stopSOSSignal()
+        flashlightHelper?.stopSignal()
         vibrator?.cancel()
         mediaPlayer?.stop()
         mediaPlayer?.release()
@@ -577,13 +577,13 @@ class PanicModeService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Panic Mode Active")
             .setContentText(phaseText)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setContentIntent(mainPendingIntent)
-            .addAction(R.drawable.ic_launcher_foreground, "I'm OK", confirmPendingIntent)
-            .addAction(R.drawable.ic_launcher_foreground, "Stop", stopPendingIntent)
+            .addAction(android.R.drawable.ic_dialog_alert, "I'm OK", confirmPendingIntent)
+            .addAction(android.R.drawable.ic_delete, "Stop", stopPendingIntent)
             .build()
     }
 
