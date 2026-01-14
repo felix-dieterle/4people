@@ -275,22 +275,7 @@ class PanicModeService : Service() {
             Log.e(TAG, "Error stopping vibrator", e)
         }
         
-        try {
-            mediaPlayer?.let { player ->
-                try {
-                    if (player.isPlaying) {
-                        player.stop()
-                    }
-                } catch (e: IllegalStateException) {
-                    // Player already in invalid state, just release
-                }
-                player.release()
-            }
-            mediaPlayer = null
-        } catch (e: Exception) {
-            Log.e(TAG, "Error stopping media player", e)
-            mediaPlayer = null
-        }
+        safeStopMediaPlayer()
     }
 
     private fun startGentleVibration() {
@@ -404,6 +389,14 @@ class PanicModeService : Service() {
             Log.e(TAG, "Error stopping vibrator", e)
         }
         
+        safeStopMediaPlayer()
+    }
+    
+    /**
+     * Safely stops and releases the MediaPlayer, handling all potential exceptions.
+     * This includes checking the playing state and handling IllegalStateException.
+     */
+    private fun safeStopMediaPlayer() {
         try {
             mediaPlayer?.let { player ->
                 try {
@@ -412,6 +405,7 @@ class PanicModeService : Service() {
                     }
                 } catch (e: IllegalStateException) {
                     // Player already in invalid state, just release
+                    Log.d(TAG, "MediaPlayer in invalid state, skipping stop")
                 }
                 player.release()
             }
