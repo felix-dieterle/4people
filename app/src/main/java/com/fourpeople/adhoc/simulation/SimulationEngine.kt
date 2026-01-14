@@ -297,8 +297,9 @@ class SimulationEngine(
      * Informed people will approach nearby uninformed people to inform them verbally.
      */
     private fun updateApproachingBehavior() {
-        val informedPeople = people.filter { it.hasApp && it.hasReceivedEvent }
-        val uninformedPeople = people.filter { it.hasApp && !it.hasReceivedEvent }
+        // Cache informed and uninformed people to avoid creating new lists
+        val informedPeople = people.asSequence().filter { it.hasApp && it.hasReceivedEvent }
+        val uninformedPeople = people.asSequence().filter { it.hasApp && !it.hasReceivedEvent }.toList()
         
         for (informed in informedPeople) {
             // Check if already approaching someone
@@ -329,7 +330,7 @@ class SimulationEngine(
                     informed.targetPerson = uninformed
                     informed.movementSpeed = SimulationPerson.APPROACHING_SPEED
                     
-                    // Calculate direction to target
+                    // Calculate direction to target (angle from north)
                     val dLat = uninformed.latitude - informed.latitude
                     val dLon = uninformed.longitude - informed.longitude
                     informed.movementDirection = atan2(dLon, dLat)
@@ -342,10 +343,14 @@ class SimulationEngine(
     /**
      * Propagate messages via verbal transmission.
      * This simulates people telling others about the event verbally.
+     * 
+     * Note: Verbal transmission does not require the listener to have the app,
+     * simulating real-world verbal communication during emergencies.
      */
     private fun propagateVerbalMessages() {
-        val informedPeople = people.filter { it.hasReceivedEvent }
-        val uninformedPeople = people.filter { !it.hasReceivedEvent }
+        // Use sequences to avoid creating intermediate lists
+        val informedPeople = people.asSequence().filter { it.hasReceivedEvent }
+        val uninformedPeople = people.asSequence().filter { !it.hasReceivedEvent }.toList()
         
         for (uninformed in uninformedPeople) {
             for (informed in informedPeople) {
