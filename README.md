@@ -285,11 +285,11 @@ When adding new features, follow these testing guidelines:
 The app uses multiple communication channels that work in different scenarios:
 
 ### SMS Emergency Broadcasts
-- **Technology**: SMS over cellular voice network
-- **Requirements**: Cellular voice network (NOT WiFi or mobile data)
+- **Technology**: SMS over cellular signaling network (MAP/SS7 protocol)
+- **Requirements**: Cellular network infrastructure (NOT WiFi or mobile data)
 - **Availability**:
-  - ✅ Works when mobile data is down (voice network still operational)
-  - ✅ Works when internet backbone fails (voice network still operational)
+  - ✅ Works when mobile data is down (cellular network still operational)
+  - ✅ Works when internet backbone fails (cellular network still operational)
   - ❌ Does NOT work over WiFi networks
   - ❌ Does NOT work when cellular network completely fails
 - **Use Case**: Notify emergency contacts who may not have the app installed

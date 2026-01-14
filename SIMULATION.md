@@ -19,7 +19,7 @@ The simulation now includes 9 predefined scenarios representing typical emergenc
 Each location type has three infrastructure failure scenarios:
 
 1. **Nur Mobile Daten ausgefallen (Only Mobile Data Failed)**
-   - ✅ Voice calls and SMS still work (cellular voice network operational)
+   - ✅ Voice calls and SMS still work (cellular network operational)
    - ✅ WiFi networks functional (local connectivity)
    - ✅ SMS emergency broadcasts can reach contacts
    - ⚠️ Internet-dependent services unavailable
@@ -27,8 +27,8 @@ Each location type has three infrastructure failure scenarios:
    - **Simulation models**: WiFi propagation, SMS available
    
 2. **Daten Backbone ausgefallen (Data Backbone Failed)**
-   - ✅ Phone calls available (cellular voice network operational)
-   - ✅ SMS still works (requires only cellular voice, not data)
+   - ✅ Phone calls available (cellular network operational)
+   - ✅ SMS still works (uses cellular signaling, not internet)
    - ✅ Local WiFi networks still work (no internet access though)
    - ❌ No internet connectivity
    - **Verbal transmission enabled**: People inform others within speaking distance
@@ -324,9 +324,9 @@ The simulation can help answer questions like:
 **Important Technical Clarifications:**
 
 1. **SMS and WiFi are SEPARATE communication channels:**
-   - ✅ SMS works over cellular voice network (NOT WiFi or mobile data)
-   - ✅ SMS available when only mobile data fails (voice network still works)
-   - ✅ SMS available when data backbone fails (cellular voice still works)
+   - ✅ SMS uses cellular signaling network (MAP/SS7 protocol, NOT WiFi or mobile data)
+   - ✅ SMS available when only mobile data fails (cellular network still operational)
+   - ✅ SMS available when data backbone fails (cellular network still operational)
    - ❌ SMS does NOT work over WiFi networks
    - ❌ SMS NOT available when cellular network completely fails
 

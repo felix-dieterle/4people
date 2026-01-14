@@ -3,13 +3,13 @@ package com.fourpeople.adhoc.simulation
 /**
  * Represents different infrastructure failure modes in emergency scenarios.
  * 
- * Note: SMS requires cellular voice network, NOT WiFi or mobile data.
+ * Note: SMS requires cellular signaling network (MAP/SS7), NOT WiFi or mobile data.
  * WiFi networks can work independently of cellular infrastructure.
  */
 enum class InfrastructureFailureMode {
     /** 
      * Only mobile data has failed, voice calls and SMS still work.
-     * - ✅ SMS available (cellular voice network operational)
+     * - ✅ SMS available (cellular network operational)
      * - ✅ WiFi networks functional
      * - ⚠️ Internet-dependent services unavailable
      */
@@ -17,7 +17,7 @@ enum class InfrastructureFailureMode {
     
     /** 
      * Data backbone has failed, no internet but local networks and phone calls work.
-     * - ✅ SMS available (cellular voice network operational)
+     * - ✅ SMS available (cellular network operational)
      * - ✅ Phone calls available
      * - ✅ Local WiFi networks work (no internet access)
      * - ❌ No internet connectivity
