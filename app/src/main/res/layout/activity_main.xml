@@ -48,10 +48,22 @@
         android:text="@string/activate_emergency"
         android:textSize="18sp"
         android:padding="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/emergencyHelpButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/statusTextView"
-        android:layout_marginTop="32dp" />
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp" />
+
+    <ImageButton
+        android:id="@+id/emergencyHelpButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@android:drawable/ic_menu_info_details"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/help_emergency_mode_description"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/activateButton"
+        app:layout_constraintBottom_toBottomOf="@id/activateButton" />
 
     <LinearLayout
         android:id="@+id/detailsLayout"
@@ -132,10 +144,22 @@
         android:textSize="18sp"
         android:padding="16dp"
         android:backgroundTint="#D32F2F"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/panicHelpButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/locationButtonsLayout"
-        android:layout_marginTop="32dp" />
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp" />
+
+    <ImageButton
+        android:id="@+id/panicHelpButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@android:drawable/ic_menu_info_details"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/help_panic_mode_description"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/panicModeButton"
+        app:layout_constraintBottom_toBottomOf="@id/panicModeButton" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/simulationButton"

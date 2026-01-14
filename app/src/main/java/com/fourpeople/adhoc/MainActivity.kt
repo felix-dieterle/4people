@@ -136,6 +136,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        binding.emergencyHelpButton.setOnClickListener {
+            showEmergencyModeHelp()
+        }
+
         binding.settingsButton.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
@@ -150,6 +154,10 @@ class MainActivity : AppCompatActivity() {
 
         binding.panicModeButton.setOnClickListener {
             togglePanicMode()
+        }
+
+        binding.panicHelpButton.setOnClickListener {
+            showPanicModeHelp()
         }
 
         binding.simulationButton.setOnClickListener {
@@ -479,5 +487,21 @@ class MainActivity : AppCompatActivity() {
             binding.panicModeButton.backgroundTintList = 
                 ContextCompat.getColorStateList(this, android.R.color.holo_red_dark)
         }
+    }
+
+    private fun showEmergencyModeHelp() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.help_emergency_mode_title)
+            .setMessage(R.string.help_emergency_mode_message)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
+    }
+
+    private fun showPanicModeHelp() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.help_panic_mode_title)
+            .setMessage(R.string.help_panic_mode_message)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 }
