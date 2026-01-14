@@ -280,6 +280,43 @@ When adding new features, follow these testing guidelines:
 - Location permission is required for WiFi scanning on Android 6+
 - Battery consumption increases significantly in active mode
 
+## Emergency Communication Channels
+
+The app uses multiple communication channels that work in different scenarios:
+
+### SMS Emergency Broadcasts
+- **Technology**: SMS over cellular voice network
+- **Requirements**: Cellular voice network (NOT WiFi or mobile data)
+- **Availability**:
+  - ✅ Works when mobile data is down (voice network still operational)
+  - ✅ Works when internet backbone fails (voice network still operational)
+  - ❌ Does NOT work over WiFi networks
+  - ❌ Does NOT work when cellular network completely fails
+- **Use Case**: Notify emergency contacts who may not have the app installed
+- **Configuration**: Enable in Settings and configure emergency contacts
+
+### WiFi-Based Communication
+- **Technology**: WiFi scanning, hotspot creation, WiFi Direct
+- **Requirements**: Power at WiFi access points, device WiFi capability
+- **Availability**:
+  - ✅ Works independently of cellular infrastructure
+  - ✅ Works when mobile data fails
+  - ✅ Works when internet backbone fails
+  - ✅ Local propagation even with complete infrastructure failure
+  - ⚠️ Limited range (typically 50-100 meters)
+- **Use Case**: Ad-hoc networking when traditional infrastructure fails
+
+### Bluetooth Communication
+- **Technology**: Bluetooth discovery, advertising, mesh networking
+- **Requirements**: Bluetooth enabled on devices
+- **Availability**:
+  - ✅ Works completely independently of all infrastructure
+  - ✅ Works in all failure scenarios
+  - ⚠️ Shorter range than WiFi (typically 10-50 meters)
+- **Use Case**: Short-range peer-to-peer emergency networking
+
+**Important**: SMS and WiFi are DIFFERENT channels. SMS cannot work over WiFi - it requires cellular network. The simulation now correctly models which communication channels are available in different infrastructure failure scenarios.
+
 ## Documentation
 
 For detailed information about the project, see:
