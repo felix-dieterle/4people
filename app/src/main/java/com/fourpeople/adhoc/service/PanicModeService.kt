@@ -22,6 +22,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.VibrationEffect
+import android.os.PowerManager
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.telephony.TelephonyManager
@@ -92,6 +93,7 @@ class PanicModeService : Service() {
     private var locationManager: LocationManager? = null
     private var lastKnownLocation: Location? = null
     private var lastSignalStrength: Int = 0
+    private var wakeLock: PowerManager.WakeLock? = null
 
     private val confirmationCheckRunnable = object : Runnable {
         override fun run() {
@@ -123,6 +125,13 @@ class PanicModeService : Service() {
         flashlightHelper = FlashlightMorseHelper(applicationContext)
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         
+        // Initialize wake lock to keep device awake during alarms
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(
+            PowerManager.PARTIAL_WAKE_LOCK,
+            "FourPeople::PanicModeWakeLock"
+        )
+        
         createNotificationChannel()
         
         Log.d(TAG, "PanicModeService created")
@@ -153,6 +162,14 @@ class PanicModeService : Service() {
         stopPanicMode()
         flashlightHelper?.cleanup()
         mediaPlayer?.release()
+        
+        // Release wake lock
+        wakeLock?.let {
+            if (it.isHeld) {
+                it.release()
+            }
+        }
+        
         Log.d(TAG, "PanicModeService destroyed")
     }
 
@@ -317,6 +334,18 @@ class PanicModeService : Service() {
         currentPhase = PanicPhase.MASSIVE_ALERT
         massiveAlertStartTime = System.currentTimeMillis()
         
+        // Acquire wake lock to ensure device stays awake for alarm
+        try {
+            wakeLock?.let {
+                if (!it.isHeld) {
+                    it.acquire(10 * 60 * 1000L) // 10 minutes timeout
+                    Log.d(TAG, "Wake lock acquired")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to acquire wake lock, continuing with other alerts", e)
+        }
+        
         // Stop gentle warnings
         stopGentleWarning()
         
@@ -377,6 +406,18 @@ class PanicModeService : Service() {
     }
 
     private fun stopMassiveAlert() {
+        // Release wake lock
+        try {
+            wakeLock?.let {
+                if (it.isHeld) {
+                    it.release()
+                    Log.d(TAG, "Wake lock released")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error releasing wake lock", e)
+        }
+        
         try {
             flashlightHelper?.stopSignal()
         } catch (e: Exception) {
@@ -611,6 +652,9 @@ class PanicModeService : Service() {
                 setShowBadge(true)
                 enableLights(true)
                 enableVibration(true)
+                // Allow bypassing Do Not Disturb for critical alarms
+                setBypassDnd(true)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
             
             val notificationManager = getSystemService(NotificationManager::class.java)
@@ -619,11 +663,24 @@ class PanicModeService : Service() {
     }
 
     private fun createNotification(): Notification {
-        val mainIntent = Intent(this, MainActivity::class.java)
+        val mainIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
         val mainPendingIntent = PendingIntent.getActivity(
             this,
             0,
             mainIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        
+        // Full-screen intent for critical alarm phases (shows on lock screen)
+        val fullScreenIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val fullScreenPendingIntent = PendingIntent.getActivity(
+            this,
+            2,
+            fullScreenIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         
@@ -655,17 +712,24 @@ class PanicModeService : Service() {
             PanicPhase.CONTACT_NOTIFICATION -> "🆘 Notifying emergency contacts"
         }
         
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Panic Mode Active")
             .setContentText(phaseText)
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setOngoing(true)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setContentIntent(mainPendingIntent)
             .addAction(android.R.drawable.ic_dialog_alert, "I'm OK", confirmPendingIntent)
             .addAction(android.R.drawable.ic_delete, "Stop", stopPendingIntent)
-            .build()
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        
+        // Add full-screen intent for critical alarm phases
+        if (currentPhase == PanicPhase.MASSIVE_ALERT || currentPhase == PanicPhase.CONTACT_NOTIFICATION) {
+            builder.setFullScreenIntent(fullScreenPendingIntent, true)
+        }
+        
+        return builder.build()
     }
 
     private fun updateNotification() {
