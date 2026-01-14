@@ -205,30 +205,89 @@ class AdHocCommunicationService : Service() {
         // Start foreground service with notification
         startForeground(NOTIFICATION_ID, createNotification())
         
-        // Activate all communication channels
-        activateBluetooth()
-        activateWifiScanning()
-        activateHotspot()
-        activateWifiDirect()
+        // Activate all communication channels - each wrapped in try-catch for robustness
+        try {
+            activateBluetooth()
+            Log.d(TAG, "Bluetooth activated")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to activate Bluetooth, continuing with other channels", e)
+        }
+        
+        try {
+            activateWifiScanning()
+            Log.d(TAG, "WiFi scanning activated")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to activate WiFi scanning, continuing with other channels", e)
+        }
+        
+        try {
+            activateHotspot()
+            Log.d(TAG, "Hotspot activation attempted")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to activate hotspot, continuing with other channels", e)
+        }
+        
+        try {
+            activateWifiDirect()
+            Log.d(TAG, "WiFi Direct activated")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to activate WiFi Direct, continuing with other channels", e)
+        }
         
         // Activate mesh networking
-        activateMeshNetworking()
+        try {
+            activateMeshNetworking()
+            Log.d(TAG, "Mesh networking activated")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to activate mesh networking, continuing with other channels", e)
+        }
         
         // Activate flashlight and ultrasound signaling if enabled
-        activateFlashlightSignaling()
-        activateUltrasoundSignaling()
+        try {
+            activateFlashlightSignaling()
+            Log.d(TAG, "Flashlight signaling activation attempted")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to activate flashlight signaling, continuing with other channels", e)
+        }
+        
+        try {
+            activateUltrasoundSignaling()
+            Log.d(TAG, "Ultrasound signaling activation attempted")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to activate ultrasound signaling, continuing with other channels", e)
+        }
         
         // Set device ID for NFC sharing
-        nfcHelper?.setDeviceId(deviceId)
+        try {
+            nfcHelper?.setDeviceId(deviceId)
+            Log.d(TAG, "NFC helper device ID set")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to set NFC device ID, continuing with other channels", e)
+        }
         
         // Activate location sharing
-        activateLocationSharing()
+        try {
+            activateLocationSharing()
+            Log.d(TAG, "Location sharing activation attempted")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to activate location sharing, continuing with other channels", e)
+        }
         
         // Broadcast local emergency
-        broadcastEmergencySignal()
+        try {
+            broadcastEmergencySignal()
+            Log.d(TAG, "Emergency signal broadcast")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to broadcast emergency signal, continuing with other channels", e)
+        }
         
         // Send emergency SMS if enabled
-        sendEmergencySms()
+        try {
+            sendEmergencySms()
+            Log.d(TAG, "Emergency SMS sent")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to send emergency SMS, continuing with other channels", e)
+        }
     }
 
     private fun stopEmergencyMode() {

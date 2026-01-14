@@ -69,6 +69,18 @@ class SimulationMapView @JvmOverloads constructor(
         strokeWidth = 2f
     }
     
+    private val personApproachingPaint = Paint().apply {
+        color = Color.rgb(255, 140, 0) // Dark orange
+        style = Paint.Style.STROKE
+        strokeWidth = 3f
+    }
+    
+    private val personIndoorPaint = Paint().apply {
+        color = Color.rgb(150, 150, 150) // Lighter gray for indoor
+        style = Paint.Style.FILL
+        alpha = 150
+    }
+    
     private val wifiPaint = Paint().apply {
         color = Color.BLUE
         alpha = 80
@@ -205,11 +217,24 @@ class SimulationMapView @JvmOverloads constructor(
                 else -> personNoAppPaint
             }
             
+            // Draw base circle
             canvas.drawCircle(x, y, 8f, paint)
             
-            // Draw outline for moving people
-            if (person.isMoving) {
-                canvas.drawCircle(x, y, 8f, personMovingPaint)
+            // Draw indoor indicator (smaller circle inside)
+            if (person.isIndoor) {
+                canvas.drawCircle(x, y, 5f, personIndoorPaint)
+            }
+            
+            // Draw outline for moving or approaching people
+            when {
+                person.isApproaching -> {
+                    // Thicker orange outline for approaching
+                    canvas.drawCircle(x, y, 10f, personApproachingPaint)
+                }
+                person.isMoving -> {
+                    // Regular black outline for moving
+                    canvas.drawCircle(x, y, 8f, personMovingPaint)
+                }
             }
         }
     }
