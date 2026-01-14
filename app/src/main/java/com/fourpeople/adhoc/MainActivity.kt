@@ -228,11 +228,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkPermissions(): Boolean {
-        val requiredPermissions = getRequiredPermissions().filter {
+        // Check only mandatory permissions (excluding optional ones like SMS)
+        val mandatoryPermissions = getMandatoryPermissions().filter {
             !shouldFilterBackgroundLocation(it)
         }
         
-        val foregroundPermissionsGranted = requiredPermissions.all {
+        val foregroundPermissionsGranted = mandatoryPermissions.all {
             ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
         }
         
@@ -277,7 +278,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestPermissions() {
-        // Get base permissions (excluding background location on Android 10+)
+        // Request all permissions including optional ones (like SMS)
+        // Even though some permissions are optional for mode activation,
+        // we still request them to enable enhanced features like SMS alerts
         val requiredPermissions = getRequiredPermissions().filter {
             !shouldFilterBackgroundLocation(it)
         }
@@ -316,6 +319,18 @@ class MainActivity : AppCompatActivity() {
         }
 
         return permissions
+    }
+
+    /**
+     * Get list of permissions that are mandatory for the app to function.
+     * This excludes optional permissions like SMS which enhance functionality but are not required.
+     */
+    private fun getMandatoryPermissions(): List<String> {
+        // Get all required permissions and filter out optional ones
+        return getRequiredPermissions().filter { permission ->
+            // SMS is optional - user can still use the app without it
+            permission != Manifest.permission.SEND_SMS
+        }
     }
 
     private fun showPermissionRationaleDialog() {
