@@ -264,29 +264,32 @@ class SimulationEngine(
         }
         
         // Also check WiFi network propagation
-        for (uninformed in uninformedPeople.filter { !it.hasReceivedEvent }) {
-            // Check if person is in range of any WiFi network
-            for (wifi in wifiNetworks) {
-                val distanceToWifi = calculateDistance(
-                    uninformed.latitude, uninformed.longitude,
+        // When someone with WiFi gets notified, ALL others in the same WiFi network
+        // should be notified immediately (instant propagation)
+        for (wifi in wifiNetworks) {
+            // First, check if any informed person is in range of this WiFi
+            val hasInformedInRange = informedPeople.any { informed ->
+                val distance = calculateDistance(
+                    informed.latitude, informed.longitude,
                     wifi.latitude, wifi.longitude
                 )
-                
-                if (distanceToWifi <= wifi.range) {
-                    // Check if any informed person is also in range of this WiFi
-                    for (informed in informedPeople) {
-                        val informedDistanceToWifi = calculateDistance(
-                            informed.latitude, informed.longitude,
-                            wifi.latitude, wifi.longitude
-                        )
-                        
-                        if (informedDistanceToWifi <= wifi.range) {
-                            uninformed.hasReceivedEvent = true
-                            uninformed.eventReceivedTime = simulationTime
-                            break
-                        }
+                distance <= wifi.range
+            }
+            
+            // If yes, immediately notify ALL uninformed people in range of this WiFi
+            if (hasInformedInRange) {
+                for (uninformed in uninformedPeople) {
+                    if (uninformed.hasReceivedEvent) continue
+                    
+                    val distanceToWifi = calculateDistance(
+                        uninformed.latitude, uninformed.longitude,
+                        wifi.latitude, wifi.longitude
+                    )
+                    
+                    if (distanceToWifi <= wifi.range) {
+                        uninformed.hasReceivedEvent = true
+                        uninformed.eventReceivedTime = simulationTime
                     }
-                    if (uninformed.hasReceivedEvent) break
                 }
             }
         }
