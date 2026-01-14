@@ -85,6 +85,16 @@ class SimulationActivity : AppCompatActivity() {
             binding.startEventButton.isEnabled = false
         }
         
+        // Speed increase button
+        binding.speedIncreaseButton.setOnClickListener {
+            adjustSpeed(1)
+        }
+        
+        // Speed decrease button
+        binding.speedDecreaseButton.setOnClickListener {
+            adjustSpeed(-1)
+        }
+        
         // Speed control
         val speedOptions = arrayOf("1x", "2x", "5x", "10x")
         val speedAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, speedOptions)
@@ -221,5 +231,25 @@ class SimulationActivity : AppCompatActivity() {
                 append("Coverage: ${(stats.peopleInformed * 100.0 / stats.peopleWithApp).toInt()}%")
             }
         }
+    }
+    
+    private fun adjustSpeed(delta: Int) {
+        // Define available speed levels
+        val speedLevels = listOf(1, 2, 5, 10)
+        
+        // Find current speed index
+        val currentIndex = speedLevels.indexOf(simulationSpeed)
+        if (currentIndex == -1) {
+            // If current speed is not in the list, set to nearest
+            simulationSpeed = speedLevels.minByOrNull { kotlin.math.abs(it - simulationSpeed) } ?: 1
+            return
+        }
+        
+        // Calculate new index
+        val newIndex = (currentIndex + delta).coerceIn(0, speedLevels.size - 1)
+        simulationSpeed = speedLevels[newIndex]
+        
+        // Update spinner to match
+        binding.speedSpinner.setSelection(newIndex)
     }
 }
