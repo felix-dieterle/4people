@@ -279,6 +279,9 @@ class SimulationEngine(
             // If yes, immediately notify ALL uninformed people in range of this WiFi
             if (hasInformedInRange) {
                 for (uninformed in uninformedPeople) {
+                    // Skip if already informed (preserves original eventReceivedTime)
+                    if (uninformed.hasReceivedEvent) continue
+                    
                     val distanceToWifi = calculateDistance(
                         uninformed.latitude, uninformed.longitude,
                         wifi.latitude, wifi.longitude
