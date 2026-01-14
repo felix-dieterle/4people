@@ -490,6 +490,8 @@ class AdHocCommunicationService : Service() {
             }
         } else {
             // Hotspot not available on this Android version
+            // isHotspotActive already set to false at line 460
+            Log.d(TAG, "Hotspot not available on Android version below O")
             broadcastStatusUpdate()
         }
     }
