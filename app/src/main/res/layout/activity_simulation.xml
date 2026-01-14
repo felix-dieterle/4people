@@ -19,6 +19,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintVertical_weight="3" />
 
+    <!-- Camera Pan Joystick (overlaid on map, bottom right) -->
+    <com.fourpeople.adhoc.simulation.JoystickView
+        android:id="@+id/panJoystick"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_margin="16dp"
+        app:layout_constraintEnd_toEndOf="@+id/simulationMapView"
+        app:layout_constraintBottom_toBottomOf="@+id/simulationMapView" />
+
     <!-- Controls Layout -->
     <LinearLayout
         android:id="@+id/controlsLayout"

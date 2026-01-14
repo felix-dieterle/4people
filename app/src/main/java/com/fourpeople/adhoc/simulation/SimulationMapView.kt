@@ -26,11 +26,21 @@ class SimulationMapView @JvmOverloads constructor(
     private var wifiNetworks = listOf<SimulationWiFi>()
     private var event: SimulationEvent? = null
     
-    // Coordinate bounds
+    // Coordinate bounds (original data bounds)
+    private var dataMinLat = 0.0
+    private var dataMaxLat = 0.0
+    private var dataMinLon = 0.0
+    private var dataMaxLon = 0.0
+    
+    // View bounds (affected by pan/zoom)
     private var minLat = 0.0
     private var maxLat = 0.0
     private var minLon = 0.0
     private var maxLon = 0.0
+    
+    // Pan offset (percentage of view range)
+    private var panOffsetX = 0.0
+    private var panOffsetY = 0.0
     
     // Paint objects
     private val personWithAppPaint = Paint().apply {
@@ -95,23 +105,55 @@ class SimulationMapView @JvmOverloads constructor(
         this.wifiNetworks = wifiNetworks
         this.event = event
         
-        // Calculate bounds
+        // Calculate data bounds
         if (people.isNotEmpty()) {
-            minLat = people.minOf { it.latitude }
-            maxLat = people.maxOf { it.latitude }
-            minLon = people.minOf { it.longitude }
-            maxLon = people.maxOf { it.longitude }
+            dataMinLat = people.minOf { it.latitude }
+            dataMaxLat = people.maxOf { it.latitude }
+            dataMinLon = people.minOf { it.longitude }
+            dataMaxLon = people.maxOf { it.longitude }
             
             // Add some padding
-            val latPadding = (maxLat - minLat) * 0.1
-            val lonPadding = (maxLon - minLon) * 0.1
-            minLat -= latPadding
-            maxLat += latPadding
-            minLon -= lonPadding
-            maxLon += lonPadding
+            val latPadding = (dataMaxLat - dataMinLat) * 0.1
+            val lonPadding = (dataMaxLon - dataMinLon) * 0.1
+            dataMinLat -= latPadding
+            dataMaxLat += latPadding
+            dataMinLon -= lonPadding
+            dataMaxLon += lonPadding
+            
+            // Update view bounds with current pan
+            updateViewBounds()
         }
         
         invalidate()
+    }
+    
+    /**
+     * Set pan offset for camera movement.
+     * @param xPercent Horizontal pan (-1.0 to 1.0, where -1 is left, 1 is right)
+     * @param yPercent Vertical pan (-1.0 to 1.0, where -1 is up, 1 is down)
+     */
+    fun setPanOffset(xPercent: Float, yPercent: Float) {
+        panOffsetX = xPercent.toDouble()
+        panOffsetY = yPercent.toDouble()
+        updateViewBounds()
+        invalidate()
+    }
+    
+    /**
+     * Update view bounds based on data bounds and pan offset.
+     */
+    private fun updateViewBounds() {
+        val latRange = dataMaxLat - dataMinLat
+        val lonRange = dataMaxLon - dataMinLon
+        
+        // Apply pan offset (inverted for natural camera movement)
+        val latOffset = latRange * panOffsetY * 0.3 // Limit pan to 30% of range
+        val lonOffset = lonRange * panOffsetX * 0.3
+        
+        minLat = dataMinLat - latOffset
+        maxLat = dataMaxLat - latOffset
+        minLon = dataMinLon + lonOffset
+        maxLon = dataMaxLon + lonOffset
     }
     
     override fun onDraw(canvas: Canvas) {

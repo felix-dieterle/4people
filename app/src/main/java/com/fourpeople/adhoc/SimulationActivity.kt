@@ -65,6 +65,13 @@ class SimulationActivity : AppCompatActivity() {
     }
     
     private fun setupUI() {
+        // Camera pan joystick
+        binding.panJoystick.setJoystickListener(object : com.fourpeople.adhoc.simulation.JoystickView.JoystickListener {
+            override fun onJoystickMoved(xPercent: Float, yPercent: Float) {
+                binding.simulationMapView.setPanOffset(xPercent, yPercent)
+            }
+        })
+        
         // Play/Pause button
         binding.playPauseButton.setOnClickListener {
             if (isRunning) {
