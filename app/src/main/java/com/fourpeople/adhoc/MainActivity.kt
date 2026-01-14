@@ -478,10 +478,8 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        isPanicModeActive = !isPanicModeActive
-
         val intent = Intent(this, PanicModeService::class.java)
-        if (isPanicModeActive) {
+        if (!isPanicModeActive) {
             // Show confirmation dialog before activating panic mode
             AlertDialog.Builder(this)
                 .setTitle(R.string.activate_panic)
@@ -492,6 +490,7 @@ class MainActivity : AppCompatActivity() {
                         "• Notify emergency contacts if necessary\n\n" +
                         "Are you sure you want to activate panic mode?")
                 .setPositiveButton(android.R.string.yes) { _, _ ->
+                    isPanicModeActive = true
                     intent.action = PanicModeService.ACTION_START
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         startForegroundService(intent)
@@ -501,11 +500,10 @@ class MainActivity : AppCompatActivity() {
                     updatePanicModeUI()
                     Toast.makeText(this, R.string.panic_active, Toast.LENGTH_SHORT).show()
                 }
-                .setNegativeButton(android.R.string.no) { _, _ ->
-                    isPanicModeActive = false
-                }
+                .setNegativeButton(android.R.string.no, null)
                 .show()
         } else {
+            isPanicModeActive = false
             intent.action = PanicModeService.ACTION_STOP
             startService(intent)
             updatePanicModeUI()
