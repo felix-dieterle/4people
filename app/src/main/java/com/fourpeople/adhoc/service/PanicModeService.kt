@@ -63,11 +63,20 @@ class PanicModeService : Service() {
         // Preferences keys
         const val PREF_GENTLE_WARNING_TYPE = "panic_gentle_warning_type"
         const val PREF_AUTO_ACTIVATE_DATA = "panic_auto_activate_data"
+        const val PREF_IS_ACTIVE = "panic_mode_is_active"
         
         // Warning types
         const val WARNING_VIBRATION = "vibration"
         const val WARNING_SOUND = "sound"
         const val WARNING_BOTH = "both"
+        
+        /**
+         * Check if panic mode service is currently active
+         */
+        fun isActive(context: Context): Boolean {
+            return context.getSharedPreferences("panic_settings", Context.MODE_PRIVATE)
+                .getBoolean(PREF_IS_ACTIVE, false)
+        }
     }
 
     private enum class PanicPhase {
@@ -180,6 +189,12 @@ class PanicModeService : Service() {
         currentPhase = PanicPhase.CONFIRMATION
         lastConfirmationTime = System.currentTimeMillis()
         
+        // Save active state to shared preferences
+        getSharedPreferences("panic_settings", Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(PREF_IS_ACTIVE, true)
+            .apply()
+        
         // Start foreground service
         startForeground(NOTIFICATION_ID, createNotification())
         
@@ -195,6 +210,12 @@ class PanicModeService : Service() {
     private fun stopPanicMode() {
         Log.d(TAG, "Stopping panic mode")
         isRunning = false
+        
+        // Clear active state from shared preferences
+        getSharedPreferences("panic_settings", Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(PREF_IS_ACTIVE, false)
+            .apply()
         
         // Stop all handlers
         handler.removeCallbacks(confirmationCheckRunnable)

@@ -73,6 +73,7 @@ class PanicModeServiceTest {
         // Verify preference key constants
         assertEquals("panic_gentle_warning_type", PanicModeService.PREF_GENTLE_WARNING_TYPE)
         assertEquals("panic_auto_activate_data", PanicModeService.PREF_AUTO_ACTIVATE_DATA)
+        assertEquals("panic_mode_is_active", PanicModeService.PREF_IS_ACTIVE)
     }
 
     @Test

@@ -112,6 +112,10 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         nfcHelper?.enableForegroundDispatch(this)
         
+        // Check if panic mode service is actually running and update state
+        isPanicModeActive = PanicModeService.isActive(this)
+        updatePanicModeUI()
+        
         // Check if permissions were revoked and update UI accordingly
         if (!checkPermissions()) {
             // Update UI to reflect that permissions are needed
