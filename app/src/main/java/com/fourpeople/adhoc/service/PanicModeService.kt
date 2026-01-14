@@ -58,6 +58,7 @@ class PanicModeService : Service() {
         const val GENTLE_WARNING_DURATION = 30000L // 30 seconds
         const val MASSIVE_ALERT_DURATION = 120000L // 2 minutes
         const val CONTACT_NOTIFICATION_INITIAL_INTERVAL = 180000L // 3 minutes
+        const val WAKE_LOCK_TIMEOUT = 10 * 60 * 1000L // 10 minutes
         
         // Preferences keys
         const val PREF_GENTLE_WARNING_TYPE = "panic_gentle_warning_type"
@@ -338,7 +339,7 @@ class PanicModeService : Service() {
         try {
             wakeLock?.let {
                 if (!it.isHeld) {
-                    it.acquire(10 * 60 * 1000L) // 10 minutes timeout
+                    it.acquire(WAKE_LOCK_TIMEOUT)
                     Log.d(TAG, "Wake lock acquired")
                 }
             }
@@ -662,27 +663,23 @@ class PanicModeService : Service() {
         }
     }
 
-    private fun createNotification(): Notification {
-        val mainIntent = Intent(this, MainActivity::class.java).apply {
+    private fun createMainActivityPendingIntent(requestCode: Int): PendingIntent {
+        val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val mainPendingIntent = PendingIntent.getActivity(
+        return PendingIntent.getActivity(
             this,
-            0,
-            mainIntent,
+            requestCode,
+            intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+    }
+
+    private fun createNotification(): Notification {
+        val mainPendingIntent = createMainActivityPendingIntent(0)
         
         // Full-screen intent for critical alarm phases (shows on lock screen)
-        val fullScreenIntent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val fullScreenPendingIntent = PendingIntent.getActivity(
-            this,
-            2,
-            fullScreenIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        val fullScreenPendingIntent = createMainActivityPendingIntent(2)
         
         val confirmIntent = Intent(this, PanicModeService::class.java).apply {
             action = ACTION_CONFIRM
