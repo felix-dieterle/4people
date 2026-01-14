@@ -278,7 +278,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestPermissions() {
-        // Get base permissions (excluding background location on Android 10+)
+        // Request all permissions including optional ones (like SMS)
+        // Even though some permissions are optional for mode activation,
+        // we still request them to enable enhanced features like SMS alerts
         val requiredPermissions = getRequiredPermissions().filter {
             !shouldFilterBackgroundLocation(it)
         }
@@ -324,32 +326,11 @@ class MainActivity : AppCompatActivity() {
      * This excludes optional permissions like SMS which enhance functionality but are not required.
      */
     private fun getMandatoryPermissions(): List<String> {
-        val permissions = mutableListOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_WIFI_STATE,
-            Manifest.permission.CHANGE_WIFI_STATE,
-            Manifest.permission.READ_PHONE_STATE,
-            // SMS permission is optional - excluded from mandatory check
-            Manifest.permission.CAMERA,
-            Manifest.permission.RECORD_AUDIO
-        )
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            permissions.add(Manifest.permission.BLUETOOTH_SCAN)
-            permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
-            permissions.add(Manifest.permission.BLUETOOTH_ADVERTISE)
-        } else {
-            permissions.add(Manifest.permission.BLUETOOTH)
-            permissions.add(Manifest.permission.BLUETOOTH_ADMIN)
+        // Get all required permissions and filter out optional ones
+        return getRequiredPermissions().filter { permission ->
+            // SMS is optional - user can still use the app without it
+            permission != Manifest.permission.SEND_SMS
         }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
-            permissions.add(Manifest.permission.NEARBY_WIFI_DEVICES)
-        }
-
-        return permissions
     }
 
     private fun showPermissionRationaleDialog() {
