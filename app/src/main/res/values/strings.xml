@@ -74,7 +74,7 @@
     <string name="help_emergency_mode_title">Emergency Communication Mode</string>
     <string name="help_emergency_mode_message">When activated, this mode:\n\n• Enables Bluetooth discovery and advertising\n• Scans for WiFi emergency networks (4people-*)\n• Creates a WiFi hotspot for others to join\n• Shares your GPS location with the network\n• Enables mesh routing for multi-hop communication\n• Broadcasts emergency signals via NFC, SMS, and optional flashlight/ultrasound\n\nThis creates an ad-hoc emergency network when traditional infrastructure fails.</string>
     <string name="help_panic_mode_title">Panic Mode</string>
-    <string name="help_panic_mode_message">Panic Mode is a safety feature that:\n\n• Requests confirmation every 30 seconds\n• Alerts with vibration if no confirmation\n• Escalates to full alarm if still no response\n• Notifies emergency contacts if necessary\n\nUse this when you want the app to check on you regularly and alert others if you don't respond.</string>
+    <string name="help_panic_mode_message">Panic Mode is a safety feature that:\n\n• Requests confirmation every 30 seconds\n• Alerts with vibration if no confirmation\n• Escalates to full alarm if still no response\n• Notifies emergency contacts if necessary\n\nUse this when you want the app to check on you regularly and alert others if you don\'t respond.</string>
     <string name="help_emergency_mode_description">Emergency Mode Help</string>
     <string name="help_panic_mode_description">Panic Mode Help</string>
 </resources>
