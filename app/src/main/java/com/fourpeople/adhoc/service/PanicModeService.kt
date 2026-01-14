@@ -243,15 +243,25 @@ class PanicModeService : Service() {
         val warningType = getSharedPreferences("panic_settings", Context.MODE_PRIVATE)
             .getString(PREF_GENTLE_WARNING_TYPE, WARNING_VIBRATION) ?: WARNING_VIBRATION
         
+        // Try vibration - failures should not prevent sound from working
         when (warningType) {
             WARNING_VIBRATION, WARNING_BOTH -> {
-                startGentleVibration()
+                try {
+                    startGentleVibration()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to start gentle vibration, continuing anyway", e)
+                }
             }
         }
         
+        // Try sound - failures should not prevent other notifications
         when (warningType) {
             WARNING_SOUND, WARNING_BOTH -> {
-                startGentleSound()
+                try {
+                    startGentleSound()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to start gentle sound, continuing anyway", e)
+                }
             }
         }
         
@@ -259,10 +269,20 @@ class PanicModeService : Service() {
     }
 
     private fun stopGentleWarning() {
-        vibrator?.cancel()
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-        mediaPlayer = null
+        try {
+            vibrator?.cancel()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error stopping vibrator", e)
+        }
+        
+        try {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+            mediaPlayer = null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error stopping media player", e)
+            mediaPlayer = null
+        }
     }
 
     private fun startGentleVibration() {
@@ -307,38 +327,83 @@ class PanicModeService : Service() {
         // Stop gentle warnings
         stopGentleWarning()
         
-        // Start flashlight blinking
-        flashlightHelper?.startSOSSignal()
+        // Start flashlight blinking - failure should not prevent other alerts
+        try {
+            flashlightHelper?.startSOSSignal()
+            Log.d(TAG, "Flashlight SOS signal started")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start flashlight SOS signal, continuing with other alerts", e)
+        }
         
-        // Start loud alarm
-        startAlarmSound()
+        // Start loud alarm - failure should not prevent other alerts
+        try {
+            startAlarmSound()
+            Log.d(TAG, "Alarm sound started")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start alarm sound, continuing with other alerts", e)
+        }
         
-        // Start strong vibration
-        startStrongVibration()
+        // Start strong vibration - failure should not prevent other alerts
+        try {
+            startStrongVibration()
+            Log.d(TAG, "Strong vibration started")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start strong vibration, continuing with other alerts", e)
+        }
         
-        // Capture current location and signal strength
-        captureLocationAndSignal()
+        // Capture current location and signal strength - failure should not prevent other actions
+        try {
+            captureLocationAndSignal()
+            Log.d(TAG, "Location and signal captured")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to capture location and signal, continuing with other alerts", e)
+        }
         
-        // Auto-activate mobile data and WiFi if enabled
+        // Auto-activate mobile data and WiFi if enabled - failure should not prevent other actions
         val autoActivateData = getSharedPreferences("panic_settings", Context.MODE_PRIVATE)
             .getBoolean(PREF_AUTO_ACTIVATE_DATA, false)
         
         if (autoActivateData) {
-            activateMobileDataAndWifi()
+            try {
+                activateMobileDataAndWifi()
+                Log.d(TAG, "Mobile data and WiFi activation attempted")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to activate mobile data and WiFi, continuing with other alerts", e)
+            }
         }
         
-        // Send backend notification
-        sendBackendNotification()
+        // Send backend notification - failure should not prevent other actions
+        try {
+            sendBackendNotification()
+            Log.d(TAG, "Backend notification sent")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to send backend notification, continuing with other alerts", e)
+        }
         
         updateNotification()
     }
 
     private fun stopMassiveAlert() {
-        flashlightHelper?.stopSignal()
-        vibrator?.cancel()
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-        mediaPlayer = null
+        try {
+            flashlightHelper?.stopSignal()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error stopping flashlight", e)
+        }
+        
+        try {
+            vibrator?.cancel()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error stopping vibrator", e)
+        }
+        
+        try {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+            mediaPlayer = null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error stopping media player", e)
+            mediaPlayer = null
+        }
     }
 
     private fun startAlarmSound() {
@@ -405,8 +470,13 @@ class PanicModeService : Service() {
         
         Log.d(TAG, "Notifying contact: ${contact.name} (index: ${currentContactIndex - 1})")
         
-        // Send notification via all channels
-        sendContactNotification(contact)
+        // Send notification via all channels - failure should not stop other notifications
+        try {
+            sendContactNotification(contact)
+            Log.d(TAG, "Contact notification sent to ${contact.name}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to notify contact ${contact.name}, but will continue with next contact", e)
+        }
     }
 
     private fun sendContactNotification(contact: EmergencyContact) {
@@ -567,11 +637,12 @@ class PanicModeService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         
+        // Add visual indicators to phase text
         val phaseText = when (currentPhase) {
-            PanicPhase.CONFIRMATION -> "Waiting for confirmation"
-            PanicPhase.GENTLE_WARNING -> "Gentle warning - Please confirm!"
-            PanicPhase.MASSIVE_ALERT -> "MASSIVE ALERT - Confirm immediately!"
-            PanicPhase.CONTACT_NOTIFICATION -> "Notifying emergency contacts"
+            PanicPhase.CONFIRMATION -> "⚪ Waiting for confirmation"
+            PanicPhase.GENTLE_WARNING -> "🟡 Gentle warning - Please confirm!"
+            PanicPhase.MASSIVE_ALERT -> "🔴 MASSIVE ALERT - Confirm immediately!"
+            PanicPhase.CONTACT_NOTIFICATION -> "🆘 Notifying emergency contacts"
         }
         
         return NotificationCompat.Builder(this, CHANNEL_ID)
