@@ -277,8 +277,12 @@ class PanicModeService : Service() {
         
         try {
             mediaPlayer?.let { player ->
-                if (player.isPlaying) {
-                    player.stop()
+                try {
+                    if (player.isPlaying) {
+                        player.stop()
+                    }
+                } catch (e: IllegalStateException) {
+                    // Player already in invalid state, just release
                 }
                 player.release()
             }
@@ -402,8 +406,12 @@ class PanicModeService : Service() {
         
         try {
             mediaPlayer?.let { player ->
-                if (player.isPlaying) {
-                    player.stop()
+                try {
+                    if (player.isPlaying) {
+                        player.stop()
+                    }
+                } catch (e: IllegalStateException) {
+                    // Player already in invalid state, just release
                 }
                 player.release()
             }
