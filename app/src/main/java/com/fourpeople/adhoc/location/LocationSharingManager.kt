@@ -145,6 +145,11 @@ class LocationSharingManager(
     fun getCurrentLocation(): LocationData? = currentLocation
     
     /**
+     * Checks if location sharing is currently active.
+     */
+    fun isLocationSharingActive(): Boolean = isActive
+    
+    /**
      * Updates location of a participant from received broadcast.
      */
     fun updateParticipantLocation(locationData: LocationData) {

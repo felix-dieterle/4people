@@ -56,6 +56,11 @@ class AdHocCommunicationService : Service() {
         const val ACTION_STOP = "com.fourpeople.adhoc.STOP"
         const val EMERGENCY_SSID_PATTERN = "4people-"
         const val WIFI_SCAN_INTERVAL = 10000L // 10 seconds (default for active mode)
+        const val ACTION_STATUS_UPDATE = "com.fourpeople.adhoc.STATUS_UPDATE"
+        const val EXTRA_BLUETOOTH_ACTIVE = "bluetooth_active"
+        const val EXTRA_WIFI_ACTIVE = "wifi_active"
+        const val EXTRA_HOTSPOT_ACTIVE = "hotspot_active"
+        const val EXTRA_LOCATION_ACTIVE = "location_active"
     }
 
     private var isRunning = false
@@ -70,6 +75,11 @@ class AdHocCommunicationService : Service() {
     private var bluetoothMeshTransport: BluetoothMeshTransport? = null
     private var nfcHelper: NFCHelper? = null
     private var locationSharingManager: LocationSharingManager? = null
+    
+    // Status tracking
+    private var isBluetoothActive = false
+    private var isWifiScanningActive = false
+    private var isHotspotActive = false
 
     private val wifiScanRunnable = object : Runnable {
         override fun run() {
@@ -197,6 +207,16 @@ class AdHocCommunicationService : Service() {
         
         Log.d(TAG, "Service destroyed and resources cleaned up")
     }
+    
+    private fun broadcastStatusUpdate() {
+        val intent = Intent(ACTION_STATUS_UPDATE)
+        intent.putExtra(EXTRA_BLUETOOTH_ACTIVE, isBluetoothActive)
+        intent.putExtra(EXTRA_WIFI_ACTIVE, isWifiScanningActive)
+        intent.putExtra(EXTRA_HOTSPOT_ACTIVE, isHotspotActive)
+        intent.putExtra(EXTRA_LOCATION_ACTIVE, locationSharingManager?.isLocationSharingActive() ?: false)
+        sendBroadcast(intent)
+        Log.d(TAG, "Status update broadcast: BT=$isBluetoothActive, WiFi=$isWifiScanningActive, Hotspot=$isHotspotActive, Location=${locationSharingManager?.isLocationSharingActive() ?: false}")
+    }
 
     private fun startEmergencyMode() {
         Log.d(TAG, "Starting emergency mode")
@@ -307,6 +327,14 @@ class AdHocCommunicationService : Service() {
         deactivateUltrasoundSignaling()
         deactivateMeshNetworking()
         deactivateLocationSharing()
+        
+        // Reset all status flags
+        isBluetoothActive = false
+        isWifiScanningActive = false
+        isHotspotActive = false
+        
+        // Broadcast final status update
+        broadcastStatusUpdate()
     }
     
     /**
@@ -321,8 +349,11 @@ class AdHocCommunicationService : Service() {
     }
 
     private fun activateBluetooth() {
+        isBluetoothActive = false  // Reset before attempting activation
+        
         if (!bluetoothAdapter.isEnabled) {
             Log.d(TAG, "Bluetooth is disabled, cannot activate")
+            broadcastStatusUpdate()
             return
         }
         
@@ -331,6 +362,7 @@ class AdHocCommunicationService : Service() {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                 Log.w(TAG, "Missing Bluetooth permissions")
+                broadcastStatusUpdate()
                 return
             }
         }
@@ -352,7 +384,9 @@ class AdHocCommunicationService : Service() {
             bluetoothAdapter.name = "${EMERGENCY_SSID_PATTERN}$deviceId"
         }
         
+        isBluetoothActive = true
         Log.d(TAG, "Bluetooth activated and discovery started")
+        broadcastStatusUpdate()
     }
 
     private fun deactivateBluetooth() {
@@ -366,10 +400,14 @@ class AdHocCommunicationService : Service() {
             bluetoothAdapter.cancelDiscovery()
         }
         
+        isBluetoothActive = false
         Log.d(TAG, "Bluetooth deactivated")
+        broadcastStatusUpdate()
     }
 
     private fun activateWifiScanning() {
+        isWifiScanningActive = false  // Reset before attempting activation
+        
         // Register WiFi scan receiver
         val filter = IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
         registerReceiver(wifiScanReceiver, filter)
@@ -381,7 +419,9 @@ class AdHocCommunicationService : Service() {
         // Start periodic WiFi scanning
         handler.post(wifiScanRunnable)
         
+        isWifiScanningActive = true
         Log.d(TAG, "WiFi scanning activated")
+        broadcastStatusUpdate()
     }
 
     private fun scanForEmergencyNetworks() {
@@ -417,6 +457,7 @@ class AdHocCommunicationService : Service() {
         // LocalOnlyHotspot creates a network with a system-generated SSID that cannot
         // be customized to follow the emergency naming pattern.
         
+        isHotspotActive = false  // Reset before attempting activation
         Log.d(TAG, "Hotspot activation requested (system-generated SSID)")
         
         // On Android O and above, we can request a local-only hotspot
@@ -424,21 +465,34 @@ class AdHocCommunicationService : Service() {
             try {
                 wifiManager.startLocalOnlyHotspot(object : WifiManager.LocalOnlyHotspotCallback() {
                     override fun onStarted(reservation: WifiManager.LocalOnlyHotspotReservation?) {
+                        isHotspotActive = true
                         Log.d(TAG, "Local-only hotspot started")
+                        broadcastStatusUpdate()
                         // Note: SSID is system-generated and cannot be customized
                     }
 
                     override fun onStopped() {
+                        isHotspotActive = false
                         Log.d(TAG, "Local-only hotspot stopped")
+                        broadcastStatusUpdate()
                     }
 
                     override fun onFailed(reason: Int) {
+                        isHotspotActive = false
                         Log.e(TAG, "Failed to start local-only hotspot: $reason")
+                        broadcastStatusUpdate()
                     }
                 }, handler)
             } catch (e: SecurityException) {
+                isHotspotActive = false
                 Log.e(TAG, "Security exception when starting hotspot", e)
+                broadcastStatusUpdate()
             }
+        } else {
+            // Hotspot not available on this Android version
+            // isHotspotActive already set to false at line 460
+            Log.d(TAG, "Hotspot not available on Android version below O")
+            broadcastStatusUpdate()
         }
     }
 
@@ -678,11 +732,13 @@ class AdHocCommunicationService : Service() {
         } else {
             Log.w(TAG, "Failed to activate location sharing")
         }
+        broadcastStatusUpdate()
     }
     
     private fun deactivateLocationSharing() {
         locationSharingManager?.stopLocationSharing()
         Log.d(TAG, "Location sharing deactivated")
+        broadcastStatusUpdate()
     }
     
     private fun handleSendHelpRequest(message: String?) {
