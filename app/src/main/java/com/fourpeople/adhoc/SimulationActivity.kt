@@ -241,7 +241,7 @@ class SimulationActivity : AppCompatActivity() {
         val currentIndex = speedLevels.indexOf(simulationSpeed)
         if (currentIndex == -1) {
             // If current speed is not in the list, set to nearest
-            simulationSpeed = speedLevels.minByOrNull { (it - simulationSpeed).absoluteValue } ?: 1
+            simulationSpeed = speedLevels.minByOrNull { kotlin.math.abs(it - simulationSpeed) } ?: 1
             binding.speedSpinner.setSelection(speedLevels.indexOf(simulationSpeed))
             return
         }
