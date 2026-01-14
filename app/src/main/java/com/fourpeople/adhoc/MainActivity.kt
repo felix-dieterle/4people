@@ -228,11 +228,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkPermissions(): Boolean {
-        val requiredPermissions = getRequiredPermissions().filter {
+        // Check only mandatory permissions (excluding optional ones like SMS)
+        val mandatoryPermissions = getMandatoryPermissions().filter {
             !shouldFilterBackgroundLocation(it)
         }
         
-        val foregroundPermissionsGranted = requiredPermissions.all {
+        val foregroundPermissionsGranted = mandatoryPermissions.all {
             ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
         }
         
@@ -297,6 +298,39 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.CHANGE_WIFI_STATE,
             Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.SEND_SMS,
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO
+        )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            permissions.add(Manifest.permission.BLUETOOTH_SCAN)
+            permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+            permissions.add(Manifest.permission.BLUETOOTH_ADVERTISE)
+        } else {
+            permissions.add(Manifest.permission.BLUETOOTH)
+            permissions.add(Manifest.permission.BLUETOOTH_ADMIN)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+            permissions.add(Manifest.permission.NEARBY_WIFI_DEVICES)
+        }
+
+        return permissions
+    }
+
+    /**
+     * Get list of permissions that are mandatory for the app to function.
+     * This excludes optional permissions like SMS which enhance functionality but are not required.
+     */
+    private fun getMandatoryPermissions(): List<String> {
+        val permissions = mutableListOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.CHANGE_WIFI_STATE,
+            Manifest.permission.READ_PHONE_STATE,
+            // SMS permission is optional - excluded from mandatory check
             Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO
         )
