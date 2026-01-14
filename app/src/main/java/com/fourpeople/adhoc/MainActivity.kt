@@ -207,21 +207,31 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUI() {
         if (isEmergencyActive) {
-            binding.statusTextView.text = getString(R.string.emergency_active)
+            binding.statusTextView.text = "🟢 ${getString(R.string.emergency_active)}"
+            binding.statusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
             binding.activateButton.text = getString(R.string.deactivate_emergency)
-            binding.bluetoothStatusTextView.text = getString(R.string.bluetooth_status, getString(R.string.active))
-            binding.wifiStatusTextView.text = getString(R.string.wifi_status, getString(R.string.active))
-            binding.hotspotStatusTextView.text = getString(R.string.hotspot_status, getString(R.string.active))
-            binding.locationStatusTextView.text = getString(R.string.location_sharing_status, getString(R.string.active))
+            binding.bluetoothStatusTextView.text = "✓ ${getString(R.string.bluetooth_status, getString(R.string.active))}"
+            binding.bluetoothStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
+            binding.wifiStatusTextView.text = "✓ ${getString(R.string.wifi_status, getString(R.string.active))}"
+            binding.wifiStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
+            binding.hotspotStatusTextView.text = "✓ ${getString(R.string.hotspot_status, getString(R.string.active))}"
+            binding.hotspotStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
+            binding.locationStatusTextView.text = "✓ ${getString(R.string.location_sharing_status, getString(R.string.active))}"
+            binding.locationStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
             binding.viewLocationsButton.isEnabled = true
             binding.sendHelpButton.isEnabled = true
         } else {
-            binding.statusTextView.text = getString(R.string.emergency_inactive)
+            binding.statusTextView.text = "⚪ ${getString(R.string.emergency_inactive)}"
+            binding.statusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
             binding.activateButton.text = getString(R.string.activate_emergency)
-            binding.bluetoothStatusTextView.text = getString(R.string.bluetooth_status, getString(R.string.inactive))
-            binding.wifiStatusTextView.text = getString(R.string.wifi_status, getString(R.string.inactive))
-            binding.hotspotStatusTextView.text = getString(R.string.hotspot_status, getString(R.string.inactive))
-            binding.locationStatusTextView.text = getString(R.string.location_sharing_status, getString(R.string.inactive))
+            binding.bluetoothStatusTextView.text = "○ ${getString(R.string.bluetooth_status, getString(R.string.inactive))}"
+            binding.bluetoothStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
+            binding.wifiStatusTextView.text = "○ ${getString(R.string.wifi_status, getString(R.string.inactive))}"
+            binding.wifiStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
+            binding.hotspotStatusTextView.text = "○ ${getString(R.string.hotspot_status, getString(R.string.inactive))}"
+            binding.hotspotStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
+            binding.locationStatusTextView.text = "○ ${getString(R.string.location_sharing_status, getString(R.string.inactive))}"
+            binding.locationStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
             binding.viewLocationsButton.isEnabled = false
             binding.sendHelpButton.isEnabled = false
         }
@@ -494,7 +504,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updatePanicModeUI() {
         if (isPanicModeActive) {
-            binding.panicModeButton.text = getString(R.string.deactivate_panic)
+            binding.panicModeButton.text = "🔴 ${getString(R.string.deactivate_panic)}"
             binding.panicModeButton.backgroundTintList = 
                 ContextCompat.getColorStateList(this, android.R.color.holo_orange_dark)
         } else {
