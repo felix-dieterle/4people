@@ -275,6 +275,16 @@ class SimulationActivity : AppCompatActivity() {
             append("Informed: ${stats.peopleInformed}\n")
             append("Uninformed: ${stats.peopleUninformed}\n")
             append("WiFi Networks: ${stats.wifiNetworks}\n")
+            
+            // Show infrastructure status
+            val failureMode = when (stats.infrastructureFailure) {
+                InfrastructureFailureMode.MOBILE_DATA_ONLY -> "Mobile Data Only"
+                InfrastructureFailureMode.DATA_BACKBONE -> "Data Backbone"
+                InfrastructureFailureMode.COMPLETE_FAILURE -> "Complete Failure"
+            }
+            append("Infrastructure: $failureMode\n")
+            append("SMS Available: ${if (stats.smsAvailable) "✅ Yes" else "❌ No"}\n")
+            
             if (stats.eventOccurred && stats.peopleWithApp > 0) {
                 append("Coverage: ${(stats.peopleInformed * 100.0 / stats.peopleWithApp).toInt()}%")
             }

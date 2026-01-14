@@ -10,8 +10,15 @@ import androidx.core.app.ActivityCompat
 /**
  * Helper class for sending emergency SMS broadcasts to predefined contacts.
  * 
+ * IMPORTANT: SMS requires cellular voice network, NOT WiFi or mobile data.
+ * - ✅ SMS works when mobile data is down (only needs cellular voice)
+ * - ✅ SMS works when internet backbone is down (only needs cellular voice)
+ * - ❌ SMS does NOT work over WiFi (requires cellular network)
+ * - ❌ SMS does NOT work when cellular network completely fails
+ * 
  * SMS can be sent when emergency mode is activated to notify contacts who may not
- * have the app installed. SMS often works when data networks are unavailable.
+ * have the app installed. SMS often works when data networks are unavailable,
+ * but requires cellular voice network to be operational.
  */
 object EmergencySmsHelper {
     

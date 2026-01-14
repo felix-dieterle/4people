@@ -19,23 +19,31 @@ The simulation now includes 9 predefined scenarios representing typical emergenc
 Each location type has three infrastructure failure scenarios:
 
 1. **Nur Mobile Daten ausgefallen (Only Mobile Data Failed)**
-   - Voice calls and SMS still work
-   - WiFi networks functional
-   - No verbal transmission or approaching behavior
+   - ✅ Voice calls and SMS still work (cellular voice network operational)
+   - ✅ WiFi networks functional (local connectivity)
+   - ✅ SMS emergency broadcasts can reach contacts
+   - ⚠️ Internet-dependent services unavailable
+   - ⚠️ No verbal transmission or approaching behavior (not critical yet)
+   - **Simulation models**: WiFi propagation, SMS available
    
 2. **Daten Backbone ausgefallen (Data Backbone Failed)**
-   - No internet connectivity
-   - Local networks still work
-   - Phone calls available
+   - ✅ Phone calls available (cellular voice network operational)
+   - ✅ SMS still works (requires only cellular voice, not data)
+   - ✅ Local WiFi networks still work (no internet access though)
+   - ❌ No internet connectivity
    - **Verbal transmission enabled**: People inform others within speaking distance
    - **Approaching behavior enabled**: Informed people actively approach nearby uninformed people
+   - **Simulation models**: WiFi propagation, SMS available, verbal transmission, approaching behavior
    
 3. **Telefon auch ausgefallen (Complete Telephone Failure)**
-   - Complete infrastructure collapse
-   - Only local ad-hoc networks work
+   - ❌ Complete cellular infrastructure collapse
+   - ❌ SMS does NOT work (no cellular network)
+   - ❌ Voice calls do NOT work
+   - ✅ Only local ad-hoc WiFi/Bluetooth networks work
    - **Verbal transmission enabled**: Critical for information spread
    - **Approaching behavior enabled**: People actively seek out others to inform
-   - Increased movement as people search for help
+   - ⚠️ Increased movement as people search for help
+   - **Simulation models**: WiFi propagation only, NO SMS, verbal transmission, approaching behavior
 
 ### Scenario Parameters
 
@@ -310,5 +318,30 @@ The simulation can help answer questions like:
 - **NEW: How much do buildings (indoor people) slow down message propagation?**
 - **NEW: Which infrastructure failure mode is most critical?**
 - **NEW: Do rural or urban areas recover faster from different types of failures?**
+
+### Understanding Emergency Communication Channels
+
+**Important Technical Clarifications:**
+
+1. **SMS and WiFi are SEPARATE communication channels:**
+   - ✅ SMS works over cellular voice network (NOT WiFi or mobile data)
+   - ✅ SMS available when only mobile data fails (voice network still works)
+   - ✅ SMS available when data backbone fails (cellular voice still works)
+   - ❌ SMS does NOT work over WiFi networks
+   - ❌ SMS NOT available when cellular network completely fails
+
+2. **WiFi in emergency scenarios:**
+   - ✅ WiFi networks work independently of cellular infrastructure
+   - ✅ Local WiFi access points can relay messages between devices
+   - ✅ WiFi Direct enables peer-to-peer without infrastructure
+   - ⚠️ WiFi requires power at access points
+   - ⚠️ Internet access may be unavailable even if WiFi works
+
+3. **Simulation accuracy:**
+   - The simulation now correctly shows SMS availability based on infrastructure mode
+   - "Mobile Data Only" failure: SMS ✅ available (shown in UI)
+   - "Data Backbone" failure: SMS ✅ available (shown in UI)
+   - "Complete Failure": SMS ❌ NOT available (shown in UI)
+   - WiFi propagation is modeled independently of cellular network status
 
 These insights can inform real-world deployment strategies and user education efforts.

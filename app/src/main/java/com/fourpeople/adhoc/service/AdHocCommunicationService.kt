@@ -488,6 +488,11 @@ class AdHocCommunicationService : Service() {
     }
     
     private fun sendEmergencySms() {
+        // IMPORTANT: SMS requires cellular voice network, NOT WiFi or mobile data
+        // This will work when:
+        // ✅ Mobile data is down (cellular voice still works)
+        // ✅ Internet backbone is down (cellular voice still works)
+        // ❌ Will NOT work when cellular network completely fails
         val message = "EMERGENCY! 4people app activated. Device ID: $deviceId. I need assistance."
         val sentCount = EmergencySmsHelper.sendEmergencySms(applicationContext, message)
         if (sentCount > 0) {

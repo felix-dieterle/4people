@@ -437,7 +437,9 @@ class SimulationEngine(
             peopleUninformed = uninformed,
             wifiNetworks = wifiNetworks.size,
             simulationTime = simulationTime,
-            eventOccurred = event != null
+            eventOccurred = event != null,
+            infrastructureFailure = infrastructureFailure,
+            smsAvailable = isSmsAvailable()
         )
     }
     
@@ -451,6 +453,31 @@ class SimulationEngine(
         simulationTime = 0L
         notifyListeners()
     }
+    
+    /**
+     * Check if SMS is available based on current infrastructure failure mode.
+     * 
+     * SMS requires cellular voice network:
+     * - ✅ Available when only mobile data fails (voice network works)
+     * - ✅ Available when data backbone fails (voice network works)
+     * - ❌ NOT available when telephone network completely fails
+     * 
+     * @return true if SMS can be sent in current infrastructure state
+     */
+    fun isSmsAvailable(): Boolean {
+        return when (infrastructureFailure) {
+            InfrastructureFailureMode.MOBILE_DATA_ONLY -> true  // Voice network works
+            InfrastructureFailureMode.DATA_BACKBONE -> true     // Voice network works
+            InfrastructureFailureMode.COMPLETE_FAILURE -> false // No cellular network
+        }
+    }
+    
+    /**
+     * Get the current infrastructure failure mode.
+     */
+    fun getInfrastructureFailureMode(): InfrastructureFailureMode {
+        return infrastructureFailure
+    }
 }
 
 /**
@@ -463,5 +490,7 @@ data class SimulationStatistics(
     val peopleUninformed: Int,
     val wifiNetworks: Int,
     val simulationTime: Long,
-    val eventOccurred: Boolean
+    val eventOccurred: Boolean,
+    val infrastructureFailure: InfrastructureFailureMode = InfrastructureFailureMode.MOBILE_DATA_ONLY,
+    val smsAvailable: Boolean = true
 )
