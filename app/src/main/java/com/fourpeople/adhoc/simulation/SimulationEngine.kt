@@ -12,6 +12,8 @@ import kotlin.random.Random
  * - People moving with typical walking patterns
  * - Event occurring at a random position
  * - Message propagation through people within 100m
+ * - Verbal transmission in critical scenarios
+ * - Approaching behavior where informed people seek out uninformed people
  */
 class SimulationEngine(
     private val areaLatMin: Double,
@@ -20,13 +22,47 @@ class SimulationEngine(
     private val areaLonMax: Double,
     private val peopleCount: Int,
     private val appAdoptionRate: Double, // 0.05 to 0.90 (5% to 90%)
-    private val movingPeopleRatio: Double = 0.3 // 30% of people are moving
+    private val movingPeopleRatio: Double = 0.3, // 30% of people are moving
+    private val indoorRatio: Double = 0.0, // Ratio of people indoors
+    private val wifiNetworkDensity: Double = 1.0, // WiFi networks per 10 people
+    private val verbalTransmissionEnabled: Boolean = false,
+    private val verbalTransmissionRadius: Double = 20.0, // meters
+    private val approachingBehaviorEnabled: Boolean = false,
+    private val approachingRadius: Double = 100.0, // meters
+    private val infrastructureFailure: InfrastructureFailureMode = InfrastructureFailureMode.MOBILE_DATA_ONLY
 ) {
+    
+    /**
+     * Secondary constructor for scenario-based initialization.
+     */
+    constructor(
+        areaLatMin: Double,
+        areaLatMax: Double,
+        areaLonMin: Double,
+        areaLonMax: Double,
+        scenario: SimulationScenario
+    ) : this(
+        areaLatMin = areaLatMin,
+        areaLatMax = areaLatMax,
+        areaLonMin = areaLonMin,
+        areaLonMax = areaLonMax,
+        peopleCount = scenario.peopleCount,
+        appAdoptionRate = scenario.appAdoptionRate,
+        movingPeopleRatio = scenario.movingPeopleRatio,
+        indoorRatio = scenario.indoorRatio,
+        wifiNetworkDensity = scenario.wifiNetworkDensity,
+        verbalTransmissionEnabled = scenario.verbalTransmissionEnabled,
+        verbalTransmissionRadius = scenario.verbalTransmissionRadius,
+        approachingBehaviorEnabled = scenario.approachingBehaviorEnabled,
+        approachingRadius = scenario.approachingRadius,
+        infrastructureFailure = scenario.infrastructureFailure
+    )
     
     companion object {
         private const val EARTH_RADIUS_METERS = 6371000.0
         private const val MESSAGE_PROPAGATION_RADIUS = 100.0 // meters
         private const val WIFI_RANGE = 50.0 // meters
+        private const val INDOOR_SIGNAL_ATTENUATION = 0.6 // Indoor reduces range by 40%
     }
     
     private val people = mutableListOf<SimulationPerson>()
@@ -60,6 +96,7 @@ class SimulationEngine(
             val lon = areaLonMin + Random.nextDouble() * (areaLonMax - areaLonMin)
             val hasApp = Random.nextDouble() < appAdoptionRate
             val isMoving = Random.nextDouble() < movingPeopleRatio
+            val isIndoor = Random.nextDouble() < indoorRatio
             
             people.add(
                 SimulationPerson(
@@ -67,13 +104,14 @@ class SimulationEngine(
                     latitude = lat,
                     longitude = lon,
                     hasApp = hasApp,
-                    isMoving = isMoving
+                    isMoving = isMoving,
+                    isIndoor = isIndoor
                 )
             )
         }
         
-        // Create WiFi networks (approximately 1 per 10 people)
-        val wifiCount = max(1, peopleCount / 10)
+        // Create WiFi networks based on density
+        val wifiCount = max(1, (peopleCount * wifiNetworkDensity / 10.0).toInt())
         for (i in 0 until wifiCount) {
             val lat = areaLatMin + Random.nextDouble() * (areaLatMax - areaLatMin)
             val lon = areaLonMin + Random.nextDouble() * (areaLonMax - areaLonMin)
@@ -119,12 +157,22 @@ class SimulationEngine(
     fun update(deltaTimeMs: Long) {
         simulationTime += deltaTimeMs
         
+        // Update approaching behavior
+        if (approachingBehaviorEnabled && event != null) {
+            updateApproachingBehavior()
+        }
+        
         // Update positions of moving people
         updatePeoplePositions(deltaTimeMs)
         
         // Check for message propagation
         if (event != null) {
             propagateMessages()
+            
+            // Verbal transmission for critical scenarios
+            if (verbalTransmissionEnabled) {
+                propagateVerbalMessages()
+            }
         }
         
         notifyListeners()
@@ -238,6 +286,87 @@ class SimulationEngine(
                         }
                     }
                     if (uninformed.hasReceivedEvent) break
+                }
+            }
+        }
+    }
+    
+    /**
+     * Update approaching behavior for informed people.
+     * Informed people will approach nearby uninformed people to inform them verbally.
+     */
+    private fun updateApproachingBehavior() {
+        val informedPeople = people.filter { it.hasApp && it.hasReceivedEvent }
+        val uninformedPeople = people.filter { it.hasApp && !it.hasReceivedEvent }
+        
+        for (informed in informedPeople) {
+            // Check if already approaching someone
+            if (informed.isApproaching && informed.targetPerson != null) {
+                // Check if target was already informed
+                if (informed.targetPerson?.hasReceivedEvent == true) {
+                    // Find new target
+                    informed.isApproaching = false
+                    informed.targetPerson = null
+                    informed.movementSpeed = if (informed.isMoving) SimulationPerson.WALKING_SPEED else SimulationPerson.STATIONARY_SPEED
+                }
+                continue
+            }
+            
+            // Look for nearby uninformed people within approaching radius
+            for (uninformed in uninformedPeople) {
+                if (uninformed.hasReceivedEvent) continue
+                
+                val distance = calculateDistance(
+                    informed.latitude, informed.longitude,
+                    uninformed.latitude, uninformed.longitude
+                )
+                
+                // Check if within approaching radius and line of sight (not indoors if target is indoors)
+                if (distance <= approachingRadius) {
+                    // Start approaching this person
+                    informed.isApproaching = true
+                    informed.targetPerson = uninformed
+                    informed.movementSpeed = SimulationPerson.APPROACHING_SPEED
+                    
+                    // Calculate direction to target
+                    val dLat = uninformed.latitude - informed.latitude
+                    val dLon = uninformed.longitude - informed.longitude
+                    informed.movementDirection = atan2(dLon, dLat)
+                    break
+                }
+            }
+        }
+    }
+    
+    /**
+     * Propagate messages via verbal transmission.
+     * This simulates people telling others about the event verbally.
+     */
+    private fun propagateVerbalMessages() {
+        val informedPeople = people.filter { it.hasReceivedEvent }
+        val uninformedPeople = people.filter { !it.hasReceivedEvent }
+        
+        for (uninformed in uninformedPeople) {
+            for (informed in informedPeople) {
+                val distance = calculateDistance(
+                    uninformed.latitude, uninformed.longitude,
+                    informed.latitude, informed.longitude
+                )
+                
+                // Apply range modifiers based on indoor/outdoor status
+                var effectiveRange = verbalTransmissionRadius
+                
+                // Both indoors or one indoor reduces range
+                if (uninformed.isIndoor || informed.isIndoor) {
+                    effectiveRange *= INDOOR_SIGNAL_ATTENUATION
+                }
+                
+                // Verbal transmission has shorter range than digital
+                if (distance <= effectiveRange) {
+                    uninformed.hasReceivedEvent = true
+                    uninformed.eventReceivedTime = simulationTime
+                    uninformed.receivedViaVerbal = true
+                    break
                 }
             }
         }
