@@ -437,7 +437,9 @@ class SimulationEngine(
             peopleUninformed = uninformed,
             wifiNetworks = wifiNetworks.size,
             simulationTime = simulationTime,
-            eventOccurred = event != null
+            eventOccurred = event != null,
+            infrastructureFailure = infrastructureFailure,
+            smsAvailable = isSmsAvailable()
         )
     }
     
@@ -451,6 +453,30 @@ class SimulationEngine(
         simulationTime = 0L
         notifyListeners()
     }
+    
+    /**
+     * Check if SMS is available based on current infrastructure failure mode.
+     * 
+     * SMS requires cellular signaling network (MAP/SS7 protocol):
+     * - ✅ Available when only mobile data fails (cellular signaling works)
+     * - ✅ Available when data backbone fails (cellular signaling works)
+     * - ❌ NOT available when cellular network completely fails
+     * 
+     * Note: SMS uses the cellular signaling channel, not the voice channel,
+     * but they typically fail together in infrastructure failures.
+     * 
+     * @return true if SMS can be sent in current infrastructure state
+     */
+    fun isSmsAvailable(): Boolean {
+        return SimulationStatistics.isSmsAvailableForMode(infrastructureFailure)
+    }
+    
+    /**
+     * Get the current infrastructure failure mode.
+     */
+    fun getInfrastructureFailureMode(): InfrastructureFailureMode {
+        return infrastructureFailure
+    }
 }
 
 /**
@@ -463,5 +489,27 @@ data class SimulationStatistics(
     val peopleUninformed: Int,
     val wifiNetworks: Int,
     val simulationTime: Long,
-    val eventOccurred: Boolean
-)
+    val eventOccurred: Boolean,
+    val infrastructureFailure: InfrastructureFailureMode,
+    val smsAvailable: Boolean
+) {
+    companion object {
+        /**
+         * Compute SMS availability based on infrastructure failure mode.
+         * 
+         * This is the single source of truth for SMS availability logic.
+         * SMS uses cellular signaling network (MAP/SS7), which typically
+         * remains available when cellular infrastructure is operational.
+         * 
+         * @param mode The infrastructure failure mode
+         * @return true if SMS is available in this mode
+         */
+        fun isSmsAvailableForMode(mode: InfrastructureFailureMode): Boolean {
+            return when (mode) {
+                InfrastructureFailureMode.MOBILE_DATA_ONLY -> true  // Cellular signaling works
+                InfrastructureFailureMode.DATA_BACKBONE -> true     // Cellular signaling works
+                InfrastructureFailureMode.COMPLETE_FAILURE -> false // No cellular network
+            }
+        }
+    }
+}
