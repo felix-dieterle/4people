@@ -75,7 +75,9 @@ Each scenario is configured with realistic parameters:
   - 🟢 Green: Has the app but not yet informed
   - 🟡 Gold/Yellow: Has the app and received the event notification
   - ⚫ Gray: Does not have the app
-  - Black outline: Person is moving
+  - Black outline: Person is moving normally
+  - 🟠 Orange outline: Person is approaching someone to inform them (thicker)
+  - Small gray center: Person is indoors (affects signal range)
 - **WiFi Networks**: Blue circles showing WiFi access points and their range
 - **Event**: Red circle marking the event location with a 100-meter detection radius
 
@@ -198,27 +200,41 @@ Test different scenarios to understand message propagation:
 - Test with different population densities (10 vs 200 people)
 - Understand minimum viable network density for effective propagation
 
+### Behavioral Observations
+Watch for these behaviors in critical scenarios:
+- **Approaching behavior**: Informed people (with orange outline) actively move toward uninformed people
+- **Indoor effects**: People indoors (with gray center) have reduced signal range
+- **Verbal transmission**: In critical scenarios, information spreads even between people very close together
+- **Movement patterns**: Approaching people move faster (7 km/h) than normal walking (5 km/h)
+
 ## Technical Implementation
 
 ### Components
 
 #### Data Models
-- **SimulationPerson**: Represents an individual with location, app status, and movement properties
+- **SimulationPerson**: Represents an individual with location, app status, movement properties, indoor/outdoor status, and approaching behavior
 - **SimulationWiFi**: Represents a WiFi access point with location and range
 - **SimulationEvent**: Represents an emergency event with location and detection radius
 - **SimulationStatistics**: Tracks real-time simulation metrics
+- **SimulationScenario**: Defines predefined scenario parameters including location type, infrastructure failure mode, and behavior settings
 
 #### Core Engine
 - **SimulationEngine**: Manages the simulation state, updates positions, and handles message propagation
   - Distance calculation using Haversine formula
   - Time-based position updates
   - Propagation logic for peer-to-peer and WiFi-based sharing
+  - Verbal transmission for critical scenarios
+  - Approaching behavior where informed people seek out uninformed people
+  - Indoor signal attenuation (60% range reduction)
 
 #### Visualization
 - **SimulationMapView**: Custom Android view that renders the simulation state
   - Coordinate transformation (GPS → screen pixels)
   - Color-coded rendering of people, WiFi networks, and events
   - Distance-based scaling for circles
+  - Visual indicators for indoor people, approaching behavior, and movement
+  - Orange outline for people actively approaching others
+  - Gray center dot for people indoors
 
 #### User Interface
 - **SimulationActivity**: Main activity managing the simulation
@@ -237,8 +253,11 @@ Test different scenarios to understand message propagation:
 
 Possible improvements to the simulation:
 
-- [ ] Predefined scenario templates (disaster zones, events, urban areas)
-- [ ] Obstacle simulation (buildings blocking signals)
+- [x] **Predefined scenario templates** - Implemented! 9 scenarios for different locations and failure modes
+- [x] **Indoor/outdoor people modeling** - Implemented! Affects signal propagation
+- [x] **Verbal transmission simulation** - Implemented! For critical scenarios
+- [x] **Approaching behavior** - Implemented! Informed people actively seek uninformed people
+- [ ] Obstacle simulation (buildings blocking signals with pathfinding)
 - [ ] Battery drain modeling
 - [ ] Network congestion simulation
 - [ ] Export simulation results for analysis
@@ -252,8 +271,8 @@ Possible improvements to the simulation:
 
 The simulation includes comprehensive unit tests:
 
-- **SimulationEngineTest**: Tests initialization, event detection, message propagation, movement, and statistics
-- **SimulationDataClassesTest**: Tests data model creation and properties
+- **SimulationEngineTest**: Tests initialization, event detection, message propagation, movement, statistics, and scenario-based initialization
+- **SimulationDataClassesTest**: Tests data model creation, properties, scenarios, and infrastructure failure modes
 
 Run tests with:
 ```bash
@@ -264,12 +283,19 @@ Run tests with:
 
 From the main app screen:
 1. Tap the "Open Simulation" button
-2. The simulation opens with default parameters
-3. Adjust parameters as needed
-4. Tap "Start Event" to begin an event
-5. Tap "Play" to start the simulation
-6. Use speed controls to accelerate time
-7. Observe the message propagation on the map
+2. The simulation opens with custom settings by default
+3. **Select a predefined scenario** from the "Szenario" dropdown to test specific emergency situations
+   - Each scenario automatically configures all parameters
+   - People Count and App Adoption sliders are disabled when a scenario is selected
+4. Or keep "Eigene Einstellungen" (Custom) to manually adjust parameters
+5. Tap "Start Event" to begin an emergency event at a random location
+6. Tap "Play" to start the simulation
+7. Use speed controls to accelerate time (1x, 2x, 5x, 10x)
+8. Observe the message propagation on the map
+9. Watch for special behaviors in critical scenarios:
+   - Orange outlines indicate people approaching others to inform them
+   - Gray centers show people indoors with reduced signal range
+   - Verbal transmission spreads information between very close people
 
 ## Practical Insights
 
@@ -279,5 +305,10 @@ The simulation can help answer questions like:
 - How quickly can a message reach 90% of users?
 - What happens in sparse vs. dense populations?
 - How do moving people contribute to message spread?
+- **NEW: How effective is verbal transmission in complete infrastructure failure?**
+- **NEW: Does approaching behavior significantly improve coverage?**
+- **NEW: How much do buildings (indoor people) slow down message propagation?**
+- **NEW: Which infrastructure failure mode is most critical?**
+- **NEW: Do rural or urban areas recover faster from different types of failures?**
 
 These insights can inform real-world deployment strategies and user education efforts.
