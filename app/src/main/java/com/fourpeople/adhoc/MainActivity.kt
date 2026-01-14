@@ -31,6 +31,12 @@ class MainActivity : AppCompatActivity() {
     private var isPanicModeActive = false
     private var nfcHelper: NFCHelper? = null
     private var pendingEmergencyActivation = false
+    
+    // Status tracking for individual features
+    private var isBluetoothActive = false
+    private var isWifiActive = false
+    private var isHotspotActive = false
+    private var isLocationActive = false
 
     private val emergencyReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -42,6 +48,20 @@ class MainActivity : AppCompatActivity() {
                         "Emergency detected: $source",
                         Toast.LENGTH_LONG
                     ).show()
+                }
+            }
+        }
+    }
+    
+    private val statusUpdateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == AdHocCommunicationService.ACTION_STATUS_UPDATE) {
+                isBluetoothActive = intent.getBooleanExtra(AdHocCommunicationService.EXTRA_BLUETOOTH_ACTIVE, false)
+                isWifiActive = intent.getBooleanExtra(AdHocCommunicationService.EXTRA_WIFI_ACTIVE, false)
+                isHotspotActive = intent.getBooleanExtra(AdHocCommunicationService.EXTRA_HOTSPOT_ACTIVE, false)
+                isLocationActive = intent.getBooleanExtra(AdHocCommunicationService.EXTRA_LOCATION_ACTIVE, false)
+                runOnUiThread {
+                    updateStatusUI()
                 }
             }
         }
@@ -131,6 +151,11 @@ class MainActivity : AppCompatActivity() {
         } catch (e: IllegalArgumentException) {
             // Receiver not registered
         }
+        try {
+            unregisterReceiver(statusUpdateReceiver)
+        } catch (e: IllegalArgumentException) {
+            // Receiver not registered
+        }
     }
 
     private fun setupUI() {
@@ -191,6 +216,14 @@ class MainActivity : AppCompatActivity() {
         } else {
             registerReceiver(emergencyReceiver, filter)
         }
+        
+        // Register status update receiver
+        val statusFilter = IntentFilter(AdHocCommunicationService.ACTION_STATUS_UPDATE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(statusUpdateReceiver, statusFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(statusUpdateReceiver, statusFilter)
+        }
     }
 
     private fun toggleEmergencyMode() {
@@ -217,30 +250,61 @@ class MainActivity : AppCompatActivity() {
             binding.statusTextView.text = "🟢 ${getString(R.string.emergency_active)}"
             binding.statusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
             binding.activateButton.text = getString(R.string.deactivate_emergency)
-            binding.bluetoothStatusTextView.text = "✓ ${getString(R.string.bluetooth_status, getString(R.string.active))}"
-            binding.bluetoothStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
-            binding.wifiStatusTextView.text = "✓ ${getString(R.string.wifi_status, getString(R.string.active))}"
-            binding.wifiStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
-            binding.hotspotStatusTextView.text = "✓ ${getString(R.string.hotspot_status, getString(R.string.active))}"
-            binding.hotspotStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
-            binding.locationStatusTextView.text = "✓ ${getString(R.string.location_sharing_status, getString(R.string.active))}"
-            binding.locationStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
             binding.viewLocationsButton.isEnabled = true
             binding.sendHelpButton.isEnabled = true
         } else {
             binding.statusTextView.text = "⚪ ${getString(R.string.emergency_inactive)}"
             binding.statusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
             binding.activateButton.text = getString(R.string.activate_emergency)
-            binding.bluetoothStatusTextView.text = "○ ${getString(R.string.bluetooth_status, getString(R.string.inactive))}"
-            binding.bluetoothStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
-            binding.wifiStatusTextView.text = "○ ${getString(R.string.wifi_status, getString(R.string.inactive))}"
-            binding.wifiStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
-            binding.hotspotStatusTextView.text = "○ ${getString(R.string.hotspot_status, getString(R.string.inactive))}"
-            binding.hotspotStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
-            binding.locationStatusTextView.text = "○ ${getString(R.string.location_sharing_status, getString(R.string.inactive))}"
-            binding.locationStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
             binding.viewLocationsButton.isEnabled = false
             binding.sendHelpButton.isEnabled = false
+            
+            // Reset status flags when emergency is deactivated
+            isBluetoothActive = false
+            isWifiActive = false
+            isHotspotActive = false
+            isLocationActive = false
+        }
+        
+        // Update individual feature statuses
+        updateStatusUI()
+    }
+    
+    private fun updateStatusUI() {
+        // Update Bluetooth status
+        if (isBluetoothActive) {
+            binding.bluetoothStatusTextView.text = "✓ ${getString(R.string.bluetooth_status, getString(R.string.active))}"
+            binding.bluetoothStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
+        } else {
+            binding.bluetoothStatusTextView.text = "○ ${getString(R.string.bluetooth_status, getString(R.string.inactive))}"
+            binding.bluetoothStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
+        }
+        
+        // Update WiFi status
+        if (isWifiActive) {
+            binding.wifiStatusTextView.text = "✓ ${getString(R.string.wifi_status, getString(R.string.active))}"
+            binding.wifiStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
+        } else {
+            binding.wifiStatusTextView.text = "○ ${getString(R.string.wifi_status, getString(R.string.inactive))}"
+            binding.wifiStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
+        }
+        
+        // Update Hotspot status
+        if (isHotspotActive) {
+            binding.hotspotStatusTextView.text = "✓ ${getString(R.string.hotspot_status, getString(R.string.active))}"
+            binding.hotspotStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
+        } else {
+            binding.hotspotStatusTextView.text = "○ ${getString(R.string.hotspot_status, getString(R.string.inactive))}"
+            binding.hotspotStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
+        }
+        
+        // Update Location sharing status
+        if (isLocationActive) {
+            binding.locationStatusTextView.text = "✓ ${getString(R.string.location_sharing_status, getString(R.string.active))}"
+            binding.locationStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
+        } else {
+            binding.locationStatusTextView.text = "○ ${getString(R.string.location_sharing_status, getString(R.string.inactive))}"
+            binding.locationStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
         }
     }
 
