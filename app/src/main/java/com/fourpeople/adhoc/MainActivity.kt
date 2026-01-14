@@ -50,8 +50,15 @@ class MainActivity : AppCompatActivity() {
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        val allGranted = permissions.all { it.value }
-        if (allGranted) {
+        // Check if all mandatory permissions are granted (SMS is optional)
+        val mandatoryPermissions = getMandatoryPermissions().filter {
+            !shouldFilterBackgroundLocation(it)
+        }
+        val allMandatoryGranted = mandatoryPermissions.all { permission ->
+            permissions[permission] == true
+        }
+        
+        if (allMandatoryGranted) {
             // Check if we need to request background location separately
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && 
                 !hasBackgroundLocationPermission()) {
