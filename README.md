@@ -46,6 +46,10 @@ When emergency mode is activated:
 ### Emergency Propagation Simulation
 The app includes an interactive simulation mode that visualizes how emergency messages spread:
 - ✓ Visual map showing people, WiFi networks, and events
+- ✓ **9 Predefined Scenarios**: City Center, City, Village × 3 infrastructure failure modes
+- ✓ **Verbal Transmission**: Simulates word-of-mouth in critical scenarios
+- ✓ **Approaching Behavior**: Informed people actively seek uninformed people
+- ✓ **Indoor/Outdoor Modeling**: Buildings reduce signal range by 40%
 - ✓ Configurable parameters (people count, app adoption rate 5-90%)
 - ✓ Time controls with adjustable speed (1x, 2x, 5x, 10x)
 - ✓ Real-time statistics and coverage metrics

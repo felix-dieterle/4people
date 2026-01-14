@@ -259,4 +259,64 @@ class SimulationEngineTest {
         assertTrue("High adoption should be around 90%",
             highStats.peopleWithApp >= 80)
     }
+    
+    @Test
+    fun testScenarioBasedInitialization() {
+        val scenario = SimulationScenario(
+            name = "Test Scenario",
+            locationType = LocationType.MEDIUM_CITY,
+            peopleCount = 80,
+            appAdoptionRate = 0.45,
+            indoorRatio = 0.50,
+            wifiNetworkDensity = 1.5,
+            movingPeopleRatio = 0.30,
+            infrastructureFailure = InfrastructureFailureMode.DATA_BACKBONE,
+            verbalTransmissionEnabled = true,
+            verbalTransmissionRadius = 20.0,
+            approachingBehaviorEnabled = true,
+            approachingRadius = 75.0
+        )
+        
+        val scenarioEngine = SimulationEngine(
+            areaLatMin = 52.5150,
+            areaLatMax = 52.5250,
+            areaLonMin = 13.4000,
+            areaLonMax = 13.4100,
+            scenario = scenario
+        )
+        
+        scenarioEngine.initialize()
+        val stats = scenarioEngine.getStatistics()
+        
+        // Check that people count matches scenario
+        assertEquals("People count should match scenario", 80, stats.totalPeople)
+        
+        // Check app adoption is roughly as specified (within variance)
+        assertTrue("App adoption should be around 45%",
+            stats.peopleWithApp >= 25 && stats.peopleWithApp <= 55)
+        
+        // WiFi network count should be higher than default (1.5 per 10 people)
+        assertTrue("WiFi networks should be around 12 (80 * 1.5 / 10)",
+            stats.wifiNetworks >= 8 && stats.wifiNetworks <= 16)
+    }
+    
+    @Test
+    fun testPredefinedScenarioInitialization() {
+        val scenario = SimulationScenario.getScenario(0)
+        assertNotNull("First scenario should exist", scenario)
+        
+        val scenarioEngine = SimulationEngine(
+            areaLatMin = 52.5150,
+            areaLatMax = 52.5250,
+            areaLonMin = 13.4000,
+            areaLonMax = 13.4100,
+            scenario = scenario!!
+        )
+        
+        scenarioEngine.initialize()
+        val stats = scenarioEngine.getStatistics()
+        
+        assertTrue("Should have created people", stats.totalPeople > 0)
+        assertTrue("Should have people with app", stats.peopleWithApp >= 0)
+    }
 }

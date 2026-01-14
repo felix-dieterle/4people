@@ -27,6 +27,8 @@ class SimulationActivity : AppCompatActivity() {
     private var simulationEngine: SimulationEngine? = null
     private var isRunning = false
     private var simulationSpeed = 1 // 1x, 2x, 5x, 10x
+    private var currentScenario: SimulationScenario? = null
+    private var useScenario = false // Track if we're using a scenario or custom settings
     
     private val updateHandler = Handler(Looper.getMainLooper())
     private val updateRunnable = object : Runnable {
@@ -65,6 +67,9 @@ class SimulationActivity : AppCompatActivity() {
     }
     
     private fun setupUI() {
+        // Scenario selection
+        setupScenarioSelector()
+        
         // Play/Pause button
         binding.playPauseButton.setOnClickListener {
             if (isRunning) {
@@ -140,10 +145,39 @@ class SimulationActivity : AppCompatActivity() {
         binding.appAdoptionText.text = "App Adoption: ${(5 + binding.appAdoptionSlider.progress).coerceAtMost(90)}%"
     }
     
-    private fun initializeSimulation() {
-        val peopleCount = 10 + binding.peopleCountSlider.progress * 2
-        val appAdoptionRate = (5 + binding.appAdoptionSlider.progress).coerceAtMost(90) / 100.0
+    private fun setupScenarioSelector() {
+        // Add "Custom" option at the beginning
+        val scenarioNames = arrayOf("Eigene Einstellungen") + SimulationScenario.getScenarioNames()
+        val scenarioAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, scenarioNames)
+        scenarioAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.scenarioSpinner.adapter = scenarioAdapter
         
+        binding.scenarioSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (position == 0) {
+                    // Custom settings
+                    useScenario = false
+                    currentScenario = null
+                    binding.peopleCountSlider.isEnabled = true
+                    binding.appAdoptionSlider.isEnabled = true
+                } else {
+                    // Predefined scenario
+                    useScenario = true
+                    currentScenario = SimulationScenario.getScenario(position - 1)
+                    binding.peopleCountSlider.isEnabled = false
+                    binding.appAdoptionSlider.isEnabled = false
+                }
+                
+                if (!isRunning) {
+                    initializeSimulation()
+                }
+            }
+            
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+    }
+    
+    private fun initializeSimulation() {
         // Example area: roughly 1km x 1km around a center point
         // Using Berlin coordinates as example
         val centerLat = 52.5200
@@ -151,14 +185,38 @@ class SimulationActivity : AppCompatActivity() {
         val latRange = 0.005 // roughly 500m
         val lonRange = 0.007 // roughly 500m
         
-        simulationEngine = SimulationEngine(
-            areaLatMin = centerLat - latRange,
-            areaLatMax = centerLat + latRange,
-            areaLonMin = centerLon - lonRange,
-            areaLonMax = centerLon + lonRange,
-            peopleCount = peopleCount,
-            appAdoptionRate = appAdoptionRate
-        )
+        simulationEngine = if (useScenario && currentScenario != null) {
+            // Use predefined scenario
+            val scenario = currentScenario!!
+            
+            // Update UI to show scenario parameters (read-only)
+            binding.peopleCountText.text = "People: ${scenario.peopleCount}"
+            binding.appAdoptionText.text = "App Adoption: ${(scenario.appAdoptionRate * 100).toInt()}%"
+            
+            SimulationEngine(
+                areaLatMin = centerLat - latRange,
+                areaLatMax = centerLat + latRange,
+                areaLonMin = centerLon - lonRange,
+                areaLonMax = centerLon + lonRange,
+                scenario = scenario
+            )
+        } else {
+            // Use custom settings from sliders
+            val peopleCount = 10 + binding.peopleCountSlider.progress * 2
+            val appAdoptionRate = (5 + binding.appAdoptionSlider.progress).coerceAtMost(90) / 100.0
+            
+            binding.peopleCountText.text = "People: $peopleCount"
+            binding.appAdoptionText.text = "App Adoption: ${(appAdoptionRate * 100).toInt()}%"
+            
+            SimulationEngine(
+                areaLatMin = centerLat - latRange,
+                areaLatMax = centerLat + latRange,
+                areaLonMin = centerLon - lonRange,
+                areaLonMax = centerLon + lonRange,
+                peopleCount = peopleCount,
+                appAdoptionRate = appAdoptionRate
+            )
+        }
         
         simulationEngine?.addStateChangeListener(object : SimulationEngine.StateChangeListener {
             override fun onSimulationUpdated(
