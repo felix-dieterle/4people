@@ -276,8 +276,12 @@ class PanicModeService : Service() {
         }
         
         try {
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
+            mediaPlayer?.let { player ->
+                if (player.isPlaying) {
+                    player.stop()
+                }
+                player.release()
+            }
             mediaPlayer = null
         } catch (e: Exception) {
             Log.e(TAG, "Error stopping media player", e)
@@ -397,8 +401,12 @@ class PanicModeService : Service() {
         }
         
         try {
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
+            mediaPlayer?.let { player ->
+                if (player.isPlaying) {
+                    player.stop()
+                }
+                player.release()
+            }
             mediaPlayer = null
         } catch (e: Exception) {
             Log.e(TAG, "Error stopping media player", e)
