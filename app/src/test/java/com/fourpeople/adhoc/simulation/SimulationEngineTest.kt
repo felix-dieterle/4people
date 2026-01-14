@@ -325,27 +325,7 @@ class SimulationEngineTest {
         // This test verifies that when someone with WiFi gets notified,
         // ALL others in the same WiFi network are notified immediately (in same update cycle)
         
-        // Create a controlled scenario:
-        // - Place WiFi network at center (52.52, 13.405)
-        // - Place one informed person within WiFi range
-        // - Place multiple uninformed people within WiFi range
-        // - Verify ALL get informed in a single update cycle
-        
-        val testEngine = SimulationEngine(
-            areaLatMin = 52.5150,
-            areaLatMax = 52.5250,
-            areaLonMin = 13.4000,
-            areaLonMax = 13.4100,
-            peopleCount = 0, // We'll add people manually via listener
-            appAdoptionRate = 1.0,
-            movingPeopleRatio = 0.0,
-            wifiNetworkDensity = 0.0 // We'll verify with a specific WiFi setup
-        )
-        
-        testEngine.initialize()
-        
-        // We can't directly manipulate the internal state, so we'll test with the actual engine
-        // Create a more realistic test: small area with guaranteed WiFi coverage
+        // Create a small area with guaranteed WiFi coverage
         val wifiTestEngine = SimulationEngine(
             areaLatMin = 52.5200,
             areaLatMax = 52.5200 + 0.0005, // ~50m north-south
