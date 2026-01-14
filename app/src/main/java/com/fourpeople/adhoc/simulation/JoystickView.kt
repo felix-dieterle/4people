@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import kotlin.math.atan2
+import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -128,7 +129,7 @@ class JoystickView @JvmOverloads constructor(
                 } else {
                     // Clamp to edge of base circle
                     val angle = atan2(dy, dx)
-                    hatX = centerX + baseRadius * kotlin.math.cos(angle)
+                    hatX = centerX + baseRadius * cos(angle)
                     hatY = centerY + baseRadius * kotlin.math.sin(angle)
                 }
                 

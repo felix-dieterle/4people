@@ -74,6 +74,7 @@
     <!-- Simulation strings -->
     <string name="simulation_title">Emergency Propagation Simulation</string>
     <string name="open_simulation">Open Simulation</string>
+    <string name="joystick_pan_description">Camera pan control - drag to move view up, down, left, or right</string>
     
     <!-- Help dialog strings -->
     <string name="help_emergency_mode_title">Emergency Communication Mode</string>

@@ -22,6 +22,11 @@ class SimulationMapView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
     
+    companion object {
+        // Maximum pan range as a fraction of visible area (0.3 = 30%)
+        private const val MAX_PAN_RANGE = 0.3
+    }
+    
     private var people = listOf<SimulationPerson>()
     private var wifiNetworks = listOf<SimulationWiFi>()
     private var event: SimulationEvent? = null
@@ -147,8 +152,8 @@ class SimulationMapView @JvmOverloads constructor(
         val lonRange = dataMaxLon - dataMinLon
         
         // Apply pan offset (inverted for natural camera movement)
-        val latOffset = latRange * panOffsetY * 0.3 // Limit pan to 30% of range
-        val lonOffset = lonRange * panOffsetX * 0.3
+        val latOffset = latRange * panOffsetY * MAX_PAN_RANGE
+        val lonOffset = lonRange * panOffsetX * MAX_PAN_RANGE
         
         minLat = dataMinLat - latOffset
         maxLat = dataMaxLat - latOffset

@@ -25,6 +25,7 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_margin="16dp"
+        android:contentDescription="@string/joystick_pan_description"
         app:layout_constraintEnd_toEndOf="@+id/simulationMapView"
         app:layout_constraintBottom_toBottomOf="@+id/simulationMapView" />
 
