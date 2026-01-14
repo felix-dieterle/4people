@@ -185,7 +185,8 @@ class SimulationEngine(
         val deltaTimeSec = deltaTimeMs / 1000.0
         
         for (person in people) {
-            if (!person.isMoving) continue
+            // Move both normally moving people and those approaching others
+            if (!person.isMoving && !person.isApproaching) continue
             
             // Calculate new position based on movement direction and speed
             val distanceMeters = person.movementSpeed * deltaTimeSec
@@ -209,8 +210,8 @@ class SimulationEngine(
                 person.longitude = person.longitude.coerceIn(areaLonMin, areaLonMax)
             }
             
-            // Randomly change direction occasionally (every ~10 seconds on average)
-            if (Random.nextDouble() < deltaTimeSec / 10.0) {
+            // Only change direction randomly if not approaching someone
+            if (!person.isApproaching && Random.nextDouble() < deltaTimeSec / 10.0) {
                 person.movementDirection += (Random.nextDouble() - 0.5) * PI / 2
             }
         }

@@ -4,6 +4,70 @@
 
 The Emergency Propagation Simulation is a visual tool that demonstrates how emergency messages spread through a network of people using the 4people app. This simulation helps visualize and understand the effectiveness of different scenarios and configurations.
 
+## New Features
+
+### Predefined Scenarios
+
+The simulation now includes 9 predefined scenarios representing typical emergency situations:
+
+#### Location Types
+- **Stadtmitte Großstadt (Big City Center)**: Dense urban environment with many buildings and WiFi networks
+- **Stadt (Medium City)**: Moderate density with mixed indoor/outdoor population
+- **Dorf (Village)**: Sparse rural area with mostly outdoor population
+
+#### Infrastructure Failure Modes
+Each location type has three infrastructure failure scenarios:
+
+1. **Nur Mobile Daten ausgefallen (Only Mobile Data Failed)**
+   - Voice calls and SMS still work
+   - WiFi networks functional
+   - No verbal transmission or approaching behavior
+   
+2. **Daten Backbone ausgefallen (Data Backbone Failed)**
+   - No internet connectivity
+   - Local networks still work
+   - Phone calls available
+   - **Verbal transmission enabled**: People inform others within speaking distance
+   - **Approaching behavior enabled**: Informed people actively approach nearby uninformed people
+   
+3. **Telefon auch ausgefallen (Complete Telephone Failure)**
+   - Complete infrastructure collapse
+   - Only local ad-hoc networks work
+   - **Verbal transmission enabled**: Critical for information spread
+   - **Approaching behavior enabled**: People actively seek out others to inform
+   - Increased movement as people search for help
+
+### Scenario Parameters
+
+Each scenario is configured with realistic parameters:
+
+**Big City Center (Großstadt)**
+- Population: 150 people
+- App adoption: 60%
+- Indoor ratio: 70% (most people in buildings)
+- WiFi density: 2.0 networks per 10 people (high)
+- Moving people: 40-50%
+- Verbal range: 15m (reduced by buildings)
+- Approaching range: 50m (limited by buildings)
+
+**Medium City (Stadt)**
+- Population: 80 people
+- App adoption: 45%
+- Indoor ratio: 50% (mixed)
+- WiFi density: 1.5 networks per 10 people
+- Moving people: 30-40%
+- Verbal range: 20m
+- Approaching range: 75m
+
+**Village (Dorf)**
+- Population: 40 people
+- App adoption: 30% (lower in rural areas)
+- Indoor ratio: 30% (mostly outdoor)
+- WiFi density: 0.8 networks per 10 people (sparse)
+- Moving people: 20-30%
+- Verbal range: 30m (open space, better range)
+- Approaching range: 150m (better line of sight)
+
 ## Features
 
 ### Visual Map
@@ -29,8 +93,15 @@ The Emergency Propagation Simulation is a visual tool that demonstrates how emer
 - **10x**: 10x faster than real-time
 
 #### Configuration Parameters
-- **People Count**: Adjust the number of people in the simulation (10-210)
-- **App Adoption Rate**: Set the percentage of people who have the app (5%-90%)
+- **Scenario Selection**: Choose from 9 predefined scenarios or use custom settings
+  - **Eigene Einstellungen (Custom)**: Manual configuration
+  - **Big City scenarios**: 3 infrastructure failure modes
+  - **Medium City scenarios**: 3 infrastructure failure modes
+  - **Village scenarios**: 3 infrastructure failure modes
+- **People Count**: Adjust the number of people (10-210) when in custom mode
+- **App Adoption Rate**: Set the percentage of people who have the app (5%-90%) when in custom mode
+
+**Note**: When a predefined scenario is selected, People Count and App Adoption Rate are automatically set according to the scenario parameters and cannot be manually adjusted.
 
 ### Real-Time Statistics
 
@@ -46,9 +117,10 @@ The simulation displays:
 
 ### Initialization
 1. People are randomly distributed across a 1km × 1km area
-2. A percentage of people (based on app adoption rate) have the app installed
-3. 30% of people are randomly selected to be moving
-4. WiFi networks are randomly placed (approximately 1 per 10 people)
+2. A percentage of people (based on app adoption rate or scenario) have the app installed
+3. A percentage of people are randomly selected to be moving (based on scenario)
+4. Indoor/outdoor distribution is assigned based on scenario (0-70% indoor)
+5. WiFi networks are randomly placed based on scenario density (0.8-2.0 per 10 people)
 
 ### Event Detection
 When an event is started:
@@ -57,15 +129,29 @@ When an event is started:
 3. These people become "informed" and are marked in gold/yellow
 
 ### Message Propagation
-The simulation models two propagation mechanisms:
+The simulation models multiple propagation mechanisms:
 
 #### 1. Direct Peer-to-Peer (Bluetooth/WiFi Direct)
 - Informed people can share the message with uninformed people within 100 meters
 - This simulates direct device-to-device communication
+- Signal attenuation when people are indoors (60% range reduction)
 
 #### 2. WiFi Network Propagation
 - If an informed person and an uninformed person are both within range of the same WiFi network, the message propagates
 - This simulates message sharing through WiFi access points
+
+#### 3. Verbal Transmission (Critical Scenarios Only)
+- Enabled in severe infrastructure failures (Data Backbone or Complete Failure)
+- People inform others within speaking distance (15-30m depending on environment)
+- Range is reduced indoors (walls dampen sound)
+- Does not require app on both devices - anyone can be informed verbally
+
+#### 4. Approaching Behavior (Critical Scenarios Only)
+- Enabled in severe infrastructure failures
+- Informed people actively seek out nearby uninformed people
+- Movement speed increases when approaching (2.0 m/s vs 1.4 m/s normal walking)
+- Approaching radius varies by location type (50-150m)
+- Simulates helpful behavior during emergencies where people actively inform others
 
 ### Movement Simulation
 - Moving people follow a random walk pattern
@@ -78,6 +164,23 @@ The simulation models two propagation mechanisms:
 ### Scenario Testing
 Test different scenarios to understand message propagation:
 
+#### Predefined Scenarios
+1. **Big City Center Scenarios**: 
+   - Test high-density urban environments
+   - Observe how buildings affect signal propagation
+   - See the effect of verbal transmission in critical situations
+   
+2. **Medium City Scenarios**:
+   - Balanced indoor/outdoor mix
+   - Moderate WiFi network density
+   - Good for comparing different failure modes
+   
+3. **Village Scenarios**:
+   - Sparse population, larger distances
+   - Better line-of-sight for approaching behavior
+   - Test how rural areas cope with infrastructure failure
+
+#### Custom Testing
 1. **Low Adoption (5-20%)**: How effective is the network with few users?
 2. **Medium Adoption (40-60%)**: What is the sweet spot for coverage?
 3. **High Adoption (70-90%)**: How quickly can a message reach everyone?

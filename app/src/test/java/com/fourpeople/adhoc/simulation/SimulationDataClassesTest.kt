@@ -23,9 +23,13 @@ class SimulationDataClassesTest {
         assertEquals(13.4050, person.longitude, 0.0001)
         assertTrue(person.hasApp)
         assertFalse(person.isMoving)
+        assertFalse(person.isIndoor)
         assertFalse(person.hasReceivedEvent)
         assertEquals(-1L, person.eventReceivedTime)
         assertEquals(0.0, person.movementSpeed, 0.0001)
+        assertFalse(person.receivedViaVerbal)
+        assertFalse(person.isApproaching)
+        assertNull(person.targetPerson)
     }
     
     @Test
@@ -138,6 +142,73 @@ class SimulationDataClassesTest {
     @Test
     fun testSimulationPersonMovementConstants() {
         assertEquals(1.4, SimulationPerson.WALKING_SPEED, 0.0001)
+        assertEquals(2.0, SimulationPerson.APPROACHING_SPEED, 0.0001)
         assertEquals(0.0, SimulationPerson.STATIONARY_SPEED, 0.0001)
+    }
+    
+    @Test
+    fun testSimulationPersonIndoor() {
+        val indoorPerson = SimulationPerson(
+            id = "person_indoor",
+            latitude = 52.5200,
+            longitude = 13.4050,
+            hasApp = true,
+            isMoving = false,
+            isIndoor = true
+        )
+        
+        assertTrue(indoorPerson.isIndoor)
+    }
+    
+    @Test
+    fun testSimulationScenarioCreation() {
+        val scenario = SimulationScenario(
+            name = "Test Scenario",
+            locationType = LocationType.MEDIUM_CITY,
+            peopleCount = 50,
+            appAdoptionRate = 0.5,
+            indoorRatio = 0.4,
+            wifiNetworkDensity = 1.2,
+            movingPeopleRatio = 0.3,
+            infrastructureFailure = InfrastructureFailureMode.DATA_BACKBONE,
+            verbalTransmissionEnabled = true,
+            verbalTransmissionRadius = 20.0,
+            approachingBehaviorEnabled = true,
+            approachingRadius = 100.0
+        )
+        
+        assertEquals("Test Scenario", scenario.name)
+        assertEquals(LocationType.MEDIUM_CITY, scenario.locationType)
+        assertEquals(50, scenario.peopleCount)
+        assertEquals(0.5, scenario.appAdoptionRate, 0.0001)
+        assertEquals(0.4, scenario.indoorRatio, 0.0001)
+        assertEquals(1.2, scenario.wifiNetworkDensity, 0.0001)
+        assertEquals(0.3, scenario.movingPeopleRatio, 0.0001)
+        assertEquals(InfrastructureFailureMode.DATA_BACKBONE, scenario.infrastructureFailure)
+        assertTrue(scenario.verbalTransmissionEnabled)
+        assertEquals(20.0, scenario.verbalTransmissionRadius, 0.0001)
+        assertTrue(scenario.approachingBehaviorEnabled)
+        assertEquals(100.0, scenario.approachingRadius, 0.0001)
+    }
+    
+    @Test
+    fun testPredefinedScenariosExist() {
+        val scenarios = SimulationScenario.getPredefinedScenarios()
+        
+        // Should have 9 scenarios (3 locations × 3 failure modes)
+        assertEquals(9, scenarios.size)
+        
+        // Check that scenario names are available
+        val names = SimulationScenario.getScenarioNames()
+        assertEquals(9, names.size)
+    }
+    
+    @Test
+    fun testGetScenarioByIndex() {
+        val scenario = SimulationScenario.getScenario(0)
+        assertNotNull(scenario)
+        
+        val invalidScenario = SimulationScenario.getScenario(100)
+        assertNull(invalidScenario)
     }
 }
