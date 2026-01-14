@@ -60,14 +60,24 @@ class PanicModeService : Service() {
         const val CONTACT_NOTIFICATION_INITIAL_INTERVAL = 180000L // 3 minutes
         const val WAKE_LOCK_TIMEOUT = 10 * 60 * 1000L // 10 minutes
         
-        // Preferences keys
+        // Preferences
+        const val PREFS_NAME = "panic_settings"
         const val PREF_GENTLE_WARNING_TYPE = "panic_gentle_warning_type"
         const val PREF_AUTO_ACTIVATE_DATA = "panic_auto_activate_data"
+        const val PREF_IS_ACTIVE = "panic_mode_is_active"
         
         // Warning types
         const val WARNING_VIBRATION = "vibration"
         const val WARNING_SOUND = "sound"
         const val WARNING_BOTH = "both"
+        
+        /**
+         * Check if panic mode service is currently active
+         */
+        fun isActive(context: Context): Boolean {
+            return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getBoolean(PREF_IS_ACTIVE, false)
+        }
     }
 
     private enum class PanicPhase {
@@ -180,6 +190,12 @@ class PanicModeService : Service() {
         currentPhase = PanicPhase.CONFIRMATION
         lastConfirmationTime = System.currentTimeMillis()
         
+        // Save active state to shared preferences
+        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(PREF_IS_ACTIVE, true)
+            .apply()
+        
         // Start foreground service
         startForeground(NOTIFICATION_ID, createNotification())
         
@@ -195,6 +211,12 @@ class PanicModeService : Service() {
     private fun stopPanicMode() {
         Log.d(TAG, "Stopping panic mode")
         isRunning = false
+        
+        // Clear active state from shared preferences
+        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(PREF_IS_ACTIVE, false)
+            .apply()
         
         // Stop all handlers
         handler.removeCallbacks(confirmationCheckRunnable)
@@ -258,7 +280,7 @@ class PanicModeService : Service() {
         currentPhase = PanicPhase.GENTLE_WARNING
         gentleWarningStartTime = System.currentTimeMillis()
         
-        val warningType = getSharedPreferences("panic_settings", Context.MODE_PRIVATE)
+        val warningType = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .getString(PREF_GENTLE_WARNING_TYPE, WARNING_VIBRATION) ?: WARNING_VIBRATION
         
         // Try vibration - failures should not prevent sound from working
@@ -383,7 +405,7 @@ class PanicModeService : Service() {
         }
         
         // Auto-activate mobile data and WiFi if enabled - failure should not prevent other actions
-        val autoActivateData = getSharedPreferences("panic_settings", Context.MODE_PRIVATE)
+        val autoActivateData = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .getBoolean(PREF_AUTO_ACTIVATE_DATA, false)
         
         if (autoActivateData) {
