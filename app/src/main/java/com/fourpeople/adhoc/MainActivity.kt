@@ -138,6 +138,17 @@ class MainActivity : AppCompatActivity() {
         isPanicModeActive = PanicModeService.isActive(this)
         updatePanicModeUI()
         
+        // Check if emergency mode service is running and request status update
+        if (AdHocCommunicationService.isActive(this)) {
+            isEmergencyActive = true
+            requestServiceStatusUpdate()
+        } else {
+            isEmergencyActive = false
+        }
+        
+        // Update UI to reflect current state
+        updateUI()
+        
         // Check if permissions were revoked and update UI accordingly
         if (!checkPermissions()) {
             // Update UI to reflect that permissions are needed
@@ -597,6 +608,12 @@ class MainActivity : AppCompatActivity() {
             binding.panicModeButton.backgroundTintList = 
                 ContextCompat.getColorStateList(this, android.R.color.holo_red_dark)
         }
+    }
+    
+    private fun requestServiceStatusUpdate() {
+        val intent = Intent(this, AdHocCommunicationService::class.java)
+        intent.action = AdHocCommunicationService.ACTION_REQUEST_STATUS
+        startService(intent)
     }
 
     private fun showEmergencyModeHelp() {
