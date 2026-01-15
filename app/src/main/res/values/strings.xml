@@ -8,6 +8,7 @@
     <string name="bluetooth_status">Bluetooth: %s</string>
     <string name="wifi_status">WiFi: %s</string>
     <string name="hotspot_status">Hotspot: %s</string>
+    <string name="wifi_connection_status">WiFi Connected: %s</string>
     <string name="active">Active</string>
     <string name="inactive">Inactive</string>
     <string name="emergency_notification_title">4people Emergency Mode</string>
