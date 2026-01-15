@@ -54,8 +54,10 @@ class AdHocCommunicationService : Service() {
         const val CHANNEL_ID = "emergency_channel"
         const val ACTION_START = "com.fourpeople.adhoc.START"
         const val ACTION_STOP = "com.fourpeople.adhoc.STOP"
+        const val ACTION_REQUEST_STATUS = "com.fourpeople.adhoc.REQUEST_STATUS"
         const val EMERGENCY_SSID_PATTERN = "4people-"
         const val WIFI_SCAN_INTERVAL = 10000L // 10 seconds (default for active mode)
+        const val STATUS_UPDATE_INTERVAL = 5000L // 5 seconds
         const val ACTION_STATUS_UPDATE = "com.fourpeople.adhoc.STATUS_UPDATE"
         const val EXTRA_BLUETOOTH_ACTIVE = "bluetooth_active"
         const val EXTRA_WIFI_ACTIVE = "wifi_active"
@@ -110,6 +112,16 @@ class AdHocCommunicationService : Service() {
         override fun run() {
             performMeshMaintenance()
             handler.postDelayed(this, 30000L) // Every 30 seconds
+        }
+    }
+    
+    private val statusUpdateRunnable = object : Runnable {
+        override fun run() {
+            // Only continue broadcasting if service is still running
+            if (isRunning) {
+                broadcastStatusUpdate()
+                handler.postDelayed(this, STATUS_UPDATE_INTERVAL)
+            }
         }
     }
 
@@ -203,6 +215,12 @@ class AdHocCommunicationService : Service() {
             ACTION_STOP -> {
                 stopEmergencyMode()
                 stopSelf()
+            }
+            ACTION_REQUEST_STATUS -> {
+                // Only broadcast status if service is actually running
+                if (isRunning) {
+                    broadcastStatusUpdate()
+                }
             }
         }
         return START_STICKY
@@ -347,6 +365,14 @@ class AdHocCommunicationService : Service() {
         
         // Notify widgets of state change
         broadcastWidgetUpdate()
+        
+        // Send initial status update after a short delay to ensure all services are initialized
+        handler.postDelayed({
+            broadcastStatusUpdate()
+        }, 100L)
+        
+        // Start periodic status updates independently
+        handler.postDelayed(statusUpdateRunnable, STATUS_UPDATE_INTERVAL)
     }
 
     private fun stopEmergencyMode() {
@@ -361,6 +387,7 @@ class AdHocCommunicationService : Service() {
         
         handler.removeCallbacks(wifiScanRunnable)
         handler.removeCallbacks(meshMaintenanceRunnable)
+        handler.removeCallbacks(statusUpdateRunnable)
         
         safeUnregisterReceiver(wifiScanReceiver)
         safeUnregisterReceiver(bluetoothDiscoveryReceiver)

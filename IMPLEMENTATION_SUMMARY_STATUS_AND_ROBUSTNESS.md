@@ -176,3 +176,21 @@ private fun safeStopMediaPlayer() {
 ✅ **Well Documented:** Comprehensive documentation added
 
 The implementation successfully addresses both requirements from the problem statement with minimal, surgical changes to the codebase.
+
+## Subsequent Enhancement (v1.0.32)
+
+### Real-Time Status Updates
+
+**Problem:** Device module states (WiFi, Bluetooth, Hotspot, Location) were not being updated periodically in the UI. Status was only updated when there was a state change in the service, and when MainActivity resumed, there was no mechanism to request the current status.
+
+**Solution:**
+1. Added periodic status broadcasts in `AdHocCommunicationService` (every 5 seconds)
+2. Added `ACTION_REQUEST_STATUS` to allow MainActivity to request current status
+3. Modified MainActivity.onResume() to check service state and request status update
+
+**Files Modified:**
+- `AdHocCommunicationService.kt`: Added statusUpdateRunnable and ACTION_REQUEST_STATUS handling
+- `MainActivity.kt`: Added requestServiceStatusUpdate() and enhanced onResume()
+- `STATUS_VISIBILITY_AND_ROBUSTNESS.md`: Updated with implementation details
+
+**Result:** Device module states are now always up-to-date and visible immediately when opening the app.

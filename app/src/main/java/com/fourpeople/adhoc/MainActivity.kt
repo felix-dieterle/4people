@@ -10,6 +10,7 @@ import android.nfc.NdefMessage
 import android.nfc.NfcAdapter
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -137,6 +138,15 @@ class MainActivity : AppCompatActivity() {
         // Check if panic mode service is actually running and update state
         isPanicModeActive = PanicModeService.isActive(this)
         updatePanicModeUI()
+        
+        // Check if emergency mode service is running and request status update
+        isEmergencyActive = AdHocCommunicationService.isActive(this)
+        if (isEmergencyActive) {
+            requestServiceStatusUpdate()
+        }
+        
+        // Update UI to reflect current state
+        updateUI()
         
         // Check if permissions were revoked and update UI accordingly
         if (!checkPermissions()) {
@@ -596,6 +606,18 @@ class MainActivity : AppCompatActivity() {
             binding.panicModeButton.text = getString(R.string.activate_panic)
             binding.panicModeButton.backgroundTintList = 
                 ContextCompat.getColorStateList(this, android.R.color.holo_red_dark)
+        }
+    }
+    
+    private fun requestServiceStatusUpdate() {
+        try {
+            val intent = Intent(this, AdHocCommunicationService::class.java)
+            intent.action = AdHocCommunicationService.ACTION_REQUEST_STATUS
+            startService(intent)
+        } catch (e: SecurityException) {
+            Log.e("MainActivity", "Failed to request service status update", e)
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Unexpected error requesting service status", e)
         }
     }
 
