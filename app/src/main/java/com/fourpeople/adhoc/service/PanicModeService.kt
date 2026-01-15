@@ -52,6 +52,7 @@ class PanicModeService : Service() {
         const val ACTION_START = "com.fourpeople.adhoc.PANIC_START"
         const val ACTION_STOP = "com.fourpeople.adhoc.PANIC_STOP"
         const val ACTION_CONFIRM = "com.fourpeople.adhoc.PANIC_CONFIRM"
+        const val ACTION_WIDGET_UPDATE = "com.fourpeople.adhoc.PANIC_WIDGET_UPDATE"
         
         // Timing constants (in milliseconds)
         const val CONFIRMATION_INTERVAL = 30000L // 30 seconds
@@ -206,6 +207,9 @@ class PanicModeService : Service() {
         handler.post(confirmationCheckRunnable)
         
         updateNotification()
+        
+        // Notify widgets of state change
+        broadcastWidgetUpdate()
     }
 
     private fun stopPanicMode() {
@@ -225,6 +229,9 @@ class PanicModeService : Service() {
         // Stop all alerts
         stopGentleWarning()
         stopMassiveAlert()
+        
+        // Notify widgets of state change
+        broadcastWidgetUpdate()
     }
 
     private fun confirmOk() {
@@ -662,6 +669,12 @@ class PanicModeService : Service() {
         return contacts.mapIndexed { index, phoneNumber ->
             EmergencyContact("Contact ${index + 1}", phoneNumber)
         }
+    }
+    
+    private fun broadcastWidgetUpdate() {
+        val intent = Intent(ACTION_WIDGET_UPDATE)
+        sendBroadcast(intent)
+        Log.d(TAG, "Widget update broadcast sent")
     }
 
     private fun createNotificationChannel() {

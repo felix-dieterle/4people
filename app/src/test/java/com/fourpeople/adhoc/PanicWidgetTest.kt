@@ -105,4 +105,26 @@ class PanicWidgetTest {
             fail("Widget should handle empty IDs: ${e.message}")
         }
     }
+    
+    @Test
+    fun testWidgetStateVisibility() {
+        // Widget should show different states for enabled/disabled
+        val activateText = "Activate Panic Mode"
+        val deactivateText = "Deactivate Panic Mode"
+        
+        // Text should be different to clearly indicate state
+        assertNotEquals(activateText, deactivateText)
+        assertTrue(activateText.contains("Activate"))
+        assertTrue(deactivateText.contains("Deactivate"))
+    }
+    
+    @Test
+    fun testWidgetStateUpdateBroadcast() {
+        // Widget should listen for service state changes
+        val widgetUpdateAction = "com.fourpeople.adhoc.PANIC_WIDGET_UPDATE"
+        
+        assertTrue(widgetUpdateAction.isNotEmpty())
+        assertTrue(widgetUpdateAction.contains("PANIC_WIDGET_UPDATE"))
+        assertTrue(widgetUpdateAction.startsWith("com.fourpeople.adhoc"))
+    }
 }

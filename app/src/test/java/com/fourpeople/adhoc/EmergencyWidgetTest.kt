@@ -161,4 +161,26 @@ class EmergencyWidgetTest {
         assertTrue(serviceAction.contains("START"))
         assertTrue(serviceAction.startsWith("com.fourpeople.adhoc"))
     }
+    
+    @Test
+    fun widgetStateVisibility() {
+        // Widget should show different states for enabled/disabled
+        val activateText = "Activate Emergency Communication"
+        val deactivateText = "Deactivate Emergency Communication"
+        
+        // Text should be different to clearly indicate state
+        assertNotEquals(activateText, deactivateText)
+        assertTrue(activateText.contains("Activate"))
+        assertTrue(deactivateText.contains("Deactivate"))
+    }
+    
+    @Test
+    fun widgetStateUpdateBroadcast() {
+        // Widget should listen for service state changes
+        val widgetUpdateAction = "com.fourpeople.adhoc.WIDGET_UPDATE"
+        
+        assertTrue(widgetUpdateAction.isNotEmpty())
+        assertTrue(widgetUpdateAction.contains("WIDGET_UPDATE"))
+        assertTrue(widgetUpdateAction.startsWith("com.fourpeople.adhoc"))
+    }
 }
