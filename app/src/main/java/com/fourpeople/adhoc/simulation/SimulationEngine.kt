@@ -264,39 +264,50 @@ class SimulationEngine(
             }
         }
         
-        // Also check WiFi network propagation
-        // WiFi instant propagation only works when the WiFi backbone is intact (MOBILE_DATA_ONLY mode).
-        // In this mode, WiFi networks have internet connectivity via fixed broadband.
-        // When data backbone fails (DATA_BACKBONE or COMPLETE_FAILURE), WiFi networks
-        // can still provide local connectivity but without instant propagation via internet.
+        // WiFi instant propagation (only when backbone is intact)
         if (infrastructureFailure == InfrastructureFailureMode.MOBILE_DATA_ONLY) {
-            // WiFi backbone is intact - instant propagation via WiFi networks with internet
-            for (wifi in wifiNetworks) {
-                // First, check if any informed person is in range of this WiFi
-                val hasInformedInRange = informedPeople.any { informed ->
-                    val distance = calculateDistance(
-                        informed.latitude, informed.longitude,
+            processWiFiInstantPropagation(informedPeople, uninformedPeople)
+        }
+    }
+    
+    /**
+     * Process WiFi instant propagation when the WiFi backbone is intact.
+     * 
+     * WiFi instant propagation only works when the WiFi backbone is intact (MOBILE_DATA_ONLY mode).
+     * In this mode, WiFi networks have internet connectivity via fixed broadband.
+     * When data backbone fails (DATA_BACKBONE or COMPLETE_FAILURE), WiFi networks
+     * can still provide local connectivity but without instant propagation via internet.
+     */
+    private fun processWiFiInstantPropagation(
+        informedPeople: List<SimulationPerson>,
+        uninformedPeople: List<SimulationPerson>
+    ) {
+        // WiFi backbone is intact - instant propagation via WiFi networks with internet
+        for (wifi in wifiNetworks) {
+            // First, check if any informed person is in range of this WiFi
+            val hasInformedInRange = informedPeople.any { informed ->
+                val distance = calculateDistance(
+                    informed.latitude, informed.longitude,
+                    wifi.latitude, wifi.longitude
+                )
+                distance <= wifi.range
+            }
+            
+            // If yes, immediately notify ALL uninformed people in range of this WiFi
+            // This simulates message propagation via WiFi networks with internet connectivity
+            if (hasInformedInRange) {
+                for (uninformed in uninformedPeople) {
+                    // Skip if already informed (preserves original eventReceivedTime)
+                    if (uninformed.hasReceivedEvent) continue
+                    
+                    val distanceToWifi = calculateDistance(
+                        uninformed.latitude, uninformed.longitude,
                         wifi.latitude, wifi.longitude
                     )
-                    distance <= wifi.range
-                }
-                
-                // If yes, immediately notify ALL uninformed people in range of this WiFi
-                // This simulates message propagation via WiFi networks with internet connectivity
-                if (hasInformedInRange) {
-                    for (uninformed in uninformedPeople) {
-                        // Skip if already informed (preserves original eventReceivedTime)
-                        if (uninformed.hasReceivedEvent) continue
-                        
-                        val distanceToWifi = calculateDistance(
-                            uninformed.latitude, uninformed.longitude,
-                            wifi.latitude, wifi.longitude
-                        )
-                        
-                        if (distanceToWifi <= wifi.range) {
-                            uninformed.hasReceivedEvent = true
-                            uninformed.eventReceivedTime = simulationTime
-                        }
+                    
+                    if (distanceToWifi <= wifi.range) {
+                        uninformed.hasReceivedEvent = true
+                        uninformed.eventReceivedTime = simulationTime
                     }
                 }
             }
