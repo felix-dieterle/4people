@@ -12,8 +12,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.fourpeople.adhoc.databinding.ActivityOfflineMapBinding
 import com.fourpeople.adhoc.location.LocationData
+import com.fourpeople.adhoc.location.LocationDataStore
 import com.fourpeople.adhoc.location.LocationSharingManager
 import com.fourpeople.adhoc.location.SafeZone
+import com.fourpeople.adhoc.location.SafeZoneManager
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -30,7 +32,9 @@ import java.util.UUID
  * - Mark and display safe zones (collection points)
  * - Show routes to nearest safe zones
  */
-class OfflineMapActivity : AppCompatActivity() {
+class OfflineMapActivity : AppCompatActivity(), 
+    LocationDataStore.LocationUpdateListener,
+    SafeZoneManager.SafeZoneUpdateListener {
 
     private lateinit var binding: ActivityOfflineMapBinding
     private val safeZones = mutableListOf<SafeZone>()
@@ -63,8 +67,31 @@ class OfflineMapActivity : AppCompatActivity() {
         setupMap()
         setupListeners()
         
+        // Register for location updates
+        LocationDataStore.addListener(this)
+        SafeZoneManager.addListener(this)
+        
+        // Load existing locations
+        loadExistingLocations()
+        
+        // Load existing safe zones
+        loadExistingSafeZones()
+        
         // Load sample data for demonstration
         loadSampleSafeZones()
+    }
+    
+    private fun loadExistingLocations() {
+        val locations = LocationDataStore.getAllLocations()
+        locations.forEach { addParticipantMarker(it) }
+    }
+    
+    private fun loadExistingSafeZones() {
+        val zones = SafeZoneManager.getAllSafeZones()
+        zones.forEach { safeZone ->
+            safeZones.add(safeZone)
+            addSafeZoneMarker(safeZone)
+        }
     }
 
     private fun setupMap() {
@@ -138,7 +165,9 @@ class OfflineMapActivity : AppCompatActivity() {
         )
         
         safeZones.add(safeZone)
-        addSafeZoneMarker(safeZone)
+        
+        // Add to global safe zone manager
+        SafeZoneManager.addSafeZone(safeZone)
         
         Toast.makeText(this, "Safe zone added: $name", Toast.LENGTH_SHORT).show()
     }
@@ -272,9 +301,54 @@ class OfflineMapActivity : AppCompatActivity() {
         super.onPause()
         binding.mapView.onPause()
     }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        // Unregister from location updates
+        LocationDataStore.removeListener(this)
+        SafeZoneManager.removeListener(this)
+    }
 
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
+    }
+    
+    // LocationDataStore.LocationUpdateListener implementation
+    override fun onLocationUpdate(locationData: LocationData) {
+        runOnUiThread {
+            addParticipantMarker(locationData)
+        }
+    }
+    
+    override fun onLocationRemoved(deviceId: String) {
+        runOnUiThread {
+            participantMarkers[deviceId]?.let { marker ->
+                binding.mapView.overlays.remove(marker)
+                participantMarkers.remove(deviceId)
+                binding.mapView.invalidate()
+            }
+        }
+    }
+    
+    // SafeZoneManager.SafeZoneUpdateListener implementation
+    override fun onSafeZoneAdded(safeZone: SafeZone) {
+        runOnUiThread {
+            if (!safeZones.any { it.id == safeZone.id }) {
+                safeZones.add(safeZone)
+                addSafeZoneMarker(safeZone)
+            }
+        }
+    }
+    
+    override fun onSafeZoneRemoved(safeZoneId: String) {
+        runOnUiThread {
+            safeZoneMarkers[safeZoneId]?.let { marker ->
+                binding.mapView.overlays.remove(marker)
+                safeZoneMarkers.remove(safeZoneId)
+                safeZones.removeAll { it.id == safeZoneId }
+                binding.mapView.invalidate()
+            }
+        }
     }
 }
