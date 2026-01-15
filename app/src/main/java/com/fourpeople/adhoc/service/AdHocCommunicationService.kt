@@ -117,7 +117,7 @@ class AdHocCommunicationService : Service() {
     private val statusUpdateRunnable = object : Runnable {
         override fun run() {
             broadcastStatusUpdate()
-            handler.postDelayed(this, 2000L) // Every 2 seconds
+            handler.postDelayed(this, 5000L) // Every 5 seconds
         }
     }
 

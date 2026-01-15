@@ -139,11 +139,9 @@ class MainActivity : AppCompatActivity() {
         updatePanicModeUI()
         
         // Check if emergency mode service is running and request status update
-        if (AdHocCommunicationService.isActive(this)) {
-            isEmergencyActive = true
+        isEmergencyActive = AdHocCommunicationService.isActive(this)
+        if (isEmergencyActive) {
             requestServiceStatusUpdate()
-        } else {
-            isEmergencyActive = false
         }
         
         // Update UI to reflect current state
