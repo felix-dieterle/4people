@@ -52,6 +52,13 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
+    <!-- Map permissions for OSM offline maps -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
     <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
     <uses-feature android:name="android.hardware.wifi" android:required="false" />
     <uses-feature android:name="android.hardware.wifi.direct" android:required="false" />
@@ -93,6 +100,12 @@
             android:name=".LocationMapActivity"
             android:exported="false"
             android:label="@string/location_map_title"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".OfflineMapActivity"
+            android:exported="false"
+            android:label="Offline Map"
             android:parentActivityName=".MainActivity" />
 
         <activity

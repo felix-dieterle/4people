@@ -66,6 +66,9 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.viewpager2:viewpager2:1.0.0")
     
+    // OSM-based offline maps
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+    
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:5.3.1")
     testImplementation("org.mockito:mockito-inline:5.3.1")

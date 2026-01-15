@@ -26,6 +26,7 @@ class LocationMapActivity : AppCompatActivity() {
         supportActionBar?.title = getString(R.string.location_map_title)
 
         setupRecyclerView()
+        setupMapButton()
         
         // Note: In a full implementation, this would bind to the service
         // to get location updates in real-time. For now, we'll show a placeholder.
@@ -36,6 +37,13 @@ class LocationMapActivity : AppCompatActivity() {
         adapter = LocationAdapter()
         binding.participantRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.participantRecyclerView.adapter = adapter
+    }
+
+    private fun setupMapButton() {
+        binding.openMapButton.setOnClickListener {
+            val intent = android.content.Intent(this, OfflineMapActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun showPlaceholder() {
