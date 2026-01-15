@@ -916,11 +916,12 @@ class AdHocCommunicationService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getString(R.string.emergency_notification_title))
-            .setContentText(getString(R.string.emergency_notification_text))
+            .setContentTitle("🟢 Emergency Mode ACTIVE")
+            .setContentText("Ad-hoc emergency communication running")
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
     }
 }
