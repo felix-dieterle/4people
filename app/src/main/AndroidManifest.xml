@@ -101,6 +101,12 @@
             android:label="@string/simulation_title"
             android:parentActivityName=".MainActivity" />
 
+        <activity
+            android:name=".HelpActivity"
+            android:exported="false"
+            android:label="@string/help_title"
+            android:parentActivityName=".MainActivity" />
+
         <!-- Ad-hoc communication service -->
         <service
             android:name=".service.AdHocCommunicationService"

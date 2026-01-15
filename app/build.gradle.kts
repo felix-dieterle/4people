@@ -64,6 +64,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-service:2.7.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
     
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:5.3.1")

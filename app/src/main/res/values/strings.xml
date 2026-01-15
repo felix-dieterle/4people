@@ -83,4 +83,257 @@
     <string name="help_panic_mode_message">Panic Mode is a safety feature that:\n\n• Requests confirmation every 30 seconds\n• Alerts with vibration if no confirmation\n• Escalates to full alarm if still no response\n• Notifies emergency contacts if necessary\n\nUse this when you want the app to check on you regularly and alert others if you don\'t respond.</string>
     <string name="help_emergency_mode_description">Emergency Mode Help</string>
     <string name="help_panic_mode_description">Panic Mode Help</string>
+    
+    <!-- Help Activity strings -->
+    <string name="help_title">How 4people Works</string>
+    <string name="help_tab_idle_state">Idle State</string>
+    <string name="help_tab_emergency_mode">Emergency</string>
+    <string name="help_tab_panic_mode">Panic Mode</string>
+    <string name="help_tab_network_cascade">Network Growth</string>
+    
+    <!-- Flow diagram titles -->
+    <string name="help_flow_idle_title">Ruhezustand (Idle State)</string>
+    <string name="help_flow_emergency_title">Notfall-Aktivierung (Emergency Activation)</string>
+    <string name="help_flow_panic_title">Panic Mode Ablauf</string>
+    <string name="help_flow_cascade_title">Netzwerk-Kaskadeneffekt</string>
+    
+    <!-- Flow diagram content -->
+    <string name="help_flow_idle_content"><![CDATA[
+<b>Was passiert im Ruhezustand?</b><br/><br/>
+
+┌─────────────────────────┐<br/>
+│ Gerät startet           │<br/>
+└──────────┬──────────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌─────────────────────────┐<br/>
+│ BootReceiver            │<br/>
+│ startet automatisch     │<br/>
+└──────────┬──────────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌─────────────────────────┐<br/>
+│ StandbyMonitoring       │<br/>
+│ Service aktiv           │<br/>
+└─────┬──────────┬────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌─────────┐&nbsp;&nbsp;┌──────────┐<br/>
+│ WiFi    │&nbsp;&nbsp;│ Telefon- │<br/>
+│ Scan    │&nbsp;&nbsp;│ Anruf    │<br/>
+│ 30s     │&nbsp;&nbsp;│ Monitor  │<br/>
+└─────────┘&nbsp;&nbsp;└──────────┘<br/><br/>
+
+<b>📡 WiFi-Überwachung:</b><br/>
+• Scannt alle 30 Sekunden<br/>
+• Sucht nach "4people-*" Netzwerken<br/>
+• Minimaler Batterieverbrauch (1-2%/h)<br/><br/>
+
+<b>📞 Anruf-Indikator:</b><br/>
+• Erkennt kurze Anrufe (&lt;5 Sekunden)<br/>
+• Nicht beantwortete Anrufe<br/>
+• Kann als Notfallsignal dienen<br/><br/>
+
+<b>🔋 Batterie-Optimierung:</b><br/>
+• Service läuft im Hintergrund<br/>
+• Niedrige CPU-Nutzung<br/>
+• Event-gesteuert statt kontinuierlich
+    ]]></string>
+    
+    <string name="help_flow_emergency_content"><![CDATA[
+<b>Ablauf bei Notfall-Erkennung:</b><br/><br/>
+
+┌─────────────────────────┐<br/>
+│ Notfall erkannt!        │<br/>
+│ (WiFi/Anruf/Manuell)    │<br/>
+└──────────┬──────────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌─────────────────────────┐<br/>
+│ Auto-Aktivierung?       │<br/>
+└─────┬──────────┬────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│ JA&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│ NEIN<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌─────────┐&nbsp;&nbsp;┌──────────┐<br/>
+│ Direkt  │&nbsp;&nbsp;│ Benach-  │<br/>
+│ aktiv.  │&nbsp;&nbsp;│ richtigung│<br/>
+└────┬────┘&nbsp;&nbsp;└────┬─────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;┌──────────────┐<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;│ Benutzer     │<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;│ bestätigt    │<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;└──────┬───────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌─────────────────────────┐<br/>
+│ Emergency Mode AKTIV    │<br/>
+├─────────────────────────┤<br/>
+│ ✓ Bluetooth Discovery   │<br/>
+│ ✓ WiFi Scan (alle 10s)  │<br/>
+│ ✓ Hotspot erstellen     │<br/>
+│ ✓ GPS-Standort teilen   │<br/>
+│ ✓ Mesh-Routing          │<br/>
+│ ✓ NFC/SMS Broadcast     │<br/>
+└─────────────────────────┘<br/><br/>
+
+<b>⚡ Was wird aktiviert:</b><br/>
+• Bluetooth dauerhaft an<br/>
+• WiFi-Scan alle 10 Sekunden<br/>
+• Lokaler Hotspot (4people-xxx)<br/>
+• GPS-Koordinaten Broadcast<br/>
+• Mesh-Netzwerk Routing<br/>
+• Optional: Taschenlampe, Ultraschall<br/><br/>
+
+<b>🔗 Andere Geräte:</b><br/>
+• Erkennen dein Notfall-Signal<br/>
+• Können automatisch beitreten<br/>
+• Bilden Ad-hoc-Netzwerk<br/><br/>
+
+<b>⚠️ Batterieverbrauch:</b><br/>
+• Ca. 5-10% pro Stunde<br/>
+• Adaptive Anpassung möglich<br/>
+• Bei niedriger Batterie: Reduzierung
+    ]]></string>
+    
+    <string name="help_flow_panic_content"><![CDATA[
+<b>Panic Mode - Progressive Eskalation:</b><br/><br/>
+
+┌─────────────────────────┐<br/>
+│ Panic Mode aktiviert    │<br/>
+└──────────┬──────────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌─────────────────────────┐<br/>
+│ ⏰ Timer: 30 Sekunden    │<br/>
+│ "Bestätigen Sie OK?"    │<br/>
+└─────┬──────────┬────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;BESTÄTIGT&nbsp;&nbsp;&nbsp;&nbsp;KEINE ANTWORT<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌─────────┐&nbsp;&nbsp;┌──────────────┐<br/>
+│ Zurück  │&nbsp;&nbsp;│ WARNUNG      │<br/>
+│ zu      │&nbsp;&nbsp;│ Vibration    │<br/>
+│ Timer   │&nbsp;&nbsp;│ + Sound      │<br/>
+└─────────┘&nbsp;&nbsp;└──────┬───────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KEINE ANTWORT<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;┌──────────────────┐<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│ 🚨 ALARM         │<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│ Taschenlampe     │<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│ Lauter Alarm     │<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│ GPS aktiviert    │<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└────────┬─────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;┌──────────────────┐<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│ 📱 Kontakt-      │<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│ benachrichtigung │<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│ 3min → 6min →    │<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│ 12min → 24min    │<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──────────────────┘<br/><br/>
+
+<b>⏱️ Zeitablauf:</b><br/>
+• Bestätigung alle 30 Sekunden<br/>
+• Sanfte Warnung: 30 Sekunden<br/>
+• Massiver Alarm: Unbegrenzt<br/>
+• Kontakte: Progressive Intervalle<br/><br/>
+
+<b>🔔 Eskalationsstufen:</b><br/>
+1. <b>Normal:</b> Regelmäßige Bestätigung<br/>
+2. <b>Warnung:</b> Vibration + Sound<br/>
+3. <b>Alarm:</b> Taschenlampe + Sirene<br/>
+4. <b>Hilfe:</b> Notfall-Kontakte<br/><br/>
+
+<b>⚙️ Einstellbar:</b><br/>
+• Bestätigungs-Intervall<br/>
+• Warnungs-Typ (Vibration/Sound)<br/>
+• Auto-Netzwerk-Aktivierung<br/>
+• Notfall-Kontakte
+    ]]></string>
+    
+    <string name="help_flow_cascade_content"><![CDATA[
+<b>Wie wächst das Netzwerk?</b><br/><br/>
+
+<b>T+0 Minuten - Initialisierung:</b><br/>
+┌─────────────────────────┐<br/>
+│ 👤 Person 1             │<br/>
+│ Aktiviert Notfall       │<br/>
+└──────────┬──────────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌─────────────────────────┐<br/>
+│ 📡 Signale senden:      │<br/>
+│ • Bluetooth "4people-*" │<br/>
+│ • WiFi Hotspot          │<br/>
+│ • NFC bereit            │<br/>
+└─────────────────────────┘<br/><br/>
+
+<b>T+30 Sekunden - Erste Welle:</b><br/>
+┌─────────────────────────┐<br/>
+│ 👤👤 Personen 2-3        │<br/>
+│ Im Umkreis 100m         │<br/>
+└──────────┬──────────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌─────────────────────────┐<br/>
+│ WiFi-Scan erkennt       │<br/>
+│ "4people-" Netzwerk     │<br/>
+└──────────┬──────────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌─────────────────────────┐<br/>
+│ Auto-Aktivierung        │<br/>
+│ oder Benachrichtigung   │<br/>
+└─────────────────────────┘<br/><br/>
+
+<b>T+2-5 Minuten - Kaskadeneffekt:</b><br/>
+┌─────────────────────────┐<br/>
+│ 👤👤👤👤 Weitere Geräte   │<br/>
+│ 4-8 Geräte aktiv        │<br/>
+└──────────┬──────────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌─────────────────────────┐<br/>
+│ Jedes Gerät wird        │<br/>
+│ zum Relay-Punkt         │<br/>
+└──────────┬──────────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌─────────────────────────┐<br/>
+│ 🌐 Mesh-Netzwerk        │<br/>
+│ Multi-Hop Routing       │<br/>
+│ Reichweite: 300m+       │<br/>
+└─────────────────────────┘<br/><br/>
+
+<b>T+10-30 Minuten - Netzwerk etabliert:</b><br/>
+┌─────────────────────────┐<br/>
+│ 👥 20+ Geräte           │<br/>
+│ Stabile Kommunikation   │<br/>
+│ GPS-Koordinaten-Sharing │<br/>
+│ Hilfe-Anfragen möglich  │<br/>
+└─────────────────────────┘<br/><br/>
+
+<b>📈 Wachstums-Faktoren:</b><br/>
+• <b>Dichte:</b> Stadt schneller als Land<br/>
+• <b>Adoption:</b> Mehr installierte Apps<br/>
+• <b>Auto-Aktivierung:</b> Beschleunigt<br/>
+• <b>Mobilfunk:</b> Anruf-Indikator hilft<br/><br/>
+
+<b>🔗 Reichweiten-Erweiterung:</b><br/>
+• Bluetooth: ~50m direkt<br/>
+• WiFi: ~100m direkt<br/>
+• Mesh: 300m+ durch Relays<br/>
+• Mobilfunk: Kilometer (Anrufe)<br/><br/>
+
+<b>⚡ Optimale Bedingungen:</b><br/>
+• Hohe Bevölkerungsdichte<br/>
+• Viele App-Installationen<br/>
+• Auto-Aktivierung aktiviert<br/>
+• Gute Sichtverbindungen
+    ]]></string>
 </resources>
