@@ -62,6 +62,19 @@ class AdHocCommunicationService : Service() {
         const val EXTRA_HOTSPOT_ACTIVE = "hotspot_active"
         const val EXTRA_LOCATION_ACTIVE = "location_active"
         const val EXTRA_WIFI_CONNECTED = "wifi_connected"
+        const val ACTION_WIDGET_UPDATE = "com.fourpeople.adhoc.WIDGET_UPDATE"
+        
+        // Preferences
+        const val PREFS_NAME = "emergency_prefs"
+        const val PREF_IS_ACTIVE = "emergency_mode_is_active"
+        
+        /**
+         * Check if emergency mode service is currently active
+         */
+        fun isActive(context: Context): Boolean {
+            return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getBoolean(PREF_IS_ACTIVE, false)
+        }
     }
 
     private var isRunning = false
@@ -228,10 +241,22 @@ class AdHocCommunicationService : Service() {
         sendBroadcast(intent)
         Log.d(TAG, "Status update broadcast: BT=$isBluetoothActive, WiFi=$isWifiScanningActive, Hotspot=$isHotspotActive, Location=${locationSharingManager?.isLocationSharingActive() ?: false}, WiFiConnected=$isWifiConnected")
     }
+    
+    private fun broadcastWidgetUpdate() {
+        val intent = Intent(ACTION_WIDGET_UPDATE)
+        sendBroadcast(intent)
+        Log.d(TAG, "Widget update broadcast sent")
+    }
 
     private fun startEmergencyMode() {
         Log.d(TAG, "Starting emergency mode")
         isRunning = true
+        
+        // Save active state to preferences
+        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(PREF_IS_ACTIVE, true)
+            .apply()
         
         // Start foreground service with notification
         startForeground(NOTIFICATION_ID, createNotification())
@@ -319,11 +344,20 @@ class AdHocCommunicationService : Service() {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send emergency SMS, continuing with other channels", e)
         }
+        
+        // Notify widgets of state change
+        broadcastWidgetUpdate()
     }
 
     private fun stopEmergencyMode() {
         Log.d(TAG, "Stopping emergency mode")
         isRunning = false
+        
+        // Save inactive state to preferences
+        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(PREF_IS_ACTIVE, false)
+            .apply()
         
         handler.removeCallbacks(wifiScanRunnable)
         handler.removeCallbacks(meshMaintenanceRunnable)
@@ -348,6 +382,9 @@ class AdHocCommunicationService : Service() {
         
         // Broadcast final status update
         broadcastStatusUpdate()
+        
+        // Notify widgets of state change
+        broadcastWidgetUpdate()
     }
     
     /**

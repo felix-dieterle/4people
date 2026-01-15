@@ -37,9 +37,18 @@ class PanicWidget : AppWidgetProvider() {
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         
-        if (intent.action == ACTION_ACTIVATE_PANIC) {
-            // Activate panic mode
-            activatePanicMode(context)
+        when (intent.action) {
+            ACTION_ACTIVATE_PANIC -> {
+                // Activate panic mode
+                activatePanicMode(context)
+            }
+            PanicModeService.ACTION_WIDGET_UPDATE -> {
+                // Update all widget instances when service state changes
+                val appWidgetManager = AppWidgetManager.getInstance(context)
+                val thisWidget = android.content.ComponentName(context, PanicWidget::class.java)
+                val appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget)
+                onUpdate(context, appWidgetManager, appWidgetIds)
+            }
         }
     }
 
@@ -48,6 +57,9 @@ class PanicWidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
+        // Check if panic mode is currently active
+        val isActive = PanicModeService.isActive(context)
+        
         // Create an Intent to activate panic mode
         val intent = Intent(context, PanicWidget::class.java).apply {
             action = ACTION_ACTIVATE_PANIC
@@ -63,6 +75,18 @@ class PanicWidget : AppWidgetProvider() {
         // Construct the RemoteViews object
         val views = RemoteViews(context.packageName, R.layout.panic_widget).apply {
             setOnClickPendingIntent(R.id.panic_widget_button, pendingIntent)
+            
+            // Update text based on current state
+            val textResId = if (isActive) R.string.deactivate_panic else R.string.activate_panic
+            setTextViewText(R.id.panic_widget_text, context.getString(textResId))
+            
+            // Update background color to indicate state - darker red when active
+            val backgroundColor = if (isActive) {
+                0xFF8B0000.toInt() // Dark red when active
+            } else {
+                0xFFD32F2F.toInt() // Normal red when inactive
+            }
+            setInt(R.id.panic_widget_button, "setBackgroundColor", backgroundColor)
         }
 
         // Update the widget
@@ -70,15 +94,28 @@ class PanicWidget : AppWidgetProvider() {
     }
 
     private fun activatePanicMode(context: Context) {
-        // Start the panic mode service
+        // Toggle panic mode based on current state
+        val isActive = PanicModeService.isActive(context)
         val serviceIntent = Intent(context, PanicModeService::class.java).apply {
-            action = PanicModeService.ACTION_START
+            action = if (isActive) {
+                PanicModeService.ACTION_STOP
+            } else {
+                PanicModeService.ACTION_START
+            }
         }
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(serviceIntent)
         } else {
             context.startService(serviceIntent)
+        }
+        
+        // Update all widget instances
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        val thisWidget = android.content.ComponentName(context, PanicWidget::class.java)
+        val appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget)
+        for (appWidgetId in appWidgetIds) {
+            updateAppWidget(context, appWidgetManager, appWidgetId)
         }
     }
 }

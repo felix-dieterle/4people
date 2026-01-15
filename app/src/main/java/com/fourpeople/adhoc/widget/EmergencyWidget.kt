@@ -37,9 +37,18 @@ class EmergencyWidget : AppWidgetProvider() {
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         
-        if (intent.action == ACTION_ACTIVATE_EMERGENCY) {
-            // Activate emergency mode
-            activateEmergencyMode(context)
+        when (intent.action) {
+            ACTION_ACTIVATE_EMERGENCY -> {
+                // Activate emergency mode
+                activateEmergencyMode(context)
+            }
+            AdHocCommunicationService.ACTION_WIDGET_UPDATE -> {
+                // Update all widget instances when service state changes
+                val appWidgetManager = AppWidgetManager.getInstance(context)
+                val thisWidget = android.content.ComponentName(context, EmergencyWidget::class.java)
+                val appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget)
+                onUpdate(context, appWidgetManager, appWidgetIds)
+            }
         }
     }
 
@@ -48,6 +57,9 @@ class EmergencyWidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
+        // Check if emergency mode is currently active
+        val isActive = AdHocCommunicationService.isActive(context)
+        
         // Create an Intent to activate emergency mode
         val intent = Intent(context, EmergencyWidget::class.java).apply {
             action = ACTION_ACTIVATE_EMERGENCY
@@ -64,6 +76,18 @@ class EmergencyWidget : AppWidgetProvider() {
         val views = RemoteViews(context.packageName, R.layout.emergency_widget).apply {
             setOnClickPendingIntent(R.id.widget_icon, pendingIntent)
             setOnClickPendingIntent(R.id.widget_text, pendingIntent)
+            
+            // Update text based on current state
+            val textResId = if (isActive) R.string.deactivate_emergency else R.string.activate_emergency
+            setTextViewText(R.id.widget_text, context.getString(textResId))
+            
+            // Update background color to indicate state
+            val backgroundColor = if (isActive) {
+                context.getColor(android.R.color.holo_green_light)
+            } else {
+                context.getColor(android.R.color.white)
+            }
+            setInt(R.id.widget_background, "setBackgroundColor", backgroundColor)
         }
 
         // Update the widget
@@ -71,15 +95,28 @@ class EmergencyWidget : AppWidgetProvider() {
     }
 
     private fun activateEmergencyMode(context: Context) {
-        // Start the emergency communication service
+        // Toggle emergency mode based on current state
+        val isActive = AdHocCommunicationService.isActive(context)
         val serviceIntent = Intent(context, AdHocCommunicationService::class.java).apply {
-            action = AdHocCommunicationService.ACTION_START
+            action = if (isActive) {
+                AdHocCommunicationService.ACTION_STOP
+            } else {
+                AdHocCommunicationService.ACTION_START
+            }
         }
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(serviceIntent)
         } else {
             context.startService(serviceIntent)
+        }
+        
+        // Update all widget instances
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        val thisWidget = android.content.ComponentName(context, EmergencyWidget::class.java)
+        val appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget)
+        for (appWidgetId in appWidgetIds) {
+            updateAppWidget(context, appWidgetManager, appWidgetId)
         }
     }
 }
