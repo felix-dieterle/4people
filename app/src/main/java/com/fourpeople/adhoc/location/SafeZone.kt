@@ -18,13 +18,13 @@ data class SafeZone(
     
     companion object {
         private const val serialVersionUID = 1L
+        private const val VALIDITY_PERIOD_MS = 24 * 60 * 60 * 1000L // 24 hours
     }
     
     /**
      * Checks if this safe zone is still valid (less than 24 hours old).
      */
     fun isValid(): Boolean {
-        val twentyFourHoursInMs = 24 * 60 * 60 * 1000
-        return (System.currentTimeMillis() - timestamp) < twentyFourHoursInMs
+        return (System.currentTimeMillis() - timestamp) < VALIDITY_PERIOD_MS
     }
 }

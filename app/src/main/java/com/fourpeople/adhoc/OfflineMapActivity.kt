@@ -42,6 +42,7 @@ class OfflineMapActivity : AppCompatActivity(),
     private val safeZoneMarkers = mutableMapOf<String, Marker>()
     private var currentLocationMarker: Marker? = null
     private var routePolyline: Polyline? = null
+    private var myDeviceId: String = ""
     
     companion object {
         private const val DEFAULT_ZOOM = 15.0
@@ -51,6 +52,12 @@ class OfflineMapActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Get device ID (consistent with service)
+        myDeviceId = android.provider.Settings.Secure.getString(
+            contentResolver, 
+            android.provider.Settings.Secure.ANDROID_ID
+        ).substring(0, 8)
         
         // Initialize osmdroid configuration
         Configuration.getInstance().load(
@@ -121,14 +128,25 @@ class OfflineMapActivity : AppCompatActivity(),
      * Centers the map on the current user location.
      */
     private fun centerOnCurrentLocation() {
-        // In a real implementation, this would use LocationSharingManager
-        // For now, we'll use the map center
-        val currentCenter = binding.mapView.mapCenter as? GeoPoint
-        if (currentCenter != null) {
-            binding.mapView.controller.animateTo(currentCenter)
-            Toast.makeText(this, "Centered on current location", Toast.LENGTH_SHORT).show()
+        // Get our own location from LocationDataStore
+        val myLocation = LocationDataStore.getLocation(myDeviceId)
+        
+        if (myLocation != null) {
+            val geoPoint = GeoPoint(myLocation.latitude, myLocation.longitude)
+            binding.mapView.controller.animateTo(geoPoint)
+            Toast.makeText(this, "Centered on your location", Toast.LENGTH_SHORT).show()
         } else {
-            Toast.makeText(this, "Location not available", Toast.LENGTH_SHORT).show()
+            // Fallback: try to get any recent location
+            val anyLocation = LocationDataStore.getAllLocations()
+                .maxByOrNull { it.timestamp }
+            
+            if (anyLocation != null) {
+                val geoPoint = GeoPoint(anyLocation.latitude, anyLocation.longitude)
+                binding.mapView.controller.animateTo(geoPoint)
+                Toast.makeText(this, "Centered on most recent location", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "No location data available yet", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -202,8 +220,16 @@ class OfflineMapActivity : AppCompatActivity(),
         // Remove existing route
         routePolyline?.let { binding.mapView.overlays.remove(it) }
         
-        // Get current location (for demo, use map center)
-        val currentPos = binding.mapView.mapCenter as GeoPoint
+        // Get current location (prefer our own, fallback to most recent)
+        val myLocation = LocationDataStore.getLocation(myDeviceId)
+            ?: LocationDataStore.getAllLocations().maxByOrNull { it.timestamp }
+        
+        if (myLocation == null) {
+            Toast.makeText(this, "Current location not available", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val currentPos = GeoPoint(myLocation.latitude, myLocation.longitude)
         val targetPos = GeoPoint(safeZone.latitude, safeZone.longitude)
         
         // Create a simple straight line route (in real app, would use routing algorithm)
@@ -227,7 +253,7 @@ class OfflineMapActivity : AppCompatActivity(),
     /**
      * Adds a participant marker to the map.
      */
-    fun addParticipantMarker(locationData: LocationData) {
+    private fun addParticipantMarker(locationData: LocationData) {
         // Remove existing marker for this participant
         participantMarkers[locationData.deviceId]?.let { 
             binding.mapView.overlays.remove(it) 
@@ -259,7 +285,7 @@ class OfflineMapActivity : AppCompatActivity(),
     /**
      * Updates all participant locations on the map.
      */
-    fun updateParticipants(locations: List<LocationData>) {
+    private fun updateParticipants(locations: List<LocationData>) {
         locations.forEach { addParticipantMarker(it) }
     }
 
