@@ -1,14 +1,11 @@
 package com.fourpeople.adhoc
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.fourpeople.adhoc.databinding.ActivityOfflineMapBinding
 import com.fourpeople.adhoc.location.LocationData
@@ -48,6 +45,8 @@ class OfflineMapActivity : AppCompatActivity(),
         private const val DEFAULT_ZOOM = 15.0
         private const val DEFAULT_LAT = 51.5074 // London as default
         private const val DEFAULT_LON = -0.1278
+        private const val SAMPLE_ZONE_OFFSET_DEGREES = 0.01
+        private const val ROUTE_STROKE_WIDTH = 5f
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -237,7 +236,7 @@ class OfflineMapActivity : AppCompatActivity(),
             addPoint(currentPos)
             addPoint(targetPos)
             outlinePaint.color = Color.BLUE
-            outlinePaint.strokeWidth = 5f
+            outlinePaint.strokeWidth = ROUTE_STROKE_WIDTH
         }
         
         binding.mapView.overlays.add(routePolyline)
@@ -294,9 +293,9 @@ class OfflineMapActivity : AppCompatActivity(),
      */
     private fun loadSampleSafeZones() {
         // Add a few sample safe zones around the default location
-        addSafeZone("Community Center", DEFAULT_LAT + 0.01, DEFAULT_LON)
-        addSafeZone("Town Hall", DEFAULT_LAT - 0.01, DEFAULT_LON + 0.01)
-        addSafeZone("Hospital", DEFAULT_LAT, DEFAULT_LON - 0.01)
+        addSafeZone("Community Center", DEFAULT_LAT + SAMPLE_ZONE_OFFSET_DEGREES, DEFAULT_LON)
+        addSafeZone("Town Hall", DEFAULT_LAT - SAMPLE_ZONE_OFFSET_DEGREES, DEFAULT_LON + SAMPLE_ZONE_OFFSET_DEGREES)
+        addSafeZone("Hospital", DEFAULT_LAT, DEFAULT_LON - SAMPLE_ZONE_OFFSET_DEGREES)
     }
 
     /**

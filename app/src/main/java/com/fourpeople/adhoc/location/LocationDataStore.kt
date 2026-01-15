@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentHashMap
  */
 object LocationDataStore {
     
+    private const val LOCATION_STALENESS_MS = 10 * 60 * 1000L // 10 minutes
+    
     private val participantLocations = ConcurrentHashMap<String, LocationData>()
     private val listeners = mutableListOf<LocationUpdateListener>()
     
@@ -96,9 +98,9 @@ object LocationDataStore {
      * Removes stale locations (older than 10 minutes).
      */
     private fun cleanupStaleLocations() {
-        val tenMinutesAgo = System.currentTimeMillis() - (10 * 60 * 1000)
+        val staleThreshold = System.currentTimeMillis() - LOCATION_STALENESS_MS
         val staleIds = participantLocations.entries
-            .filter { it.value.timestamp < tenMinutesAgo }
+            .filter { it.value.timestamp < staleThreshold }
             .map { it.key }
         
         staleIds.forEach { deviceId ->
