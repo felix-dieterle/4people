@@ -27,6 +27,7 @@ When emergency mode is activated:
 - ✓ Bluetooth advertising with emergency name pattern
 - ✓ WiFi scanning for emergency networks (every 10 seconds)
 - ✓ Local hotspot activation (on supported devices)
+- ✓ **WiFi auto-connect** - Automatically connect to discovered emergency networks to expand mesh coverage
 - ✓ Foreground service with persistent notification
 - ✓ Emergency broadcast signaling
 - ✓ WiFi Direct peer-to-peer discovery
@@ -330,6 +331,7 @@ For detailed information about the project, see:
 - **[TRUST_SYSTEM.md](TRUST_SYSTEM.md)**: Trust-based message evaluation system with algorithm documentation
 - **[SECURE_CONNECTIONS.md](SECURE_CONNECTIONS.md)**: Secure connection tracking in mesh routing
 - **[SIMULATION.md](SIMULATION.md)**: Emergency propagation simulation tool documentation
+- **[WIFI_AUTO_CONNECT.md](WIFI_AUTO_CONNECT.md)**: WiFi auto-connect feature for expanding mesh network coverage
 
 ## Future Enhancements
 

@@ -43,6 +43,10 @@ class SettingsActivity : AppCompatActivity() {
             toggleStandbyMonitoring(isChecked)
         }
         
+        binding.wifiAutoConnectSwitch.setOnCheckedChangeListener { _, isChecked ->
+            saveWifiAutoConnectSetting(isChecked)
+        }
+        
         binding.smsEnabledSwitch.setOnCheckedChangeListener { _, isChecked ->
             EmergencySmsHelper.setSmsEnabled(this, isChecked)
         }
@@ -100,6 +104,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.flashlightMorseSwitch.isChecked = emergencyPrefs.getBoolean("flashlight_morse_enabled", false)
         binding.ultrasoundTransmitSwitch.isChecked = emergencyPrefs.getBoolean("ultrasound_transmit_enabled", false)
         binding.ultrasoundListenSwitch.isChecked = emergencyPrefs.getBoolean("ultrasound_listen_enabled", true)
+        binding.wifiAutoConnectSwitch.isChecked = emergencyPrefs.getBoolean("wifi_auto_connect_enabled", true)
         
         // Load panic mode settings
         val panicPrefs = getSharedPreferences("panic_settings", Context.MODE_PRIVATE)
@@ -216,6 +221,12 @@ class SettingsActivity : AppCompatActivity() {
         val preferences = getSharedPreferences("emergency_prefs", Context.MODE_PRIVATE)
         preferences.edit().putBoolean("flashlight_morse_enabled", enabled).apply()
         Toast.makeText(this, if (enabled) "Flashlight signaling enabled" else "Flashlight signaling disabled", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun saveWifiAutoConnectSetting(enabled: Boolean) {
+        val preferences = getSharedPreferences("emergency_prefs", Context.MODE_PRIVATE)
+        preferences.edit().putBoolean("wifi_auto_connect_enabled", enabled).apply()
+        Toast.makeText(this, if (enabled) "WiFi auto-connect enabled" else "WiFi auto-connect disabled", Toast.LENGTH_SHORT).show()
     }
     
     private fun saveUltrasoundTransmitSetting(enabled: Boolean) {

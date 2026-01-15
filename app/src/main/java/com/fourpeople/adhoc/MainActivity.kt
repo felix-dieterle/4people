@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity() {
     private var isWifiActive = false
     private var isHotspotActive = false
     private var isLocationActive = false
+    private var isWifiConnected = false
 
     private val emergencyReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -60,6 +61,7 @@ class MainActivity : AppCompatActivity() {
                 isWifiActive = intent.getBooleanExtra(AdHocCommunicationService.EXTRA_WIFI_ACTIVE, false)
                 isHotspotActive = intent.getBooleanExtra(AdHocCommunicationService.EXTRA_HOTSPOT_ACTIVE, false)
                 isLocationActive = intent.getBooleanExtra(AdHocCommunicationService.EXTRA_LOCATION_ACTIVE, false)
+                isWifiConnected = intent.getBooleanExtra(AdHocCommunicationService.EXTRA_WIFI_CONNECTED, false)
                 runOnUiThread {
                     updateStatusUI()
                 }
@@ -268,6 +270,7 @@ class MainActivity : AppCompatActivity() {
             isWifiActive = false
             isHotspotActive = false
             isLocationActive = false
+            isWifiConnected = false
         }
         
         // Update individual feature statuses
@@ -300,6 +303,15 @@ class MainActivity : AppCompatActivity() {
         } else {
             binding.hotspotStatusTextView.text = "○ ${getString(R.string.hotspot_status, getString(R.string.inactive))}"
             binding.hotspotStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
+        }
+        
+        // Update WiFi Connection status
+        if (isWifiConnected) {
+            binding.wifiConnectionStatusTextView.text = "✓ ${getString(R.string.wifi_connection_status, getString(R.string.active))}"
+            binding.wifiConnectionStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
+        } else {
+            binding.wifiConnectionStatusTextView.text = "○ ${getString(R.string.wifi_connection_status, getString(R.string.inactive))}"
+            binding.wifiConnectionStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
         }
         
         // Update Location sharing status
