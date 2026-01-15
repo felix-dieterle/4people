@@ -78,6 +78,9 @@
     <string name="standby_mode">STANDBY MODE</string>
     <string name="emergency_mode_active_notification">🟢 Emergency Mode ACTIVE</string>
     <string name="emergency_mode_active_text">Ad-hoc emergency communication running</string>
+    <string name="event_radius_title">Event Radius</string>
+    <string name="event_radius_description">Default radius in kilometers for event notifications (only people within this radius will be notified)</string>
+    <string name="event_radius_unit">km</string>
     
     <!-- Simulation strings -->
     <string name="simulation_title">Emergency Propagation Simulation</string>
