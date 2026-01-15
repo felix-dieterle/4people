@@ -57,6 +57,7 @@ class AdHocCommunicationService : Service() {
         const val ACTION_REQUEST_STATUS = "com.fourpeople.adhoc.REQUEST_STATUS"
         const val EMERGENCY_SSID_PATTERN = "4people-"
         const val WIFI_SCAN_INTERVAL = 10000L // 10 seconds (default for active mode)
+        const val STATUS_UPDATE_INTERVAL = 5000L // 5 seconds
         const val ACTION_STATUS_UPDATE = "com.fourpeople.adhoc.STATUS_UPDATE"
         const val EXTRA_BLUETOOTH_ACTIVE = "bluetooth_active"
         const val EXTRA_WIFI_ACTIVE = "wifi_active"
@@ -117,7 +118,7 @@ class AdHocCommunicationService : Service() {
     private val statusUpdateRunnable = object : Runnable {
         override fun run() {
             broadcastStatusUpdate()
-            handler.postDelayed(this, 5000L) // Every 5 seconds
+            handler.postDelayed(this, STATUS_UPDATE_INTERVAL)
         }
     }
 
@@ -362,7 +363,7 @@ class AdHocCommunicationService : Service() {
         
         // Send initial status update immediately, then start periodic updates
         broadcastStatusUpdate()
-        handler.postDelayed(statusUpdateRunnable, 5000L)
+        handler.postDelayed(statusUpdateRunnable, STATUS_UPDATE_INTERVAL)
     }
 
     private fun stopEmergencyMode() {
