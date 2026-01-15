@@ -40,9 +40,20 @@ When emergency mode is activated:
 - ✓ **NFC Tap-to-Join** - Quick network joining through device-to-device NFC touch
 - ✓ **GPS location sharing** - Automatic GPS coordinate broadcasting to all network participants
 - ✓ **Participant location map** - View all participants' locations in the emergency network
+- ✓ **Offline map integration** - OSM-based offline maps with participant tracking, safe zones, and routing
 - ✓ **Help requests with location** - Send emergency help requests with GPS coordinates
 - ✓ **Panic Mode** - Progressive escalation system with confirmation checks, alerts, and emergency contact notification
 - ✓ **Emergency Propagation Simulation** - Visual simulation tool to demonstrate message spread through the network
+
+### Offline Map Integration
+The app includes an OpenStreetMap-based offline map for emergency navigation:
+- ✓ **OSM-based maps** - Uses osmdroid library for offline map capability
+- ✓ **Real-time participant tracking** - Shows all network participants on the map with live updates
+- ✓ **Help request visualization** - Highlights participants requesting help with 🆘 markers
+- ✓ **Safe zones (collection points)** - Mark and share emergency gathering locations
+- ✓ **Route display** - Show routes to nearest safe zones with distance calculations
+- ✓ **Interactive markers** - Tap markers for details and route planning
+- ✓ **Automatic map updates** - Participant locations update in real-time as they move
 
 ### Emergency Propagation Simulation
 The app includes an interactive simulation mode that visualizes how emergency messages spread:
@@ -82,17 +93,20 @@ Panic Mode provides automatic escalation when user cannot respond:
 
 1. **MainActivity**: Main UI with emergency activation button and settings access
 2. **SettingsActivity**: Configure standby monitoring and auto-activation preferences
-3. **LocationMapActivity**: View GPS locations of all participants in the emergency network
-4. **AdHocCommunicationService**: Foreground service managing all communication channels
-5. **StandbyMonitoringService**: Background service for periodic emergency detection
-6. **PanicModeService**: Foreground service managing panic mode with progressive escalation
-7. **BootReceiver**: Starts standby monitoring on device boot
-8. **EmergencyBroadcastReceiver**: Handles emergency detection broadcasts
-9. **PhoneCallIndicatorReceiver**: Detects brief incoming calls as emergency signals
-10. **MeshRoutingManager**: Manages mesh network routing and multi-hop message forwarding
-11. **BluetoothMeshTransport**: Handles Bluetooth communication for mesh messages
-12. **LocationSharingManager**: Manages GPS location capture and broadcasting to network participants
-13. **EmergencyWidget**: Home screen widget for quick emergency mode activation
+3. **LocationMapActivity**: View GPS locations of all participants in the emergency network (list view)
+4. **OfflineMapActivity**: Interactive OSM-based map with participant tracking, safe zones, and routing
+5. **AdHocCommunicationService**: Foreground service managing all communication channels
+6. **StandbyMonitoringService**: Background service for periodic emergency detection
+7. **PanicModeService**: Foreground service managing panic mode with progressive escalation
+8. **BootReceiver**: Starts standby monitoring on device boot
+9. **EmergencyBroadcastReceiver**: Handles emergency detection broadcasts
+10. **PhoneCallIndicatorReceiver**: Detects brief incoming calls as emergency signals
+11. **MeshRoutingManager**: Manages mesh network routing and multi-hop message forwarding
+12. **BluetoothMeshTransport**: Handles Bluetooth communication for mesh messages
+13. **LocationSharingManager**: Manages GPS location capture and broadcasting to network participants
+14. **LocationDataStore**: Singleton store for real-time location data sharing across components
+15. **SafeZoneManager**: Manages safe zones (collection points) for emergency gathering
+16. **EmergencyWidget**: Home screen widget for quick emergency mode activation
 14. **PanicWidget**: Home screen widget for quick panic mode activation
 
 ### Permissions Required
@@ -174,6 +188,9 @@ Visit the [Releases page](https://github.com/felix-dieterle/4people/releases) to
 
 9. **Location Sharing Features**:
    - **View Participant Map**: Click "View Participant Map" to see GPS locations of all emergency network participants
+   - **Open Offline Map**: Click "Open Offline Map" for an interactive OSM-based map with real-time participant tracking
+   - **Mark Safe Zones**: Use the map to mark and share safe collection points
+   - **Navigate to Safety**: View routes to nearest safe zones with distance information
    - **Send Help Request**: Click "Send Help Request" to broadcast your location with an emergency message to all participants
    - Locations are automatically updated every 30 seconds
    - Help requests are highlighted with 🆘 indicator
@@ -329,6 +346,7 @@ For detailed information about the project, see:
 - **[TESTING.md](TESTING.md)**: Testing guide and procedures
 - **[MESH_ROUTING.md](MESH_ROUTING.md)**: Mesh network routing implementation and protocol details
 - **[TRUST_SYSTEM.md](TRUST_SYSTEM.md)**: Trust-based message evaluation system with algorithm documentation
+- **[OFFLINE_MAP.md](OFFLINE_MAP.md)**: Offline map integration with OSM, participant tracking, safe zones, and routing
 - **[SECURE_CONNECTIONS.md](SECURE_CONNECTIONS.md)**: Secure connection tracking in mesh routing
 - **[SIMULATION.md](SIMULATION.md)**: Emergency propagation simulation tool documentation
 - **[WIFI_AUTO_CONNECT.md](WIFI_AUTO_CONNECT.md)**: WiFi auto-connect feature for expanding mesh network coverage
@@ -342,8 +360,8 @@ For detailed information about the project, see:
 - [x] **Trust-based message evaluation** - Implemented! Evaluate message trustworthiness based on sender trust, hop count, and connection security
 - [x] **Secure connection tracking** - Implemented! Track and prefer secure routes in mesh network
 - [x] **Emergency propagation simulation** - Implemented! Visual simulation of message spread through network
-- [ ] Interactive map visualization with real-time updates
-- [ ] Offline map integration
+- [x] **Interactive map visualization with real-time updates** - Implemented! OSM-based offline maps with live participant tracking
+- [x] **Offline map integration** - Implemented! OpenStreetMap-based offline maps with safe zones and routing
 - [ ] Advanced battery optimization for standby mode
 - [x] **Flashlight Morse code signaling** - Implemented! Visual emergency signals using LED
 - [x] **Ultrasound signaling** - Implemented! Inaudible audio-based emergency beacon

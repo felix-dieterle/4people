@@ -156,6 +156,9 @@ class LocationSharingManager(
         participantLocations[locationData.deviceId] = locationData
         Log.d(TAG, "Updated location for device ${locationData.deviceId}")
         
+        // Update the global location store
+        LocationDataStore.updateLocation(locationData)
+        
         // Clean up stale locations (older than 10 minutes)
         cleanupStaleLocations()
     }
@@ -198,6 +201,9 @@ class LocationSharingManager(
         
         currentLocation = locationData
         Log.d(TAG, "Location updated: lat=${location.latitude}, lon=${location.longitude}")
+        
+        // Update the global location store with our own location
+        LocationDataStore.updateLocation(locationData)
         
         // Notify listener to broadcast the location
         locationUpdateListener?.onLocationUpdate(locationData)
