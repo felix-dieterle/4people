@@ -1,6 +1,7 @@
 package com.fourpeople.adhoc.location
 
 import java.io.Serializable
+import kotlin.math.*
 
 /**
  * Represents location data for a device in the emergency network.
@@ -13,11 +14,14 @@ data class LocationData(
     val altitude: Double = 0.0,
     val timestamp: Long = System.currentTimeMillis(),
     val isHelpRequest: Boolean = false,
-    val helpMessage: String? = null
+    val helpMessage: String? = null,
+    val eventRadiusKm: Double = 100.0, // Default radius in kilometers
+    val isForwarded: Boolean = false
 ) : Serializable {
     
     companion object {
-        private const val serialVersionUID = 1L
+        private const val serialVersionUID = 2L // Incremented due to schema changes
+        private const val EARTH_RADIUS_KM = 6371.0 // Earth's radius in kilometers
         
         /**
          * Creates LocationData from JSON string.
@@ -32,6 +36,8 @@ data class LocationData(
                 val timeMatch = Regex(""""timestamp":(\d+)""").find(json)
                 val helpMatch = Regex(""""isHelpRequest":(true|false)""").find(json)
                 val msgMatch = Regex(""""helpMessage":"([^"]*)"""").find(json)
+                val radiusMatch = Regex(""""eventRadiusKm":([\d.]+)""").find(json)
+                val forwardedMatch = Regex(""""isForwarded":(true|false)""").find(json)
                 
                 if (deviceIdMatch != null && latMatch != null && lonMatch != null && 
                     accMatch != null && altMatch != null && timeMatch != null && helpMatch != null) {
@@ -43,7 +49,9 @@ data class LocationData(
                         altitude = altMatch.groupValues[1].toDouble(),
                         timestamp = timeMatch.groupValues[1].toLong(),
                         isHelpRequest = helpMatch.groupValues[1].toBoolean(),
-                        helpMessage = msgMatch?.groupValues?.get(1)?.takeIf { it.isNotEmpty() }
+                        helpMessage = msgMatch?.groupValues?.get(1)?.takeIf { it.isNotEmpty() },
+                        eventRadiusKm = radiusMatch?.groupValues?.get(1)?.toDoubleOrNull() ?: 100.0,
+                        isForwarded = forwardedMatch?.groupValues?.get(1)?.toBoolean() ?: false
                     )
                 } else {
                     null
@@ -61,7 +69,7 @@ data class LocationData(
     fun toJson(): String {
         val escapedDeviceId = escapeJsonString(deviceId)
         val escapedHelpMessage = escapeJsonString(helpMessage ?: "")
-        return """{"deviceId":"$escapedDeviceId","latitude":$latitude,"longitude":$longitude,"accuracy":$accuracy,"altitude":$altitude,"timestamp":$timestamp,"isHelpRequest":$isHelpRequest,"helpMessage":"$escapedHelpMessage"}"""
+        return """{"deviceId":"$escapedDeviceId","latitude":$latitude,"longitude":$longitude,"accuracy":$accuracy,"altitude":$altitude,"timestamp":$timestamp,"isHelpRequest":$isHelpRequest,"helpMessage":"$escapedHelpMessage","eventRadiusKm":$eventRadiusKm,"isForwarded":$isForwarded}"""
     }
     
     private fun escapeJsonString(str: String): String {
@@ -81,5 +89,42 @@ data class LocationData(
     fun isFresh(): Boolean {
         val fiveMinutesInMs = 5 * 60 * 1000
         return (System.currentTimeMillis() - timestamp) < fiveMinutesInMs
+    }
+    
+    /**
+     * Calculates the distance in kilometers to another location using the Haversine formula.
+     */
+    fun distanceToKm(other: LocationData): Double {
+        return distanceToKm(other.latitude, other.longitude)
+    }
+    
+    /**
+     * Calculates the distance in kilometers to a given latitude/longitude using the Haversine formula.
+     */
+    fun distanceToKm(otherLat: Double, otherLon: Double): Double {
+        val dLat = Math.toRadians(otherLat - latitude)
+        val dLon = Math.toRadians(otherLon - longitude)
+        
+        val a = sin(dLat / 2).pow(2) + 
+                cos(Math.toRadians(latitude)) * cos(Math.toRadians(otherLat)) * 
+                sin(dLon / 2).pow(2)
+        
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        
+        return EARTH_RADIUS_KM * c
+    }
+    
+    /**
+     * Checks if the given location is within the event radius.
+     */
+    fun isWithinRadius(otherLocation: LocationData): Boolean {
+        return distanceToKm(otherLocation) <= eventRadiusKm
+    }
+    
+    /**
+     * Checks if the given coordinates are within the event radius.
+     */
+    fun isWithinRadius(otherLat: Double, otherLon: Double): Boolean {
+        return distanceToKm(otherLat, otherLon) <= eventRadiusKm
     }
 }

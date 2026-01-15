@@ -173,13 +173,39 @@ class LocationSharingManager(
     /**
      * Sends a help request with current location.
      */
-    fun sendHelpRequest(message: String?): LocationData? {
+    fun sendHelpRequest(message: String?, radiusKm: Double = 100.0): LocationData? {
         val location = currentLocation ?: return null
         
         return location.copy(
             isHelpRequest = true,
-            helpMessage = message
+            helpMessage = message,
+            eventRadiusKm = radiusKm,
+            isForwarded = false
         )
+    }
+    
+    /**
+     * Forwards a help request from a new location (the forwarder's location).
+     * This allows recipients to rebroadcast events with a new radius from their location.
+     */
+    fun forwardHelpRequest(originalRequest: LocationData, radiusKm: Double = 100.0): LocationData? {
+        val location = currentLocation ?: return null
+        
+        return location.copy(
+            isHelpRequest = true,
+            helpMessage = originalRequest.helpMessage,
+            eventRadiusKm = radiusKm,
+            isForwarded = true
+        )
+    }
+    
+    /**
+     * Checks if a location/event should be processed based on radius filtering.
+     * Returns true if the event is within range of the current device location.
+     */
+    fun shouldProcessEvent(eventLocation: LocationData): Boolean {
+        val myLocation = currentLocation ?: return true // Process if we don't have location yet
+        return eventLocation.isWithinRadius(myLocation)
     }
     
     /**

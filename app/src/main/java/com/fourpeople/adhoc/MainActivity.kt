@@ -263,17 +263,25 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUI() {
         if (isEmergencyActive) {
-            binding.statusTextView.text = "🟢 ${getString(R.string.emergency_active)}"
+            binding.statusTextView.text = "🟢 ACTIVE MODE"
             binding.statusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
+            binding.statusTextView.textSize = 20f
             binding.activateButton.text = getString(R.string.deactivate_emergency)
+            binding.activateButton.backgroundTintList = ContextCompat.getColorStateList(this, android.R.color.holo_orange_dark)
             binding.viewLocationsButton.isEnabled = true
             binding.sendHelpButton.isEnabled = true
+            binding.detailsLayout.visibility = android.view.View.VISIBLE
+            binding.scanningTextView.visibility = android.view.View.GONE
         } else {
-            binding.statusTextView.text = "⚪ ${getString(R.string.emergency_inactive)}"
+            binding.statusTextView.text = "⚪ STANDBY MODE"
             binding.statusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
+            binding.statusTextView.textSize = 18f
             binding.activateButton.text = getString(R.string.activate_emergency)
+            binding.activateButton.backgroundTintList = ContextCompat.getColorStateList(this, android.R.color.holo_green_dark)
             binding.viewLocationsButton.isEnabled = false
             binding.sendHelpButton.isEnabled = false
+            binding.detailsLayout.visibility = android.view.View.GONE
+            binding.scanningTextView.visibility = android.view.View.VISIBLE
             
             // Reset status flags when emergency is deactivated
             isBluetoothActive = false
@@ -525,25 +533,46 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // Show dialog to enter help message
+        // Show dialog to enter help message and radius
         val builder = AlertDialog.Builder(this)
         builder.setTitle(R.string.send_help_request)
-        builder.setMessage(R.string.help_request_message)
-
-        val input = android.widget.EditText(this)
-        input.hint = getString(R.string.help_request_message)
-        builder.setView(input)
+        
+        val layout = android.widget.LinearLayout(this)
+        layout.orientation = android.widget.LinearLayout.VERTICAL
+        layout.setPadding(50, 40, 50, 10)
+        
+        val messageInput = android.widget.EditText(this)
+        messageInput.hint = getString(R.string.help_request_message)
+        layout.addView(messageInput)
+        
+        val radiusLabel = android.widget.TextView(this)
+        radiusLabel.text = "Event Radius (km):"
+        radiusLabel.setPadding(0, 20, 0, 5)
+        layout.addView(radiusLabel)
+        
+        val radiusInput = android.widget.EditText(this)
+        radiusInput.inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+        val prefs = getSharedPreferences("emergency_prefs", MODE_PRIVATE)
+        val defaultRadius = prefs.getFloat("default_event_radius_km", 100.0f)
+        radiusInput.setText(defaultRadius.toString())
+        radiusInput.hint = "100"
+        layout.addView(radiusInput)
+        
+        builder.setView(layout)
 
         builder.setPositiveButton(android.R.string.ok) { _, _ ->
-            val message = input.text.toString().takeIf { it.isNotEmpty() }
+            val message = messageInput.text.toString().takeIf { it.isNotEmpty() }
+            val radiusStr = radiusInput.text.toString()
+            val radiusKm = radiusStr.toDoubleOrNull()?.coerceIn(1.0, 1000.0) ?: defaultRadius.toDouble()
             
             // Send help request via broadcast to service
             val intent = Intent("com.fourpeople.adhoc.SEND_HELP_REQUEST")
             intent.setPackage(packageName)
             message?.let { intent.putExtra("help_message", it) }
+            intent.putExtra("event_radius_km", radiusKm)
             sendBroadcast(intent)
             
-            Toast.makeText(this, R.string.help_request_sent, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Help request sent with ${radiusKm}km radius", Toast.LENGTH_SHORT).show()
         }
         builder.setNegativeButton(android.R.string.cancel, null)
         builder.show()

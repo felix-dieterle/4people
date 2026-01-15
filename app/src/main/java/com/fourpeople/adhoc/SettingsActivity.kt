@@ -83,6 +83,13 @@ class SettingsActivity : AppCompatActivity() {
         binding.panicAutoDataSwitch.setOnCheckedChangeListener { _, isChecked ->
             savePanicAutoDataSetting(isChecked)
         }
+        
+        // Event radius setting
+        binding.eventRadiusInput.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                saveEventRadiusSetting()
+            }
+        }
     }
 
     private fun loadSettings() {
@@ -115,6 +122,10 @@ class SettingsActivity : AppCompatActivity() {
             PanicModeService.WARNING_BOTH -> binding.panicWarningBoth.isChecked = true
         }
         binding.panicAutoDataSwitch.isChecked = panicPrefs.getBoolean(PanicModeService.PREF_AUTO_ACTIVATE_DATA, false)
+        
+        // Load event radius setting
+        val defaultRadius = emergencyPrefs.getFloat("default_event_radius_km", 100.0f)
+        binding.eventRadiusInput.setText(defaultRadius.toString())
     }
 
     private fun saveAutoActivateSetting(enabled: Boolean) {
@@ -257,5 +268,17 @@ class SettingsActivity : AppCompatActivity() {
         val preferences = getSharedPreferences("panic_settings", Context.MODE_PRIVATE)
         preferences.edit().putBoolean(PanicModeService.PREF_AUTO_ACTIVATE_DATA, enabled).apply()
         Toast.makeText(this, if (enabled) "Auto-activate data enabled" else "Auto-activate data disabled", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun saveEventRadiusSetting() {
+        val radiusStr = binding.eventRadiusInput.text.toString()
+        val radius = radiusStr.toFloatOrNull()?.coerceIn(1.0f, 1000.0f) ?: 100.0f
+        
+        val preferences = getSharedPreferences("emergency_prefs", Context.MODE_PRIVATE)
+        preferences.edit().putFloat("default_event_radius_km", radius).apply()
+        
+        // Update the input to show the validated value
+        binding.eventRadiusInput.setText(radius.toString())
+        Toast.makeText(this, "Default event radius set to ${radius}km", Toast.LENGTH_SHORT).show()
     }
 }
