@@ -12,6 +12,7 @@ import kotlin.random.Random
  * - People moving with typical walking patterns
  * - Event occurring at a random position
  * - Message propagation through people within 100m
+ * - WiFi instant propagation (only in MOBILE_DATA_ONLY mode when backbone is intact)
  * - Verbal transmission in critical scenarios
  * - Approaching behavior where informed people seek out uninformed people
  */
@@ -263,9 +264,25 @@ class SimulationEngine(
             }
         }
         
-        // Also check WiFi network propagation
-        // When someone with WiFi gets notified, ALL others in the same WiFi network
-        // should be notified immediately (instant propagation)
+        // WiFi instant propagation (only when backbone is intact)
+        if (infrastructureFailure == InfrastructureFailureMode.MOBILE_DATA_ONLY) {
+            processWiFiInstantPropagation(informedPeople, uninformedPeople)
+        }
+    }
+    
+    /**
+     * Process WiFi instant propagation when the WiFi backbone is intact.
+     * 
+     * WiFi instant propagation only works when the WiFi backbone is intact (MOBILE_DATA_ONLY mode).
+     * In this mode, WiFi networks have internet connectivity via fixed broadband.
+     * When data backbone fails (DATA_BACKBONE or COMPLETE_FAILURE), WiFi networks
+     * can still provide local connectivity but without instant propagation via internet.
+     */
+    private fun processWiFiInstantPropagation(
+        informedPeople: List<SimulationPerson>,
+        uninformedPeople: List<SimulationPerson>
+    ) {
+        // WiFi backbone is intact - instant propagation via WiFi networks with internet
         for (wifi in wifiNetworks) {
             // First, check if any informed person is in range of this WiFi
             val hasInformedInRange = informedPeople.any { informed ->
@@ -277,6 +294,7 @@ class SimulationEngine(
             }
             
             // If yes, immediately notify ALL uninformed people in range of this WiFi
+            // This simulates message propagation via WiFi networks with internet connectivity
             if (hasInformedInRange) {
                 for (uninformed in uninformedPeople) {
                     // Skip if already informed (preserves original eventReceivedTime)

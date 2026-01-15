@@ -20,30 +20,33 @@ Each location type has three infrastructure failure scenarios:
 
 1. **Nur Mobile Daten ausgefallen (Only Mobile Data Failed)**
    - ✅ Voice calls and SMS still work (cellular network operational)
-   - ✅ WiFi networks functional (local connectivity)
+   - ✅ WiFi networks functional with internet connectivity via fixed broadband (backbone intact)
    - ✅ SMS emergency broadcasts can reach contacts
-   - ⚠️ Internet-dependent services unavailable
+   - ✅ **WiFi instant propagation**: Messages propagate instantly through WiFi networks with internet
+   - ⚠️ Mobile internet-dependent services unavailable
    - ⚠️ No verbal transmission or approaching behavior (not critical yet)
-   - **Simulation models**: WiFi propagation, SMS available
+   - **Simulation models**: WiFi instant propagation via internet backbone, SMS available
    
 2. **Daten Backbone ausgefallen (Data Backbone Failed)**
    - ✅ Phone calls available (cellular network operational)
    - ✅ SMS still works (uses cellular signaling, not internet)
    - ✅ Local WiFi networks still work (no internet access though)
-   - ❌ No internet connectivity
+   - ❌ No internet connectivity (WiFi backbone down)
+   - ❌ No WiFi instant propagation (local WiFi only, no internet)
    - **Verbal transmission enabled**: People inform others within speaking distance
    - **Approaching behavior enabled**: Informed people actively approach nearby uninformed people
-   - **Simulation models**: WiFi propagation, SMS available, verbal transmission, approaching behavior
+   - **Simulation models**: Local WiFi only, SMS available, verbal transmission, approaching behavior
    
 3. **Telefon auch ausgefallen (Complete Telephone Failure)**
    - ❌ Complete cellular infrastructure collapse
    - ❌ SMS does NOT work (no cellular network)
    - ❌ Voice calls do NOT work
+   - ❌ No WiFi instant propagation (no internet)
    - ✅ Only local ad-hoc WiFi/Bluetooth networks work
    - **Verbal transmission enabled**: Critical for information spread
    - **Approaching behavior enabled**: People actively seek out others to inform
    - ⚠️ Increased movement as people search for help
-   - **Simulation models**: WiFi propagation only, NO SMS, verbal transmission, approaching behavior
+   - **Simulation models**: Local WiFi propagation only, NO SMS, verbal transmission, approaching behavior
 
 ### Scenario Parameters
 
@@ -147,8 +150,16 @@ The simulation models multiple propagation mechanisms:
 - Signal attenuation when people are indoors (60% range reduction)
 
 #### 2. WiFi Network Propagation
-- If an informed person and an uninformed person are both within range of the same WiFi network, the message propagates
-- This simulates message sharing through WiFi access points
+- **WiFi Instant Propagation (MOBILE_DATA_ONLY mode only)**:
+  - When WiFi backbone is intact (only mobile data failed, but WiFi has internet via fixed broadband)
+  - If an informed person connects to a WiFi network, ALL uninformed people in the same WiFi network are instantly informed
+  - This simulates rapid message propagation via WiFi networks with internet connectivity
+  - Messages can spread through the WiFi infrastructure backbone
+- **Local WiFi Propagation (DATA_BACKBONE and COMPLETE_FAILURE modes)**:
+  - When WiFi backbone is down (no internet connectivity)
+  - WiFi networks still provide local connectivity within their range
+  - Messages propagate only via direct peer-to-peer within the WiFi range
+  - No instant propagation through internet backbone
 
 #### 3. Verbal Transmission (Critical Scenarios Only)
 - Enabled in severe infrastructure failures (Data Backbone or Complete Failure)
@@ -334,14 +345,19 @@ The simulation can help answer questions like:
    - ✅ WiFi networks work independently of cellular infrastructure
    - ✅ Local WiFi access points can relay messages between devices
    - ✅ WiFi Direct enables peer-to-peer without infrastructure
+   - ✅ WiFi instant propagation requires internet connectivity (fixed broadband)
    - ⚠️ WiFi requires power at access points
-   - ⚠️ Internet access may be unavailable even if WiFi works
+   - ⚠️ Internet access may be unavailable even if WiFi works (DATA_BACKBONE/COMPLETE_FAILURE modes)
 
 3. **Simulation accuracy:**
    - The simulation now correctly shows SMS availability based on infrastructure mode
    - "Mobile Data Only" failure: SMS ✅ available (shown in UI)
    - "Data Backbone" failure: SMS ✅ available (shown in UI)
    - "Complete Failure": SMS ❌ NOT available (shown in UI)
-   - WiFi propagation is modeled independently of cellular network status
+   - WiFi instant propagation is modeled based on internet connectivity:
+     - ✅ "Mobile Data Only" failure: WiFi instant propagation enabled (WiFi has internet via fixed broadband)
+     - ❌ "Data Backbone" failure: WiFi instant propagation disabled (no internet, local WiFi only)
+     - ❌ "Complete Failure": WiFi instant propagation disabled (no internet, local WiFi only)
+   - WiFi networks work independently of cellular infrastructure but require internet for instant propagation
 
 These insights can inform real-world deployment strategies and user education efforts.
