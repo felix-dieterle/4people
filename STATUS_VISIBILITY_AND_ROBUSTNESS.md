@@ -121,8 +121,30 @@ Log.e(TAG, "Failed to activate Bluetooth, continuing with other channels", e)
 
 ## Future Enhancements
 
-1. Real-time status updates in MainActivity when services change state
+1. ~~Real-time status updates in MainActivity when services change state~~ ✅ **Implemented**: Status updates are now broadcast periodically (every 5 seconds) and MainActivity requests status on resume
 2. Status history log showing when each channel activated/deactivated
 3. Notification success/failure indicators in UI
 4. Retry mechanisms for failed notification methods
 5. User-configurable notification priorities
+
+## Status Update Implementation (v1.0.32)
+
+### Real-Time Status Updates
+
+The app now implements real-time status updates for all device modules:
+
+**Service-Side Updates**:
+- `AdHocCommunicationService` broadcasts status updates every 5 seconds while active
+- Immediate status broadcast on `ACTION_REQUEST_STATUS` intent
+- Status updates include: Bluetooth, WiFi scanning, Hotspot, WiFi connection, and Location sharing states
+
+**Activity-Side Updates**:
+- `MainActivity` registers a `statusUpdateReceiver` to receive status broadcasts
+- On resume, MainActivity checks service state and requests immediate status update
+- UI automatically updates to reflect current state of all modules
+
+**Benefits**:
+- Device module states always reflect actual service state
+- Status visible immediately when opening the app
+- Periodic updates ensure UI stays synchronized
+- Battery-optimized with 5-second update interval
