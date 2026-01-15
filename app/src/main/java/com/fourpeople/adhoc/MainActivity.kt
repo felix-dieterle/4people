@@ -11,6 +11,7 @@ import android.nfc.NfcAdapter
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -270,8 +271,8 @@ class MainActivity : AppCompatActivity() {
             binding.activateButton.backgroundTintList = ContextCompat.getColorStateList(this, android.R.color.holo_orange_dark)
             binding.viewLocationsButton.isEnabled = true
             binding.sendHelpButton.isEnabled = true
-            binding.detailsLayout.visibility = android.view.View.VISIBLE
-            binding.scanningTextView.visibility = android.view.View.GONE
+            binding.detailsLayout.visibility = View.VISIBLE
+            binding.scanningTextView.visibility = View.GONE
         } else {
             binding.statusTextView.text = "⚪ ${getString(R.string.standby_mode)}"
             binding.statusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
@@ -280,8 +281,8 @@ class MainActivity : AppCompatActivity() {
             binding.activateButton.backgroundTintList = ContextCompat.getColorStateList(this, android.R.color.holo_green_dark)
             binding.viewLocationsButton.isEnabled = false
             binding.sendHelpButton.isEnabled = false
-            binding.detailsLayout.visibility = android.view.View.GONE
-            binding.scanningTextView.visibility = android.view.View.VISIBLE
+            binding.detailsLayout.visibility = View.GONE
+            binding.scanningTextView.visibility = View.VISIBLE
             
             // Reset status flags when emergency is deactivated
             isBluetoothActive = false
