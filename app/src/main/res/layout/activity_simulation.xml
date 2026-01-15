@@ -69,7 +69,14 @@
                 android:id="@+id/startEventButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Start Event" />
+                android:text="Start Event"
+                android:layout_marginEnd="8dp" />
+
+            <Button
+                android:id="@+id/infoButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ℹ️ Info" />
 
         </LinearLayout>
 

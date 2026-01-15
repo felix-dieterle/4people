@@ -7,6 +7,7 @@ import android.os.Looper
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.fourpeople.adhoc.databinding.ActivitySimulationBinding
 import com.fourpeople.adhoc.simulation.*
@@ -88,6 +89,11 @@ class SimulationActivity : AppCompatActivity() {
         binding.startEventButton.setOnClickListener {
             simulationEngine?.startEvent()
             binding.startEventButton.isEnabled = false
+        }
+        
+        // Info button
+        binding.infoButton.setOnClickListener {
+            showSimulationInfo()
         }
         
         // Speed control
@@ -289,5 +295,84 @@ class SimulationActivity : AppCompatActivity() {
                 append("Coverage: ${(stats.peopleInformed * 100.0 / stats.peopleWithApp).toInt()}%")
             }
         }
+    }
+    
+    private fun showSimulationInfo() {
+        val infoText = buildString {
+            append("📊 Wie funktioniert die Simulation?\n\n")
+            
+            append("🎯 EVENT-ERKENNUNG\n")
+            append("• Wenn ein Notfall startet (roter Kreis), erkennen alle Personen mit App im Umkreis von 100m das Event sofort\n")
+            append("• Diese Personen werden \"informiert\" und ändern ihre Farbe von grün zu gold\n\n")
+            
+            append("📡 NACHRICHTENVERBREITUNG\n")
+            append("Die Nachricht verbreitet sich auf mehrere Arten:\n\n")
+            
+            append("1️⃣ Direkte Peer-to-Peer (Bluetooth/WiFi Direct)\n")
+            append("   • Informierte Personen teilen die Nachricht mit uninformierten Personen im Umkreis von 100m\n")
+            append("   • Bei Personen in Gebäuden (graue Mitte) ist die Reichweite um 40% reduziert\n\n")
+            
+            append("2️⃣ WiFi-Netzwerke (blaue Kreise)\n")
+            append("   • Wenn eine informierte Person in Reichweite eines WiFi-Netzwerks ist, werden ALLE anderen Personen im selben Netzwerk sofort informiert\n")
+            append("   • WiFi-Reichweite: 50m\n\n")
+            
+            append("3️⃣ Mündliche Übertragung (nur kritische Szenarien)\n")
+            append("   • Bei schweren Infrastrukturausfällen (Backbone oder komplett) informieren Personen andere verbal\n")
+            append("   • Reichweite: 15-30m je nach Umgebung (Stadt vs. Dorf)\n")
+            append("   • Funktioniert auch bei Personen OHNE App\n")
+            append("   • In Gebäuden reduzierte Reichweite (Wände dämpfen Schall)\n\n")
+            
+            append("🏃 ANNÄHERUNGSVERHALTEN\n")
+            append("• Bei kritischen Szenarien (Backbone/Komplett-Ausfall) zeigen informierte Personen Annäherungsverhalten\n")
+            append("• Orangefarbene Umrandung = Person nähert sich aktiv jemandem, um zu informieren\n")
+            append("• Annäherungsgeschwindigkeit: 7 km/h (schneller als normales Gehen mit 5 km/h)\n")
+            append("• Reichweite variiert: 50m (Großstadt) bis 150m (Dorf)\n\n")
+            
+            append("🏢 PERSONEN-SYMBOLE\n")
+            append("🟢 Grün = Hat die App, noch nicht informiert\n")
+            append("🟡 Gold = Hat die App und ist informiert\n")
+            append("⚫ Grau = Hat die App nicht\n")
+            append("Schwarze Umrandung = Person bewegt sich normal\n")
+            append("🟠 Orange Umrandung = Person nähert sich jemandem aktiv (dicker)\n")
+            append("Graue Mitte = Person ist in Gebäude (reduzierte Signalreichweite)\n\n")
+            
+            append("📶 INFRASTRUKTUR-AUSFALLMODI\n\n")
+            
+            append("Nur Mobile Daten ausgefallen:\n")
+            append("✅ SMS verfügbar\n")
+            append("✅ WiFi funktioniert\n")
+            append("❌ Keine mündliche Übertragung\n")
+            append("❌ Kein Annäherungsverhalten\n\n")
+            
+            append("Daten Backbone ausgefallen:\n")
+            append("✅ SMS verfügbar\n")
+            append("✅ WiFi lokal funktioniert\n")
+            append("✅ Mündliche Übertragung aktiv\n")
+            append("✅ Annäherungsverhalten aktiv\n\n")
+            
+            append("Telefon auch ausgefallen:\n")
+            append("❌ SMS NICHT verfügbar\n")
+            append("✅ Nur lokales WiFi/Bluetooth\n")
+            append("✅ Mündliche Übertragung aktiv\n")
+            append("✅ Annäherungsverhalten aktiv\n\n")
+            
+            append("📈 WICHTIGE METRIKEN\n")
+            append("• Abdeckung = Informierte / Personen mit App\n")
+            append("• Zeit zeigt simulierte Zeit (nicht Echtzeit)\n")
+            append("• Geschwindigkeitsregler (1x-10x) beschleunigt die Simulation\n\n")
+            
+            append("💡 TIPPS\n")
+            append("• Beobachten Sie, wie sich die Nachricht von der Event-Position ausbreitet\n")
+            append("• Achten Sie darauf, wie WiFi-Netzwerke die Reichweite plötzlich erweitern\n")
+            append("• In kritischen Szenarien sehen Sie orangefarbene Personen, die aktiv andere suchen\n")
+            append("• Personen in Gebäuden (graue Mitte) haben kürzere Reichweiten\n")
+            append("• Bewegende Personen helfen, die Nachricht in neue Gebiete zu tragen")
+        }
+        
+        AlertDialog.Builder(this)
+            .setTitle("ℹ️ Simulations-Informationen")
+            .setMessage(infoText)
+            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+            .show()
     }
 }
