@@ -2,9 +2,7 @@ package com.fourpeople.adhoc
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.viewpager2.widget.ViewPager2
 import com.fourpeople.adhoc.databinding.ActivityHelpBinding
-import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 
 /**
@@ -14,8 +12,6 @@ import com.google.android.material.tabs.TabLayoutMediator
 class HelpActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHelpBinding
-    private lateinit var viewPager: ViewPager2
-    private lateinit var tabLayout: TabLayout
 
     companion object {
         const val EXTRA_INITIAL_TAB = "initial_tab"
@@ -35,7 +31,7 @@ class HelpActivity : AppCompatActivity() {
         
         // Navigate to requested tab if specified
         val initialTab = intent.getIntExtra(EXTRA_INITIAL_TAB, TAB_IDLE_STATE)
-        viewPager.setCurrentItem(initialTab, false)
+        binding.viewPager.setCurrentItem(initialTab, false)
     }
 
     private fun setupToolbar() {
@@ -44,13 +40,10 @@ class HelpActivity : AppCompatActivity() {
     }
 
     private fun setupViewPager() {
-        viewPager = binding.viewPager
-        tabLayout = binding.tabLayout
-
         val adapter = HelpPagerAdapter(this)
-        viewPager.adapter = adapter
+        binding.viewPager.adapter = adapter
 
-        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = when (position) {
                 TAB_IDLE_STATE -> getString(R.string.help_tab_idle_state)
                 TAB_EMERGENCY_MODE -> getString(R.string.help_tab_emergency_mode)

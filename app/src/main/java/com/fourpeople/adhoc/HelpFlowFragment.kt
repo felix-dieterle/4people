@@ -51,40 +51,23 @@ class HelpFlowFragment : Fragment() {
     }
 
     private fun displayFlowDiagram() {
-        val (title, content) = when (flowType) {
-            HelpActivity.TAB_IDLE_STATE -> getIdleStateFlow()
-            HelpActivity.TAB_EMERGENCY_MODE -> getEmergencyModeFlow()
-            HelpActivity.TAB_PANIC_MODE -> getPanicModeFlow()
-            HelpActivity.TAB_NETWORK_CASCADE -> getNetworkCascadeFlow()
-            else -> getIdleStateFlow()
+        val (titleResId, contentResId) = when (flowType) {
+            HelpActivity.TAB_IDLE_STATE -> 
+                Pair(R.string.help_flow_idle_title, R.string.help_flow_idle_content)
+            HelpActivity.TAB_EMERGENCY_MODE -> 
+                Pair(R.string.help_flow_emergency_title, R.string.help_flow_emergency_content)
+            HelpActivity.TAB_PANIC_MODE -> 
+                Pair(R.string.help_flow_panic_title, R.string.help_flow_panic_content)
+            HelpActivity.TAB_NETWORK_CASCADE -> 
+                Pair(R.string.help_flow_cascade_title, R.string.help_flow_cascade_content)
+            else -> throw IllegalArgumentException("Invalid flow type: $flowType")
         }
 
-        binding.flowTitle.text = title
-        binding.flowContent.text = HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_COMPACT)
-    }
-
-    private fun getIdleStateFlow(): Pair<String, String> {
-        val title = getString(R.string.help_flow_idle_title)
-        val content = getString(R.string.help_flow_idle_content)
-        return Pair(title, content)
-    }
-
-    private fun getEmergencyModeFlow(): Pair<String, String> {
-        val title = getString(R.string.help_flow_emergency_title)
-        val content = getString(R.string.help_flow_emergency_content)
-        return Pair(title, content)
-    }
-
-    private fun getPanicModeFlow(): Pair<String, String> {
-        val title = getString(R.string.help_flow_panic_title)
-        val content = getString(R.string.help_flow_panic_content)
-        return Pair(title, content)
-    }
-
-    private fun getNetworkCascadeFlow(): Pair<String, String> {
-        val title = getString(R.string.help_flow_cascade_title)
-        val content = getString(R.string.help_flow_cascade_content)
-        return Pair(title, content)
+        binding.flowTitle.text = getString(titleResId)
+        binding.flowContent.text = HtmlCompat.fromHtml(
+            getString(contentResId), 
+            HtmlCompat.FROM_HTML_MODE_COMPACT
+        )
     }
 
     override fun onDestroyView() {
