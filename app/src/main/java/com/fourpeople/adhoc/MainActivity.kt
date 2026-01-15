@@ -263,7 +263,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUI() {
         if (isEmergencyActive) {
-            binding.statusTextView.text = "🟢 ACTIVE MODE"
+            binding.statusTextView.text = "🟢 ${getString(R.string.active_mode)}"
             binding.statusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
             binding.statusTextView.textSize = 20f
             binding.activateButton.text = getString(R.string.deactivate_emergency)
@@ -273,7 +273,7 @@ class MainActivity : AppCompatActivity() {
             binding.detailsLayout.visibility = android.view.View.VISIBLE
             binding.scanningTextView.visibility = android.view.View.GONE
         } else {
-            binding.statusTextView.text = "⚪ STANDBY MODE"
+            binding.statusTextView.text = "⚪ ${getString(R.string.standby_mode)}"
             binding.statusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
             binding.statusTextView.textSize = 18f
             binding.activateButton.text = getString(R.string.activate_emergency)
@@ -546,7 +546,7 @@ class MainActivity : AppCompatActivity() {
         layout.addView(messageInput)
         
         val radiusLabel = android.widget.TextView(this)
-        radiusLabel.text = "Event Radius (km):"
+        radiusLabel.text = getString(R.string.event_radius_label)
         radiusLabel.setPadding(0, 20, 0, 5)
         layout.addView(radiusLabel)
         
@@ -572,7 +572,7 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("event_radius_km", radiusKm)
             sendBroadcast(intent)
             
-            Toast.makeText(this, "Help request sent with ${radiusKm}km radius", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.help_request_sent_with_radius, radiusKm), Toast.LENGTH_SHORT).show()
         }
         builder.setNegativeButton(android.R.string.cancel, null)
         builder.show()

@@ -916,8 +916,8 @@ class AdHocCommunicationService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("🟢 Emergency Mode ACTIVE")
-            .setContentText("Ad-hoc emergency communication running")
+            .setContentTitle(getString(R.string.emergency_mode_active_notification))
+            .setContentText(getString(R.string.emergency_mode_active_text))
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setContentIntent(pendingIntent)
             .setOngoing(true)

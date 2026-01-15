@@ -279,6 +279,6 @@ class SettingsActivity : AppCompatActivity() {
         
         // Update the input to show the validated value
         binding.eventRadiusInput.setText(radius.toString())
-        Toast.makeText(this, "Default event radius set to ${radius}km", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.event_radius_saved, radius), Toast.LENGTH_SHORT).show()
     }
 }
