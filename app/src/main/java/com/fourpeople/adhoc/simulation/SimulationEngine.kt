@@ -12,6 +12,7 @@ import kotlin.random.Random
  * - People moving with typical walking patterns
  * - Event occurring at a random position
  * - Message propagation through people within 100m
+ * - WiFi instant propagation (only in MOBILE_DATA_ONLY mode when backbone is intact)
  * - Verbal transmission in critical scenarios
  * - Approaching behavior where informed people seek out uninformed people
  */

@@ -313,7 +313,9 @@ class SimulationActivity : AppCompatActivity() {
             append("   • Bei Personen in Gebäuden (graue Mitte) ist die Reichweite um 40% reduziert\n\n")
             
             append("2️⃣ WiFi-Netzwerke (blaue Kreise)\n")
-            append("   • Wenn eine informierte Person in Reichweite eines WiFi-Netzwerks ist, werden ALLE anderen Personen im selben Netzwerk sofort informiert\n")
+            append("   • WiFi-Sofortpropagierung nur bei 'Nur Mobile Daten ausgefallen' (WiFi Backbone intakt)\n")
+            append("   • Wenn eine informierte Person in Reichweite eines WiFi-Netzwerks ist, werden ALLE anderen Personen im selben Netzwerk sofort informiert (nur mit Internet)\n")
+            append("   • Bei anderen Modi (Backbone/Komplett-Ausfall): WiFi funktioniert nur lokal ohne Sofortpropagierung\n")
             append("   • WiFi-Reichweite: 50m\n\n")
             
             append("3️⃣ Mündliche Übertragung (nur kritische Szenarien)\n")
@@ -340,19 +342,22 @@ class SimulationActivity : AppCompatActivity() {
             
             append("Nur Mobile Daten ausgefallen:\n")
             append("✅ SMS verfügbar\n")
-            append("✅ WiFi funktioniert\n")
+            append("✅ WiFi funktioniert mit Internet (Backbone intakt)\n")
+            append("✅ WiFi-Sofortpropagierung aktiviert\n")
             append("❌ Keine mündliche Übertragung\n")
             append("❌ Kein Annäherungsverhalten\n\n")
             
             append("Daten Backbone ausgefallen:\n")
             append("✅ SMS verfügbar\n")
-            append("✅ WiFi lokal funktioniert\n")
+            append("✅ WiFi lokal funktioniert (kein Internet)\n")
+            append("❌ Keine WiFi-Sofortpropagierung (Backbone fehlt)\n")
             append("✅ Mündliche Übertragung aktiv\n")
             append("✅ Annäherungsverhalten aktiv\n\n")
             
             append("Telefon auch ausgefallen:\n")
             append("❌ SMS NICHT verfügbar\n")
-            append("✅ Nur lokales WiFi/Bluetooth\n")
+            append("✅ Nur lokales WiFi/Bluetooth (kein Internet)\n")
+            append("❌ Keine WiFi-Sofortpropagierung (Backbone fehlt)\n")
             append("✅ Mündliche Übertragung aktiv\n")
             append("✅ Annäherungsverhalten aktiv\n\n")
             
@@ -363,7 +368,8 @@ class SimulationActivity : AppCompatActivity() {
             
             append("💡 TIPPS\n")
             append("• Beobachten Sie, wie sich die Nachricht von der Event-Position ausbreitet\n")
-            append("• Achten Sie darauf, wie WiFi-Netzwerke die Reichweite plötzlich erweitern\n")
+            append("• Im Modus 'Nur Mobile Daten ausgefallen': WiFi-Netzwerke erweitern die Reichweite plötzlich durch Sofortpropagierung\n")
+            append("• In anderen Modi: WiFi funktioniert nur lokal ohne Sofortpropagierung\n")
             append("• In kritischen Szenarien sehen Sie orangefarbene Personen, die aktiv andere suchen\n")
             append("• Personen in Gebäuden (graue Mitte) haben kürzere Reichweiten\n")
             append("• Bewegende Personen helfen, die Nachricht in neue Gebiete zu tragen")
