@@ -109,7 +109,7 @@ class WiFiConnectionTest {
     }
 
     @Test
-    fun caseInsensitivity() {
+    fun caseSensitiveMatching() {
         // Note: Current implementation is case-sensitive
         // This test documents the expected behavior
         val lowercasePattern = "4people-"

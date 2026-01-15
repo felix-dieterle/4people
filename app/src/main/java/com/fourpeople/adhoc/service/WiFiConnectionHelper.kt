@@ -33,10 +33,25 @@ class WiFiConnectionHelper(private val context: Context) {
         const val EMERGENCY_SSID_PATTERN = "4people-"
     }
     
+    /**
+     * Listener interface for WiFi connection status updates.
+     */
+    interface ConnectionStatusListener {
+        fun onConnectionStatusChanged(isConnected: Boolean, ssid: String?)
+    }
+    
     private val wifiManager: WifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
     private val connectivityManager: ConnectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     private var connectedNetworkId: Int = -1
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
+    private var statusListener: ConnectionStatusListener? = null
+    
+    /**
+     * Set the connection status listener to receive updates.
+     */
+    fun setConnectionStatusListener(listener: ConnectionStatusListener?) {
+        statusListener = listener
+    }
     
     /**
      * Attempts to connect to an emergency WiFi network.
@@ -99,16 +114,19 @@ class WiFiConnectionHelper(private val context: Context) {
             networkCallback = object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
                     Log.d(TAG, "Connected to emergency network: $ssid")
+                    statusListener?.onConnectionStatusChanged(true, ssid)
                     // Optionally bind to this network for specific operations
                     // connectivityManager.bindProcessToNetwork(network)
                 }
                 
                 override fun onUnavailable() {
                     Log.w(TAG, "Failed to connect to emergency network: $ssid")
+                    statusListener?.onConnectionStatusChanged(false, null)
                 }
                 
                 override fun onLost(network: Network) {
                     Log.d(TAG, "Lost connection to emergency network: $ssid")
+                    statusListener?.onConnectionStatusChanged(false, null)
                 }
             }
             
@@ -205,6 +223,12 @@ class WiFiConnectionHelper(private val context: Context) {
      * Checks if currently connected to an emergency WiFi network.
      */
     fun isConnectedToEmergencyNetwork(): Boolean {
+        // Check permissions
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "Missing location permission for WiFi connection check")
+            return false
+        }
+        
         try {
             val wifiInfo = wifiManager.connectionInfo
             val currentSsid = wifiInfo?.ssid?.replace("\"", "") ?: ""
@@ -219,6 +243,12 @@ class WiFiConnectionHelper(private val context: Context) {
      * Gets the SSID of the currently connected WiFi network.
      */
     fun getCurrentNetworkSsid(): String? {
+        // Check permissions
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "Missing location permission for getting network SSID")
+            return null
+        }
+        
         try {
             val wifiInfo = wifiManager.connectionInfo
             return wifiInfo?.ssid?.replace("\"", "")

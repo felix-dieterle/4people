@@ -151,6 +151,9 @@ class AdHocCommunicationService : Service() {
         // Initialize WiFi Connection Helper
         wifiConnectionHelper = WiFiConnectionHelper(applicationContext)
         
+        // Set up WiFi connection status listener
+        setupWifiConnectionListener()
+        
         // Initialize flashlight and ultrasound helpers
         flashlightHelper = FlashlightMorseHelper(applicationContext)
         ultrasoundHelper = UltrasoundSignalHelper()
@@ -777,6 +780,16 @@ class AdHocCommunicationService : Service() {
                 val payload = locationData.toJson()
                 meshRoutingManager?.broadcastMessage(payload, MeshMessage.MessageType.LOCATION_UPDATE)
                 Log.d(TAG, "Location update broadcast to network")
+            }
+        })
+    }
+    
+    private fun setupWifiConnectionListener() {
+        wifiConnectionHelper?.setConnectionStatusListener(object : WiFiConnectionHelper.ConnectionStatusListener {
+            override fun onConnectionStatusChanged(isConnected: Boolean, ssid: String?) {
+                isWifiConnected = isConnected
+                Log.d(TAG, "WiFi connection status changed: connected=$isConnected, ssid=$ssid")
+                broadcastStatusUpdate()
             }
         })
     }
