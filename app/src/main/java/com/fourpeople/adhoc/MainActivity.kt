@@ -600,18 +600,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showEmergencyModeHelp() {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.help_emergency_mode_title)
-            .setMessage(R.string.help_emergency_mode_message)
-            .setPositiveButton(android.R.string.ok, null)
-            .show()
+        val intent = Intent(this, HelpActivity::class.java)
+        intent.putExtra(HelpActivity.EXTRA_INITIAL_TAB, HelpActivity.TAB_EMERGENCY_MODE)
+        startActivity(intent)
     }
 
     private fun showPanicModeHelp() {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.help_panic_mode_title)
-            .setMessage(R.string.help_panic_mode_message)
-            .setPositiveButton(android.R.string.ok, null)
-            .show()
+        val intent = Intent(this, HelpActivity::class.java)
+        intent.putExtra(HelpActivity.EXTRA_INITIAL_TAB, HelpActivity.TAB_PANIC_MODE)
+        startActivity(intent)
     }
 }
