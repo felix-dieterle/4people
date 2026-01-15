@@ -117,8 +117,11 @@ class AdHocCommunicationService : Service() {
     
     private val statusUpdateRunnable = object : Runnable {
         override fun run() {
-            broadcastStatusUpdate()
-            handler.postDelayed(this, STATUS_UPDATE_INTERVAL)
+            // Only continue broadcasting if service is still running
+            if (isRunning) {
+                broadcastStatusUpdate()
+                handler.postDelayed(this, STATUS_UPDATE_INTERVAL)
+            }
         }
     }
 
@@ -363,12 +366,13 @@ class AdHocCommunicationService : Service() {
         // Notify widgets of state change
         broadcastWidgetUpdate()
         
-        // Send initial status update after a short delay to ensure all services are initialized,
-        // then start periodic updates
+        // Send initial status update after a short delay to ensure all services are initialized
         handler.postDelayed({
             broadcastStatusUpdate()
-            handler.postDelayed(statusUpdateRunnable, STATUS_UPDATE_INTERVAL)
         }, 100L)
+        
+        // Start periodic status updates independently
+        handler.postDelayed(statusUpdateRunnable, STATUS_UPDATE_INTERVAL)
     }
 
     private fun stopEmergencyMode() {
