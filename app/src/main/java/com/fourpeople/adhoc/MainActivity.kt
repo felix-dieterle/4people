@@ -10,6 +10,7 @@ import android.nfc.NdefMessage
 import android.nfc.NfcAdapter
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -609,9 +610,15 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun requestServiceStatusUpdate() {
-        val intent = Intent(this, AdHocCommunicationService::class.java)
-        intent.action = AdHocCommunicationService.ACTION_REQUEST_STATUS
-        startService(intent)
+        try {
+            val intent = Intent(this, AdHocCommunicationService::class.java)
+            intent.action = AdHocCommunicationService.ACTION_REQUEST_STATUS
+            startService(intent)
+        } catch (e: SecurityException) {
+            Log.e("MainActivity", "Failed to request service status update", e)
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Unexpected error requesting service status", e)
+        }
     }
 
     private fun showEmergencyModeHelp() {

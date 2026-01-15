@@ -214,8 +214,10 @@ class AdHocCommunicationService : Service() {
                 stopSelf()
             }
             ACTION_REQUEST_STATUS -> {
-                // Immediately broadcast current status
-                broadcastStatusUpdate()
+                // Only broadcast status if service is actually running
+                if (isRunning) {
+                    broadcastStatusUpdate()
+                }
             }
         }
         return START_STICKY
@@ -361,9 +363,12 @@ class AdHocCommunicationService : Service() {
         // Notify widgets of state change
         broadcastWidgetUpdate()
         
-        // Send initial status update immediately, then start periodic updates
-        broadcastStatusUpdate()
-        handler.postDelayed(statusUpdateRunnable, STATUS_UPDATE_INTERVAL)
+        // Send initial status update after a short delay to ensure all services are initialized,
+        // then start periodic updates
+        handler.postDelayed({
+            broadcastStatusUpdate()
+            handler.postDelayed(statusUpdateRunnable, STATUS_UPDATE_INTERVAL)
+        }, 100L)
     }
 
     private fun stopEmergencyMode() {
