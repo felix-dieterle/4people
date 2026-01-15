@@ -346,6 +346,7 @@ For detailed information about the project, see:
 - **[TESTING.md](TESTING.md)**: Testing guide and procedures
 - **[MESH_ROUTING.md](MESH_ROUTING.md)**: Mesh network routing implementation and protocol details
 - **[TRUST_SYSTEM.md](TRUST_SYSTEM.md)**: Trust-based message evaluation system with algorithm documentation
+- **[OFFLINE_MAP.md](OFFLINE_MAP.md)**: Offline map integration with OSM, participant tracking, safe zones, and routing
 - **[SECURE_CONNECTIONS.md](SECURE_CONNECTIONS.md)**: Secure connection tracking in mesh routing
 - **[SIMULATION.md](SIMULATION.md)**: Emergency propagation simulation tool documentation
 - **[WIFI_AUTO_CONNECT.md](WIFI_AUTO_CONNECT.md)**: WiFi auto-connect feature for expanding mesh network coverage
