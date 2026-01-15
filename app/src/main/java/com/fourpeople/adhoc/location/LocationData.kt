@@ -102,11 +102,13 @@ data class LocationData(
      * Calculates the distance in kilometers to a given latitude/longitude using the Haversine formula.
      */
     fun distanceToKm(otherLat: Double, otherLon: Double): Double {
-        val dLat = Math.toRadians(otherLat - latitude)
-        val dLon = Math.toRadians(otherLon - longitude)
+        val lat1Rad = latitude * PI / 180.0
+        val lat2Rad = otherLat * PI / 180.0
+        val dLat = (otherLat - latitude) * PI / 180.0
+        val dLon = (otherLon - longitude) * PI / 180.0
         
         val a = sin(dLat / 2).pow(2) + 
-                cos(Math.toRadians(latitude)) * cos(Math.toRadians(otherLat)) * 
+                cos(lat1Rad) * cos(lat2Rad) * 
                 sin(dLon / 2).pow(2)
         
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
