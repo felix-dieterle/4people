@@ -491,14 +491,13 @@ class AdHocCommunicationService : Service() {
         val success = wifiConnectionHelper?.connectToAvailableEmergencyNetwork(emergencyNetworks) ?: false
         if (success) {
             Log.d(TAG, "WiFi connection attempt initiated")
-            // Update status - actual connection status will be updated via callback
-            // For now, we mark as attempting connection
-            isWifiConnected = true
-            broadcastStatusUpdate()
+            // Note: Connection status will be updated in next WiFi scan when we verify the connection
+            // We don't set isWifiConnected=true here as the connection may still fail
         } else {
             Log.w(TAG, "Failed to initiate WiFi connection")
+            isWifiConnected = false
+            broadcastStatusUpdate()
         }
-    }
     }
 
     private fun activateHotspot() {
