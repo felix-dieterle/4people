@@ -61,6 +61,7 @@ class AdHocCommunicationService : Service() {
         const val EXTRA_WIFI_ACTIVE = "wifi_active"
         const val EXTRA_HOTSPOT_ACTIVE = "hotspot_active"
         const val EXTRA_LOCATION_ACTIVE = "location_active"
+        const val EXTRA_WIFI_CONNECTED = "wifi_connected"
     }
 
     private var isRunning = false
@@ -69,6 +70,7 @@ class AdHocCommunicationService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private var deviceId: String = ""
     private var wifiDirectHelper: WiFiDirectHelper? = null
+    private var wifiConnectionHelper: WiFiConnectionHelper? = null
     private var flashlightHelper: FlashlightMorseHelper? = null
     private var ultrasoundHelper: UltrasoundSignalHelper? = null
     private var meshRoutingManager: MeshRoutingManager? = null
@@ -80,6 +82,7 @@ class AdHocCommunicationService : Service() {
     private var isBluetoothActive = false
     private var isWifiScanningActive = false
     private var isHotspotActive = false
+    private var isWifiConnected = false
 
     private val wifiScanRunnable = object : Runnable {
         override fun run() {
@@ -145,6 +148,9 @@ class AdHocCommunicationService : Service() {
         wifiDirectHelper = WiFiDirectHelper(applicationContext)
         wifiDirectHelper?.initialize()
         
+        // Initialize WiFi Connection Helper
+        wifiConnectionHelper = WiFiConnectionHelper(applicationContext)
+        
         // Initialize flashlight and ultrasound helpers
         flashlightHelper = FlashlightMorseHelper(applicationContext)
         ultrasoundHelper = UltrasoundSignalHelper()
@@ -198,6 +204,7 @@ class AdHocCommunicationService : Service() {
         flashlightHelper?.cleanup()
         ultrasoundHelper?.cleanup()
         wifiDirectHelper?.cleanup()
+        wifiConnectionHelper?.cleanup()
         
         // Clean up mesh routing
         bluetoothMeshTransport?.cleanup()
@@ -214,8 +221,9 @@ class AdHocCommunicationService : Service() {
         intent.putExtra(EXTRA_WIFI_ACTIVE, isWifiScanningActive)
         intent.putExtra(EXTRA_HOTSPOT_ACTIVE, isHotspotActive)
         intent.putExtra(EXTRA_LOCATION_ACTIVE, locationSharingManager?.isLocationSharingActive() ?: false)
+        intent.putExtra(EXTRA_WIFI_CONNECTED, isWifiConnected)
         sendBroadcast(intent)
-        Log.d(TAG, "Status update broadcast: BT=$isBluetoothActive, WiFi=$isWifiScanningActive, Hotspot=$isHotspotActive, Location=${locationSharingManager?.isLocationSharingActive() ?: false}")
+        Log.d(TAG, "Status update broadcast: BT=$isBluetoothActive, WiFi=$isWifiScanningActive, Hotspot=$isHotspotActive, Location=${locationSharingManager?.isLocationSharingActive() ?: false}, WiFiConnected=$isWifiConnected")
     }
 
     private fun startEmergencyMode() {
@@ -323,6 +331,7 @@ class AdHocCommunicationService : Service() {
         
         deactivateBluetooth()
         deactivateWifiDirect()
+        deactivateWifiConnection()
         deactivateFlashlightSignaling()
         deactivateUltrasoundSignaling()
         deactivateMeshNetworking()
@@ -332,6 +341,7 @@ class AdHocCommunicationService : Service() {
         isBluetoothActive = false
         isWifiScanningActive = false
         isHotspotActive = false
+        isWifiConnected = false
         
         // Broadcast final status update
         broadcastStatusUpdate()
@@ -442,13 +452,53 @@ class AdHocCommunicationService : Service() {
         }
         
         val results: List<ScanResult> = wifiManager.scanResults
+        val emergencyNetworks = mutableListOf<String>()
         
         results.forEach { result ->
             if (result.SSID.startsWith(EMERGENCY_SSID_PATTERN)) {
                 Log.d(TAG, "Emergency network detected: ${result.SSID}")
+                emergencyNetworks.add(result.SSID)
                 notifyEmergencyDetected(result.SSID)
             }
         }
+        
+        // Attempt to connect to emergency networks if auto-connect is enabled
+        if (emergencyNetworks.isNotEmpty()) {
+            tryConnectToEmergencyNetworks(emergencyNetworks)
+        }
+    }
+    
+    private fun tryConnectToEmergencyNetworks(emergencyNetworks: List<String>) {
+        // Check if auto-connect is enabled in preferences
+        val prefs = getSharedPreferences("emergency_prefs", Context.MODE_PRIVATE)
+        val autoConnectEnabled = prefs.getBoolean("wifi_auto_connect_enabled", true)
+        
+        if (!autoConnectEnabled) {
+            Log.d(TAG, "WiFi auto-connect is disabled in settings")
+            return
+        }
+        
+        // Check if already connected to an emergency network
+        if (wifiConnectionHelper?.isConnectedToEmergencyNetwork() == true) {
+            val currentSsid = wifiConnectionHelper?.getCurrentNetworkSsid()
+            Log.d(TAG, "Already connected to emergency network: $currentSsid")
+            isWifiConnected = true
+            broadcastStatusUpdate()
+            return
+        }
+        
+        // Try to connect to an available emergency network
+        val success = wifiConnectionHelper?.connectToAvailableEmergencyNetwork(emergencyNetworks) ?: false
+        if (success) {
+            Log.d(TAG, "WiFi connection attempt initiated")
+            // Update status - actual connection status will be updated via callback
+            // For now, we mark as attempting connection
+            isWifiConnected = true
+            broadcastStatusUpdate()
+        } else {
+            Log.w(TAG, "Failed to initiate WiFi connection")
+        }
+    }
     }
 
     private fun activateHotspot() {
@@ -539,6 +589,13 @@ class AdHocCommunicationService : Service() {
     private fun deactivateWifiDirect() {
         wifiDirectHelper?.stopDiscovery()
         Log.d(TAG, "WiFi Direct deactivated")
+    }
+    
+    private fun deactivateWifiConnection() {
+        wifiConnectionHelper?.disconnect()
+        isWifiConnected = false
+        Log.d(TAG, "WiFi connection deactivated")
+        broadcastStatusUpdate()
     }
     
     private fun sendEmergencySms() {

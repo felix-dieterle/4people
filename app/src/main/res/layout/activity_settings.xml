@@ -80,6 +80,49 @@
         app:layout_constraintTop_toTopOf="@id/autoActivateDescription"
         app:layout_constraintBottom_toBottomOf="@id/autoActivateDescription"
         app:layout_constraintEnd_toEndOf="parent" />
+        
+    <View
+        android:id="@+id/divider1a"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/autoActivateDescription"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/wifiAutoConnectTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="WiFi Auto-Connect"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/divider1a"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/wifiAutoConnectDescription"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Automatically connect to discovered emergency WiFi networks to expand mesh coverage"
+        android:textSize="14sp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintTop_toBottomOf="@id/wifiAutoConnectTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/wifiAutoConnectSwitch" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/wifiAutoConnectSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        app:layout_constraintTop_toTopOf="@id/wifiAutoConnectDescription"
+        app:layout_constraintBottom_toBottomOf="@id/wifiAutoConnectDescription"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <TextView
         android:id="@+id/indicatorsTitle"
@@ -89,7 +132,7 @@
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginTop="32dp"
-        app:layout_constraintTop_toBottomOf="@id/autoActivateDescription"
+        app:layout_constraintTop_toBottomOf="@id/wifiAutoConnectDescription"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
