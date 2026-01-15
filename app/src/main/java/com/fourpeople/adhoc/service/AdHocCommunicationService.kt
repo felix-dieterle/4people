@@ -360,8 +360,9 @@ class AdHocCommunicationService : Service() {
         // Notify widgets of state change
         broadcastWidgetUpdate()
         
-        // Start periodic status updates
-        handler.post(statusUpdateRunnable)
+        // Send initial status update immediately, then start periodic updates
+        broadcastStatusUpdate()
+        handler.postDelayed(statusUpdateRunnable, 5000L)
     }
 
     private fun stopEmergencyMode() {
