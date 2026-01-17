@@ -71,6 +71,16 @@
     <string name="location_sharing_status">Location Sharing: %s</string>
     <string name="help_request_sent">Help request sent to network</string>
     <string name="help_request_message">Enter help message (optional)</string>
+    <string name="event_radius_label">Event Radius (km):</string>
+    <string name="help_request_sent_with_radius">Help request sent with %1$.0fkm radius</string>
+    <string name="event_radius_saved">Default event radius set to %1$.0fkm</string>
+    <string name="active_mode">ACTIVE MODE</string>
+    <string name="standby_mode">STANDBY MODE</string>
+    <string name="emergency_mode_active_notification">🟢 Emergency Mode ACTIVE</string>
+    <string name="emergency_mode_active_text">Ad-hoc emergency communication running</string>
+    <string name="event_radius_title">Event Radius</string>
+    <string name="event_radius_description">Default radius in kilometers for event notifications (only people within this radius will be notified)</string>
+    <string name="event_radius_unit">km</string>
     
     <!-- Simulation strings -->
     <string name="simulation_title">Emergency Propagation Simulation</string>

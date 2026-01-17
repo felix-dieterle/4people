@@ -155,7 +155,8 @@ class AdHocCommunicationService : Service() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "com.fourpeople.adhoc.SEND_HELP_REQUEST") {
                 val message = intent.getStringExtra("help_message")
-                handleSendHelpRequest(message)
+                val radiusKm = intent.getDoubleExtra("event_radius_km", 100.0)
+                handleSendHelpRequest(message, radiusKm)
             }
         }
     }
@@ -827,11 +828,19 @@ class AdHocCommunicationService : Service() {
     private fun handleHelpRequest(message: MeshMessage) {
         val locationData = LocationData.fromJson(message.payload)
         if (locationData != null && locationData.isHelpRequest) {
-            locationSharingManager?.updateParticipantLocation(locationData)
-            Log.i(TAG, "HELP REQUEST from ${locationData.deviceId}: ${locationData.helpMessage}")
+            // Check if the event is within our radius
+            val shouldProcess = locationSharingManager?.shouldProcessEvent(locationData) ?: true
             
-            // Notify user of help request
-            notifyEmergencyDetected("HELP:${locationData.deviceId}")
+            if (shouldProcess) {
+                locationSharingManager?.updateParticipantLocation(locationData)
+                val radiusInfo = if (locationData.isForwarded) " (forwarded, ${locationData.eventRadiusKm}km)" else " (${locationData.eventRadiusKm}km)"
+                Log.i(TAG, "HELP REQUEST from ${locationData.deviceId}$radiusInfo: ${locationData.helpMessage}")
+                
+                // Notify user of help request
+                notifyEmergencyDetected("HELP:${locationData.deviceId}")
+            } else {
+                Log.d(TAG, "Help request from ${locationData.deviceId} is outside event radius (${locationData.eventRadiusKm}km)")
+            }
         } else {
             Log.w(TAG, "Failed to parse help request from message")
         }
@@ -874,13 +883,13 @@ class AdHocCommunicationService : Service() {
         broadcastStatusUpdate()
     }
     
-    private fun handleSendHelpRequest(message: String?) {
-        val helpRequest = locationSharingManager?.sendHelpRequest(message)
+    private fun handleSendHelpRequest(message: String?, radiusKm: Double = 100.0) {
+        val helpRequest = locationSharingManager?.sendHelpRequest(message, radiusKm)
         if (helpRequest != null) {
             // Broadcast help request to network
             val payload = helpRequest.toJson()
             meshRoutingManager?.broadcastMessage(payload, MeshMessage.MessageType.HELP_REQUEST)
-            Log.i(TAG, "Help request sent to network: ${message ?: "No message"}")
+            Log.i(TAG, "Help request sent to network with ${radiusKm}km radius: ${message ?: "No message"}")
         } else {
             Log.w(TAG, "Failed to send help request - location not available")
         }
@@ -907,11 +916,12 @@ class AdHocCommunicationService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getString(R.string.emergency_notification_title))
-            .setContentText(getString(R.string.emergency_notification_text))
+            .setContentTitle(getString(R.string.emergency_mode_active_notification))
+            .setContentText(getString(R.string.emergency_mode_active_text))
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
     }
 }

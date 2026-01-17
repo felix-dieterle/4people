@@ -181,4 +181,190 @@ class LocationDataTest {
         assertEquals(location.deviceId, parsed?.deviceId)
         assertEquals(location.helpMessage, parsed?.helpMessage)
     }
+
+    @Test
+    fun testEventRadiusDefault() {
+        val location = LocationData(
+            deviceId = "device-123",
+            latitude = 52.520008,
+            longitude = 13.404954,
+            accuracy = 10.0f
+        )
+
+        assertEquals(100.0, location.eventRadiusKm, 0.001)
+        assertFalse(location.isForwarded)
+    }
+
+    @Test
+    fun testEventRadiusCustom() {
+        val location = LocationData(
+            deviceId = "device-456",
+            latitude = 40.7128,
+            longitude = -74.0060,
+            accuracy = 5.0f,
+            eventRadiusKm = 50.0,
+            isForwarded = true
+        )
+
+        assertEquals(50.0, location.eventRadiusKm, 0.001)
+        assertTrue(location.isForwarded)
+    }
+
+    @Test
+    fun testDistanceCalculation() {
+        // Berlin coordinates
+        val berlin = LocationData(
+            deviceId = "berlin",
+            latitude = 52.520008,
+            longitude = 13.404954,
+            accuracy = 10.0f
+        )
+
+        // Munich coordinates (approximately 504 km from Berlin)
+        val munich = LocationData(
+            deviceId = "munich",
+            latitude = 48.1351,
+            longitude = 11.5820,
+            accuracy = 10.0f
+        )
+
+        val distance = berlin.distanceToKm(munich)
+        
+        // Distance should be approximately 504 km (±10 km tolerance)
+        assertTrue(distance > 494.0 && distance < 514.0)
+    }
+
+    @Test
+    fun testDistanceCalculationSameLocation() {
+        val location1 = LocationData(
+            deviceId = "loc1",
+            latitude = 40.7128,
+            longitude = -74.0060,
+            accuracy = 5.0f
+        )
+
+        val location2 = LocationData(
+            deviceId = "loc2",
+            latitude = 40.7128,
+            longitude = -74.0060,
+            accuracy = 5.0f
+        )
+
+        val distance = location1.distanceToKm(location2)
+        
+        // Distance should be very close to 0
+        assertTrue(distance < 0.001)
+    }
+
+    @Test
+    fun testIsWithinRadius() {
+        // New York coordinates
+        val newYork = LocationData(
+            deviceId = "ny",
+            latitude = 40.7128,
+            longitude = -74.0060,
+            accuracy = 5.0f,
+            eventRadiusKm = 100.0
+        )
+
+        // Philadelphia coordinates (approximately 130 km from New York)
+        val philadelphia = LocationData(
+            deviceId = "philly",
+            latitude = 39.9526,
+            longitude = -75.1652,
+            accuracy = 5.0f
+        )
+
+        // Philadelphia is outside 100km radius
+        assertFalse(newYork.isWithinRadius(philadelphia))
+    }
+
+    @Test
+    fun testIsWithinRadiusInside() {
+        // London coordinates
+        val london = LocationData(
+            deviceId = "london",
+            latitude = 51.5074,
+            longitude = -0.1278,
+            accuracy = 5.0f,
+            eventRadiusKm = 200.0
+        )
+
+        // Cambridge coordinates (approximately 80 km from London)
+        val cambridge = LocationData(
+            deviceId = "cambridge",
+            latitude = 52.2053,
+            longitude = 0.1218,
+            accuracy = 5.0f
+        )
+
+        // Cambridge is within 200km radius
+        assertTrue(london.isWithinRadius(cambridge))
+    }
+
+    @Test
+    fun testEventRadiusToJson() {
+        val location = LocationData(
+            deviceId = "test-radius",
+            latitude = 48.8566,
+            longitude = 2.3522,
+            accuracy = 15.0f,
+            altitude = 35.0,
+            timestamp = 1234567890L,
+            isHelpRequest = true,
+            helpMessage = "Emergency",
+            eventRadiusKm = 75.0,
+            isForwarded = true
+        )
+
+        val json = location.toJson()
+        
+        assertTrue(json.contains("\"eventRadiusKm\":75.0"))
+        assertTrue(json.contains("\"isForwarded\":true"))
+    }
+
+    @Test
+    fun testEventRadiusFromJson() {
+        val json = """{"deviceId":"device-radius","latitude":51.5074,"longitude":-0.1278,"accuracy":8.0,"altitude":11.0,"timestamp":9876543210,"isHelpRequest":true,"helpMessage":"Emergency","eventRadiusKm":150.0,"isForwarded":true}"""
+        
+        val location = LocationData.fromJson(json)
+        
+        assertNotNull(location)
+        assertEquals(150.0, location?.eventRadiusKm ?: 0.0, 0.001)
+        assertTrue(location?.isForwarded ?: false)
+    }
+
+    @Test
+    fun testEventRadiusFromJsonWithoutRadiusField() {
+        // Test backward compatibility - JSON without radius field should default to 100.0
+        val json = """{"deviceId":"device-old","latitude":51.5074,"longitude":-0.1278,"accuracy":8.0,"altitude":11.0,"timestamp":9876543210,"isHelpRequest":false,"helpMessage":""}"""
+        
+        val location = LocationData.fromJson(json)
+        
+        assertNotNull(location)
+        assertEquals(100.0, location?.eventRadiusKm ?: 0.0, 0.001)
+        assertFalse(location?.isForwarded ?: true)
+    }
+
+    @Test
+    fun testEventRadiusRoundTrip() {
+        val original = LocationData(
+            deviceId = "roundtrip-radius",
+            latitude = 37.7749,
+            longitude = -122.4194,
+            accuracy = 20.0f,
+            altitude = 16.0,
+            isHelpRequest = true,
+            helpMessage = "Help needed",
+            eventRadiusKm = 250.0,
+            isForwarded = true
+        )
+
+        val json = original.toJson()
+        val parsed = LocationData.fromJson(json)
+
+        assertNotNull(parsed)
+        assertEquals(original.eventRadiusKm, parsed?.eventRadiusKm ?: 0.0, 0.001)
+        assertEquals(original.isForwarded, parsed?.isForwarded)
+    }
 }
