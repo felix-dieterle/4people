@@ -13,6 +13,7 @@ import android.net.wifi.WifiNetworkSpecifier
 import android.os.Build
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import com.fourpeople.adhoc.util.ErrorLogger
 
 /**
  * Helper class for managing WiFi connections to emergency networks.
@@ -135,7 +136,7 @@ class WiFiConnectionHelper(private val context: Context) {
             return true
             
         } catch (e: Exception) {
-            Log.e(TAG, "Error connecting to network using NetworkSpecifier", e)
+            ErrorLogger.logError(TAG, "Error connecting to network using NetworkSpecifier", e)
             return false
         }
     }
@@ -183,10 +184,10 @@ class WiFiConnectionHelper(private val context: Context) {
             return true
             
         } catch (e: SecurityException) {
-            Log.e(TAG, "Security exception when connecting to network (requires CHANGE_WIFI_STATE permission)", e)
+            ErrorLogger.logError(TAG, "Security exception when connecting to network (requires CHANGE_WIFI_STATE permission)", e)
             return false
         } catch (e: Exception) {
-            Log.e(TAG, "Error connecting to network using legacy API", e)
+            ErrorLogger.logError(TAG, "Error connecting to network using legacy API", e)
             return false
         }
     }
