@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import com.fourpeople.adhoc.databinding.ActivityMainBinding
 import com.fourpeople.adhoc.service.AdHocCommunicationService
 import com.fourpeople.adhoc.service.PanicModeService
+import com.fourpeople.adhoc.util.ErrorLogger
 import com.fourpeople.adhoc.util.NFCHelper
 
 /**
@@ -645,9 +646,9 @@ class MainActivity : AppCompatActivity() {
             intent.action = AdHocCommunicationService.ACTION_REQUEST_STATUS
             startService(intent)
         } catch (e: SecurityException) {
-            Log.e("MainActivity", "Failed to request service status update", e)
+            ErrorLogger.logError("MainActivity", "Failed to request service status update", e)
         } catch (e: Exception) {
-            Log.e("MainActivity", "Unexpected error requesting service status", e)
+            ErrorLogger.logError("MainActivity", "Unexpected error requesting service status", e)
         }
     }
 

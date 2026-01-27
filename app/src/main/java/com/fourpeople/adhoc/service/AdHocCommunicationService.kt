@@ -27,6 +27,7 @@ import com.fourpeople.adhoc.MainActivity
 import com.fourpeople.adhoc.R
 import com.fourpeople.adhoc.util.BatteryMonitor
 import com.fourpeople.adhoc.util.EmergencySmsHelper
+import com.fourpeople.adhoc.util.ErrorLogger
 import com.fourpeople.adhoc.util.FlashlightMorseHelper
 import com.fourpeople.adhoc.util.UltrasoundSignalHelper
 import com.fourpeople.adhoc.util.NFCHelper
@@ -285,28 +286,28 @@ class AdHocCommunicationService : Service() {
             activateBluetooth()
             Log.d(TAG, "Bluetooth activated")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to activate Bluetooth, continuing with other channels", e)
+            ErrorLogger.logError(TAG, "Failed to activate Bluetooth, continuing with other channels", e)
         }
         
         try {
             activateWifiScanning()
             Log.d(TAG, "WiFi scanning activated")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to activate WiFi scanning, continuing with other channels", e)
+            ErrorLogger.logError(TAG, "Failed to activate WiFi scanning, continuing with other channels", e)
         }
         
         try {
             activateHotspot()
             Log.d(TAG, "Hotspot activation attempted")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to activate hotspot, continuing with other channels", e)
+            ErrorLogger.logError(TAG, "Failed to activate hotspot, continuing with other channels", e)
         }
         
         try {
             activateWifiDirect()
             Log.d(TAG, "WiFi Direct activated")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to activate WiFi Direct, continuing with other channels", e)
+            ErrorLogger.logError(TAG, "Failed to activate WiFi Direct, continuing with other channels", e)
         }
         
         // Activate mesh networking
@@ -314,7 +315,7 @@ class AdHocCommunicationService : Service() {
             activateMeshNetworking()
             Log.d(TAG, "Mesh networking activated")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to activate mesh networking, continuing with other channels", e)
+            ErrorLogger.logError(TAG, "Failed to activate mesh networking, continuing with other channels", e)
         }
         
         // Activate flashlight and ultrasound signaling if enabled
