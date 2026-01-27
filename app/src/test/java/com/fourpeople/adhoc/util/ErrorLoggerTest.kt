@@ -101,7 +101,6 @@ class ErrorLoggerTest {
         
         // Log multiple errors
         ErrorLogger.logError("Tag1", "Error 1")
-        Thread.sleep(100) // Ensure different timestamps
         ErrorLogger.logError("Tag2", "Error 2")
         
         val logFiles = ErrorLogger.getLogFiles()
@@ -130,21 +129,37 @@ class ErrorLoggerTest {
         
         // Verify files are deleted
         assertTrue("Log files should be cleared", ErrorLogger.getLogFiles().isEmpty())
+        
+        // Verify logging still works after clearing
+        ErrorLogger.logError("TestTag", "Error after clear")
+        assertTrue("Should be able to log after clearing", ErrorLogger.getLogFiles().isNotEmpty())
     }
     
     @Test
-    fun testLogRotation() {
+    fun testBasicLogFileManagement() {
         ErrorLogger.initialize(mockContext)
         
         // Create multiple log files by logging many errors
-        // This is a basic test - in reality, we'd need to mock file size
         for (i in 1..7) {
             ErrorLogger.logError("TestTag", "Error $i")
         }
         
         val logFiles = ErrorLogger.getLogFiles()
-        // The rotation should keep max 5 files, but we need to trigger size limit
-        // This is a simple check that rotation doesn't crash
+        // This is a basic test that verifies logging doesn't crash with multiple entries
         assertTrue("Should have log files", logFiles.isNotEmpty())
+    }
+    
+    @Test
+    fun testLoggingWithoutInitialization() {
+        // Create a fresh context that hasn't initialized ErrorLogger
+        val uninitializedContext = mock(Context::class.java)
+        
+        // Logging should not crash even if ErrorLogger is not initialized
+        // The methods should handle null gracefully
+        ErrorLogger.logError("TestTag", "Error without init")
+        ErrorLogger.logWarning("TestTag", "Warning without init")
+        
+        // No exception should be thrown
+        assertTrue("Test should complete without exception", true)
     }
 }

@@ -31,8 +31,10 @@ object ErrorLogger {
         try {
             // Use app-specific storage that doesn't require permissions
             logDirectory = File(context.filesDir, LOG_DIR_NAME)
-            if (!logDirectory!!.exists()) {
-                logDirectory!!.mkdirs()
+            logDirectory?.let { dir ->
+                if (!dir.exists()) {
+                    dir.mkdirs()
+                }
             }
             
             // Create or get current log file
@@ -112,12 +114,12 @@ object ErrorLogger {
     }
     
     /**
-     * Delete all log files.
+     * Delete all log files and create a new log file.
      */
     fun clearLogs() {
         try {
             getLogFiles().forEach { it.delete() }
-            currentLogFile = null
+            currentLogFile = getCurrentOrNewLogFile()
             Log.d(TAG, "All log files cleared")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to clear log files", e)
@@ -125,14 +127,15 @@ object ErrorLogger {
     }
     
     private fun writeToFile(tag: String, level: String, message: String, throwable: Throwable?) {
-        if (currentLogFile == null) {
-            return
-        }
-        
         synchronized(this) {
+            val logFile = currentLogFile
+            if (logFile == null) {
+                return
+            }
+            
             try {
                 // Check if we need to rotate to a new file
-                if (currentLogFile!!.length() > MAX_LOG_SIZE_BYTES) {
+                if (logFile.length() > MAX_LOG_SIZE_BYTES) {
                     currentLogFile = getCurrentOrNewLogFile()
                     rotateLogsIfNeeded()
                 }
@@ -143,7 +146,6 @@ object ErrorLogger {
                         printWriter.println("$timestamp [$level] $tag: $message")
                         
                         if (throwable != null) {
-                            printWriter.print("    ")
                             throwable.printStackTrace(printWriter)
                         }
                         printWriter.println() // Empty line for readability
@@ -156,6 +158,16 @@ object ErrorLogger {
     }
     
     private fun getCurrentOrNewLogFile(): File {
+        // Check if we have an existing log file that's not too large
+        val existingFiles = getLogFiles()
+        if (existingFiles.isNotEmpty()) {
+            val mostRecent = existingFiles.first()
+            if (mostRecent.length() < MAX_LOG_SIZE_BYTES) {
+                return mostRecent
+            }
+        }
+        
+        // Create a new log file with current timestamp
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         return File(logDirectory, "error_log_$timestamp.log")
     }
