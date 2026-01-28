@@ -357,5 +357,5 @@
     <string name="infra_healthy">✓ Operational</string>
     <string name="infra_degraded">⚠ Degraded</string>
     <string name="infra_failed">✗ Failed</string>
-    <string name="infra_unknown">? Unknown</string>
+    <string name="infra_unknown">Unknown</string>
 </resources>
