@@ -137,9 +137,11 @@ class SepsProtocolHandler(
     fun sendSepsMessage(sepsMessage: SepsMessage) {
         val jsonString = sepsMessage.toJsonString()
         
-        // For now, convert to MeshMessage and send through existing infrastructure
-        val meshMessage = SepsCodec.sepsToMeshMessage(sepsMessage)
-        meshRoutingManager.sendMessage(meshMessage)
+        // Send through mesh routing using the public API
+        meshRoutingManager.sendMessage(
+            sepsMessage.routing.destination,
+            jsonString
+        )
         
         Log.d(TAG, "Sent SEPS ${sepsMessage.messageType} message")
     }

@@ -2,7 +2,6 @@ package com.fourpeople.adhoc.protocol
 
 import android.content.Context
 import android.util.Log
-import com.fourpeople.adhoc.BuildConfig
 import com.fourpeople.adhoc.location.LocationData
 import com.fourpeople.adhoc.location.SafeZone
 import com.fourpeople.adhoc.mesh.MeshMessage
@@ -18,6 +17,7 @@ import java.util.*
 object SepsCodec {
     
     private const val APP_ID = "com.fourpeople.adhoc"
+    private const val APP_VERSION = "1.0.34" // Hardcoded to avoid BuildConfig dependency issues
     
     /**
      * Converts internal MeshMessage to SEPS format.
@@ -50,7 +50,7 @@ object SepsCodec {
             sender = SepsSender(
                 appId = APP_ID,
                 deviceId = deviceId,
-                appVersion = BuildConfig.VERSION_NAME
+                appVersion = APP_VERSION
             ),
             messageType = messageType,
             routing = SepsRouting(
@@ -115,7 +115,7 @@ object SepsCodec {
         return SepsMessage(
             messageId = UUID.randomUUID().toString(),
             timestamp = System.currentTimeMillis(),
-            sender = SepsSender(APP_ID, deviceId, BuildConfig.VERSION_NAME),
+            sender = SepsSender(APP_ID, deviceId, APP_VERSION),
             messageType = SepsMessageType.EMERGENCY_ALERT,
             routing = SepsRouting(
                 ttl = 10,
@@ -149,7 +149,7 @@ object SepsCodec {
         return SepsMessage(
             messageId = UUID.randomUUID().toString(),
             timestamp = System.currentTimeMillis(),
-            sender = SepsSender(APP_ID, deviceId, BuildConfig.VERSION_NAME),
+            sender = SepsSender(APP_ID, deviceId, APP_VERSION),
             messageType = SepsMessageType.HELP_REQUEST,
             routing = SepsRouting(
                 ttl = 10,
@@ -188,7 +188,7 @@ object SepsCodec {
         return SepsMessage(
             messageId = UUID.randomUUID().toString(),
             timestamp = locationData.timestamp,
-            sender = SepsSender(APP_ID, deviceId, BuildConfig.VERSION_NAME),
+            sender = SepsSender(APP_ID, deviceId, APP_VERSION),
             messageType = SepsMessageType.LOCATION_UPDATE,
             routing = SepsRouting(
                 ttl = 10,
@@ -225,7 +225,7 @@ object SepsCodec {
         return SepsMessage(
             messageId = UUID.randomUUID().toString(),
             timestamp = safeZone.timestamp,
-            sender = SepsSender(APP_ID, deviceId, BuildConfig.VERSION_NAME),
+            sender = SepsSender(APP_ID, deviceId, APP_VERSION),
             messageType = SepsMessageType.SAFE_ZONE,
             routing = SepsRouting(
                 ttl = 10,
