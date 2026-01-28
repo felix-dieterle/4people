@@ -122,8 +122,8 @@ class SepsProtocolHandler(
         val now = System.currentTimeMillis()
         if (recentMessageIds.size > maxCacheSize || 
             now - lastCacheCleanup > 300000) { // 5 minutes
-            // Keep only most recent half
-            val toKeep = recentMessageIds.takeLast(maxCacheSize / 2)
+            // Keep only most recent half by converting to list, taking last, and back to set
+            val toKeep = recentMessageIds.toList().takeLast(maxCacheSize / 2)
             recentMessageIds.clear()
             recentMessageIds.addAll(toKeep)
             lastCacheCleanup = now

@@ -111,11 +111,9 @@ class SepsCodecTest {
             latitude = 52.5200,
             longitude = 13.4050,
             accuracy = 10.0f,
+            altitude = 45.0,
             timestamp = System.currentTimeMillis(),
-            altitude = 45.0f,
-            speed = 1.5f,
-            bearing = 180.0f,
-            needsHelp = false
+            isHelpRequest = false
         )
         
         val update = SepsCodec.createLocationUpdate(
@@ -172,10 +170,8 @@ class SepsCodecTest {
         assertEquals(52.5200, locationData.latitude, 0.0001)
         assertEquals(13.4050, locationData.longitude, 0.0001)
         assertEquals(10.0f, locationData.accuracy, 0.01f)
-        assertEquals(45.0f, locationData.altitude!!, 0.01f)
-        assertEquals(1.5f, locationData.speed!!, 0.01f)
-        assertEquals(180.0f, locationData.bearing!!, 0.01f)
-        assertFalse(locationData.needsHelp)
+        assertEquals(45.0, locationData.altitude, 0.01)
+        assertFalse(locationData.isHelpRequest)
     }
     
     @Test
@@ -200,7 +196,6 @@ class SepsCodecTest {
             name = "City Hall Shelter",
             latitude = 52.5200,
             longitude = 13.4050,
-            type = "SHELTER",
             description = "Emergency shelter with medical facilities",
             timestamp = System.currentTimeMillis()
         )
@@ -245,7 +240,6 @@ class SepsCodecTest {
         assertNotNull(safeZone)
         assertEquals("zone-2", safeZone!!.id)
         assertEquals("Hospital", safeZone.name)
-        assertEquals("MEDICAL", safeZone.type)
         assertEquals("Emergency medical center", safeZone.description)
         assertEquals(52.5200, safeZone.latitude, 0.0001)
         assertEquals(13.4050, safeZone.longitude, 0.0001)

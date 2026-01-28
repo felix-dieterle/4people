@@ -175,9 +175,7 @@ object SepsCodec {
             latitude = locationData.latitude,
             longitude = locationData.longitude,
             accuracy = locationData.accuracy.toDouble(),
-            altitude = locationData.altitude?.toDouble(),
-            speed = locationData.speed?.toDouble(),
-            bearing = locationData.bearing?.toDouble()
+            altitude = locationData.altitude
         )
         
         val payload = JSONObject().apply {
@@ -217,7 +215,7 @@ object SepsCodec {
         
         val payload = JSONObject().apply {
             put("zone_id", safeZone.id)
-            put("zone_type", safeZone.type)
+            put("zone_type", "SHELTER") // Default type since SafeZone doesn't have a type field
             put("location", location.toJson())
             put("name", safeZone.name)
             safeZone.description?.let { put("description", it) }
@@ -254,11 +252,9 @@ object SepsCodec {
             latitude = location.latitude,
             longitude = location.longitude,
             accuracy = location.accuracy?.toFloat() ?: 0f,
+            altitude = location.altitude ?: 0.0,
             timestamp = sepsMessage.timestamp,
-            altitude = location.altitude?.toFloat(),
-            speed = location.speed?.toFloat(),
-            bearing = location.bearing?.toFloat(),
-            needsHelp = payload.optString("status") != "SAFE"
+            isHelpRequest = payload.optString("status") != "SAFE"
         )
     }
     
@@ -277,7 +273,6 @@ object SepsCodec {
             name = payload.getString("name"),
             latitude = location.latitude,
             longitude = location.longitude,
-            type = payload.getString("zone_type"),
             description = payload.optString("description").takeIf { it.isNotEmpty() },
             timestamp = sepsMessage.timestamp
         )
