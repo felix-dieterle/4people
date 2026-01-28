@@ -7,4 +7,16 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    
+    <!-- Log window colors -->
+    <color name="log_level_info">#2196F3</color>
+    <color name="log_level_warning">#FF9800</color>
+    <color name="log_level_error">#F44336</color>
+    <color name="log_level_event">#4CAF50</color>
+    <color name="log_level_state_change">#9C27B0</color>
+    <color name="log_level_message">#00BCD4</color>
+    <color name="log_timestamp_color">#757575</color>
+    <color name="log_tag_color">#424242</color>
+    <color name="log_message_color">#212121</color>
+    <color name="empty_text_color">#757575</color>
 </resources>

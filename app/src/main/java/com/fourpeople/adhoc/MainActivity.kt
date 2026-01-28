@@ -21,6 +21,7 @@ import com.fourpeople.adhoc.databinding.ActivityMainBinding
 import com.fourpeople.adhoc.service.AdHocCommunicationService
 import com.fourpeople.adhoc.service.PanicModeService
 import com.fourpeople.adhoc.util.ErrorLogger
+import com.fourpeople.adhoc.util.LogManager
 import com.fourpeople.adhoc.util.NFCHelper
 
 /**
@@ -53,6 +54,7 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "com.fourpeople.adhoc.EMERGENCY_DETECTED") {
                 val source = intent.getStringExtra("source") ?: "unknown"
+                LogManager.logMessage("MainActivity", "Emergency detected from: $source")
                 runOnUiThread {
                     Toast.makeText(
                         this@MainActivity,
@@ -67,11 +69,35 @@ class MainActivity : AppCompatActivity() {
     private val statusUpdateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == AdHocCommunicationService.ACTION_STATUS_UPDATE) {
+                val bluetoothChanged = isBluetoothActive != intent.getBooleanExtra(AdHocCommunicationService.EXTRA_BLUETOOTH_ACTIVE, false)
+                val wifiChanged = isWifiActive != intent.getBooleanExtra(AdHocCommunicationService.EXTRA_WIFI_ACTIVE, false)
+                val hotspotChanged = isHotspotActive != intent.getBooleanExtra(AdHocCommunicationService.EXTRA_HOTSPOT_ACTIVE, false)
+                val locationChanged = isLocationActive != intent.getBooleanExtra(AdHocCommunicationService.EXTRA_LOCATION_ACTIVE, false)
+                val wifiConnectedChanged = isWifiConnected != intent.getBooleanExtra(AdHocCommunicationService.EXTRA_WIFI_CONNECTED, false)
+                
                 isBluetoothActive = intent.getBooleanExtra(AdHocCommunicationService.EXTRA_BLUETOOTH_ACTIVE, false)
                 isWifiActive = intent.getBooleanExtra(AdHocCommunicationService.EXTRA_WIFI_ACTIVE, false)
                 isHotspotActive = intent.getBooleanExtra(AdHocCommunicationService.EXTRA_HOTSPOT_ACTIVE, false)
                 isLocationActive = intent.getBooleanExtra(AdHocCommunicationService.EXTRA_LOCATION_ACTIVE, false)
                 isWifiConnected = intent.getBooleanExtra(AdHocCommunicationService.EXTRA_WIFI_CONNECTED, false)
+                
+                // Log state changes
+                if (bluetoothChanged) {
+                    LogManager.logStateChange("MainActivity", "Bluetooth: ${if (isBluetoothActive) "active" else "inactive"}")
+                }
+                if (wifiChanged) {
+                    LogManager.logStateChange("MainActivity", "WiFi: ${if (isWifiActive) "active" else "inactive"}")
+                }
+                if (hotspotChanged) {
+                    LogManager.logStateChange("MainActivity", "Hotspot: ${if (isHotspotActive) "active" else "inactive"}")
+                }
+                if (locationChanged) {
+                    LogManager.logStateChange("MainActivity", "Location: ${if (isLocationActive) "active" else "inactive"}")
+                }
+                if (wifiConnectedChanged) {
+                    LogManager.logStateChange("MainActivity", "WiFi connection: ${if (isWifiConnected) "connected" else "disconnected"}")
+                }
+                
                 runOnUiThread {
                     updateStatusUI()
                 }
@@ -88,12 +114,14 @@ class MainActivity : AppCompatActivity() {
                     infraCellularHealth = intent.getStringExtra(AdHocCommunicationService.EXTRA_INFRA_CELLULAR) ?: "UNKNOWN"
                     infraMeshHealth = intent.getStringExtra(AdHocCommunicationService.EXTRA_INFRA_MESH) ?: "UNKNOWN"
                     infraOverallHealth = intent.getStringExtra(AdHocCommunicationService.EXTRA_INFRA_OVERALL) ?: "UNKNOWN"
+                    LogManager.logStateChange("MainActivity", "Infrastructure status updated: $infraOverallHealth")
                     runOnUiThread {
                         updateInfrastructureStatusUI()
                     }
                 }
                 AdHocCommunicationService.ACTION_INFRASTRUCTURE_FAILURE -> {
                     val description = intent.getStringExtra(AdHocCommunicationService.EXTRA_INFRA_DESCRIPTION) ?: "Infrastructure failure detected"
+                    LogManager.logWarning("MainActivity", "Infrastructure failure: $description")
                     runOnUiThread {
                         Toast.makeText(
                             this@MainActivity,
@@ -152,6 +180,8 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        LogManager.logInfo("MainActivity", "Application started")
+        
         setupUI()
         registerEmergencyReceiver()
         setupNFC()
@@ -229,6 +259,10 @@ class MainActivity : AppCompatActivity() {
             showEmergencyModeHelp()
         }
 
+        binding.logButton.setOnClickListener {
+            startActivity(Intent(this, LogWindowActivity::class.java))
+        }
+
         binding.settingsButton.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
@@ -299,6 +333,7 @@ class MainActivity : AppCompatActivity() {
 
         val intent = Intent(this, AdHocCommunicationService::class.java)
         if (isEmergencyActive) {
+            LogManager.logEvent("MainActivity", "Emergency mode activated by user")
             intent.action = AdHocCommunicationService.ACTION_START
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(intent)
@@ -306,6 +341,7 @@ class MainActivity : AppCompatActivity() {
                 startService(intent)
             }
         } else {
+            LogManager.logEvent("MainActivity", "Emergency mode deactivated by user")
             intent.action = AdHocCommunicationService.ACTION_STOP
             startService(intent)
         }
@@ -667,6 +703,8 @@ class MainActivity : AppCompatActivity() {
             val radiusStr = radiusInput.text.toString()
             val radiusKm = radiusStr.toDoubleOrNull()?.coerceIn(1.0, 1000.0) ?: defaultRadius.toDouble()
             
+            LogManager.logEvent("MainActivity", "Help request sent with radius: ${radiusKm}km")
+            
             // Send help request via broadcast to service
             val intent = Intent("com.fourpeople.adhoc.SEND_HELP_REQUEST")
             intent.setPackage(packageName)
@@ -708,6 +746,7 @@ class MainActivity : AppCompatActivity() {
                         "Are you sure you want to activate panic mode?")
                 .setPositiveButton(android.R.string.yes) { _, _ ->
                     isPanicModeActive = true
+                    LogManager.logEvent("MainActivity", "Panic mode activated by user")
                     intent.action = PanicModeService.ACTION_START
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         startForegroundService(intent)
@@ -721,6 +760,7 @@ class MainActivity : AppCompatActivity() {
                 .show()
         } else {
             isPanicModeActive = false
+            LogManager.logEvent("MainActivity", "Panic mode deactivated by user")
             intent.action = PanicModeService.ACTION_STOP
             startService(intent)
             updatePanicModeUI()

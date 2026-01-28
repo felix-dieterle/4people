@@ -358,4 +358,13 @@
     <string name="infra_degraded">⚠ Degraded</string>
     <string name="infra_failed">✗ Failed</string>
     <string name="infra_unknown">Unknown</string>
+    
+    <!-- Log window strings -->
+    <string name="log_window_title">System Log</string>
+    <string name="log_button_description">System Log</string>
+    <string name="empty_log_message">No log entries yet</string>
+    <string name="clear_logs">Clear Logs</string>
+    <string name="clear_logs_title">Clear Logs</string>
+    <string name="clear_logs_message">Are you sure you want to clear all log entries?</string>
+    <string name="clear">Clear</string>
 </resources>
