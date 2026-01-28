@@ -66,6 +66,7 @@ class InfrastructureMonitor(private val context: Context) {
         context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
 
     private val statusHistory = LinkedList<InfrastructureStatus>()
+    private val historyLock = Any()
     private var lastStatus: InfrastructureStatus? = null
     private var meshActiveNodes = 0
     private var meshRoutingActive = false
@@ -92,18 +93,21 @@ class InfrastructureMonitor(private val context: Context) {
             overallHealth = overallHealth
         )
 
-        // Add to history
-        statusHistory.addLast(status)
-        if (statusHistory.size > HISTORY_SIZE) {
-            statusHistory.removeFirst()
+        // Add to history with synchronization
+        synchronized(historyLock) {
+            statusHistory.addLast(status)
+            if (statusHistory.size > HISTORY_SIZE) {
+                statusHistory.removeFirst()
+            }
+
+            // Check for status changes
+            if (lastStatus != null) {
+                detectStatusChanges(lastStatus!!, status)
+            }
+
+            lastStatus = status
         }
 
-        // Check for status changes
-        if (lastStatus != null) {
-            detectStatusChanges(lastStatus!!, status)
-        }
-
-        lastStatus = status
         Log.d(TAG, "Infrastructure health check: $status")
         
         return status
@@ -144,14 +148,20 @@ class InfrastructureMonitor(private val context: Context) {
             val isWifiConnected = capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
             
             if (isWifiConnected) {
-                // Check signal strength
-                val wifiInfo = wifiManager?.connectionInfo
-                val rssi = wifiInfo?.rssi ?: -100
-                
-                return when {
-                    rssi > -50 -> HealthStatus.HEALTHY
-                    rssi > -70 -> HealthStatus.DEGRADED
-                    else -> HealthStatus.DEGRADED
+                // Check signal strength - may require permissions
+                try {
+                    val wifiInfo = wifiManager?.connectionInfo
+                    val rssi = wifiInfo?.rssi ?: -100
+                    
+                    return when {
+                        rssi > -50 -> HealthStatus.HEALTHY
+                        rssi > -70 -> HealthStatus.DEGRADED
+                        else -> HealthStatus.DEGRADED
+                    }
+                } catch (e: SecurityException) {
+                    Log.w(TAG, "Permission required to get WiFi signal strength", e)
+                    // Assume healthy if connected but can't check signal
+                    return HealthStatus.HEALTHY
                 }
             } else {
                 // WiFi enabled but not connected
@@ -183,20 +193,26 @@ class InfrastructureMonitor(private val context: Context) {
                 }
             }
             
-            // Check signal strength if connected
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                // Modern API for signal strength
-                val signalStrength = telephonyManager?.signalStrength
-                val level = signalStrength?.level ?: 0
-                
-                return when {
-                    level >= 3 -> HealthStatus.HEALTHY  // Good signal (3-4 bars)
-                    level >= 1 -> HealthStatus.DEGRADED // Weak signal (1-2 bars)
-                    else -> HealthStatus.FAILED          // No signal
+            // Check signal strength if connected - may require permissions
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // Modern API for signal strength
+                    val signalStrength = telephonyManager?.signalStrength
+                    val level = signalStrength?.level ?: 0
+                    
+                    return when {
+                        level >= 3 -> HealthStatus.HEALTHY  // Good signal (3-4 bars)
+                        level >= 1 -> HealthStatus.DEGRADED // Weak signal (1-2 bars)
+                        else -> HealthStatus.FAILED          // No signal
+                    }
+                } else {
+                    // For older devices, assume healthy if connected
+                    HealthStatus.HEALTHY
                 }
-            } else {
-                // For older devices, assume healthy if connected
-                HealthStatus.HEALTHY
+            } catch (e: SecurityException) {
+                Log.w(TAG, "Permission required to get cellular signal strength", e)
+                // Assume healthy if connected but can't check signal
+                return HealthStatus.HEALTHY
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error checking cellular health", e)
@@ -287,21 +303,27 @@ class InfrastructureMonitor(private val context: Context) {
     /**
      * Get infrastructure status history
      */
-    fun getStatusHistory(): List<InfrastructureStatus> = statusHistory.toList()
+    fun getStatusHistory(): List<InfrastructureStatus> {
+        synchronized(historyLock) {
+            return statusHistory.toList()
+        }
+    }
 
     /**
      * Check if there has been a critical infrastructure failure
      * (transition from HEALTHY/DEGRADED to FAILED)
      */
     fun hasCriticalFailure(): Boolean {
-        if (statusHistory.size < 2) return false
-        
-        val current = statusHistory.last
-        val previous = statusHistory[statusHistory.size - 2]
-        
-        // Check if overall health degraded to FAILED
-        return previous.overallHealth != HealthStatus.FAILED && 
-               current.overallHealth == HealthStatus.FAILED
+        synchronized(historyLock) {
+            if (statusHistory.size < 2) return false
+            
+            val current = statusHistory.last
+            val previous = statusHistory[statusHistory.size - 2]
+            
+            // Check if overall health degraded to FAILED
+            return previous.overallHealth != HealthStatus.FAILED && 
+                   current.overallHealth == HealthStatus.FAILED
+        }
     }
 
     /**

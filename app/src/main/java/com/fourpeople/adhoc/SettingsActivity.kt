@@ -129,7 +129,10 @@ class SettingsActivity : AppCompatActivity() {
         binding.panicAutoDataSwitch.isChecked = panicPrefs.getBoolean(PanicModeService.PREF_AUTO_ACTIVATE_DATA, false)
         
         // Load infrastructure notifications setting
-        binding.infraNotificationsSwitch.isChecked = emergencyPrefs.getBoolean("infrastructure_notifications_enabled", true)
+        binding.infraNotificationsSwitch.isChecked = emergencyPrefs.getBoolean(
+            com.fourpeople.adhoc.service.AdHocCommunicationService.PREF_INFRASTRUCTURE_NOTIFICATIONS, 
+            true
+        )
         
         // Load event radius setting
         val defaultRadius = emergencyPrefs.getFloat("default_event_radius_km", 100.0f)
@@ -279,8 +282,14 @@ class SettingsActivity : AppCompatActivity() {
     }
     
     private fun saveInfrastructureNotificationsSetting(enabled: Boolean) {
-        val preferences = getSharedPreferences("emergency_prefs", Context.MODE_PRIVATE)
-        preferences.edit().putBoolean("infrastructure_notifications_enabled", enabled).apply()
+        val preferences = getSharedPreferences(
+            com.fourpeople.adhoc.service.AdHocCommunicationService.PREFS_NAME, 
+            Context.MODE_PRIVATE
+        )
+        preferences.edit().putBoolean(
+            com.fourpeople.adhoc.service.AdHocCommunicationService.PREF_INFRASTRUCTURE_NOTIFICATIONS, 
+            enabled
+        ).apply()
         Toast.makeText(this, 
             if (enabled) "Infrastructure alerts enabled" else "Infrastructure alerts disabled", 
             Toast.LENGTH_SHORT).show()
