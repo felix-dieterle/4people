@@ -1,6 +1,7 @@
 package com.fourpeople.adhoc.protocol
 
-import android.os.Build
+import android.content.Context
+import android.util.Log
 import com.fourpeople.adhoc.BuildConfig
 import com.fourpeople.adhoc.location.LocationData
 import com.fourpeople.adhoc.location.SafeZone

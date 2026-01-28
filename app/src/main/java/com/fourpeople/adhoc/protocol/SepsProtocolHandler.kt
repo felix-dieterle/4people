@@ -27,6 +27,12 @@ class SepsProtocolHandler(
     private var onHelpRequestReceived: ((SepsMessage) -> Unit)? = null
     private var onSafeZoneReceived: ((SepsMessage) -> Unit)? = null
     
+    // Message deduplication cache (Level 2 compliance feature)
+    // Stores recently seen message IDs to prevent duplicate processing
+    private val recentMessageIds = mutableSetOf<String>()
+    private val maxCacheSize = 1000
+    private var lastCacheCleanup = System.currentTimeMillis()
+    
     /**
      * Processes incoming data and determines if it's a SEPS message.
      * Returns true if message was handled as SEPS.
@@ -53,9 +59,18 @@ class SepsProtocolHandler(
     }
     
     /**
-     * Handles a received SEPS message.
+     * Handles a received SEPS message with deduplication.
      */
     private fun handleSepsMessage(sepsMessage: SepsMessage) {
+        // Check for duplicate message (Level 2 compliance)
+        if (isDuplicate(sepsMessage.messageId)) {
+            Log.v(TAG, "Ignoring duplicate message ${sepsMessage.messageId}")
+            return
+        }
+        
+        // Add to deduplication cache
+        addToCache(sepsMessage.messageId)
+        
         Log.d(TAG, "Handling ${sepsMessage.messageType} from ${sepsMessage.sender.appId} (${sepsMessage.sender.deviceId})")
         
         when (sepsMessage.messageType) {
@@ -87,6 +102,32 @@ class SepsProtocolHandler(
         if (sepsMessage.routing.canForward() && 
             sepsMessage.routing.destination != deviceId) {
             forwardSepsMessage(sepsMessage)
+        }
+    }
+    
+    /**
+     * Checks if a message ID has been seen recently (deduplication).
+     */
+    private fun isDuplicate(messageId: String): Boolean {
+        return recentMessageIds.contains(messageId)
+    }
+    
+    /**
+     * Adds a message ID to the deduplication cache.
+     */
+    private fun addToCache(messageId: String) {
+        recentMessageIds.add(messageId)
+        
+        // Periodic cache cleanup to prevent unbounded growth
+        val now = System.currentTimeMillis()
+        if (recentMessageIds.size > maxCacheSize || 
+            now - lastCacheCleanup > 300000) { // 5 minutes
+            // Keep only most recent half
+            val toKeep = recentMessageIds.takeLast(maxCacheSize / 2)
+            recentMessageIds.clear()
+            recentMessageIds.addAll(toKeep)
+            lastCacheCleanup = now
+            Log.d(TAG, "Cleaned message cache, retained ${recentMessageIds.size} entries")
         }
     }
     
