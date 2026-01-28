@@ -44,6 +44,7 @@ When emergency mode is activated:
 - ✓ **Help requests with location** - Send emergency help requests with GPS coordinates
 - ✓ **Panic Mode** - Progressive escalation system with confirmation checks, alerts, and emergency contact notification
 - ✓ **Emergency Propagation Simulation** - Visual simulation tool to demonstrate message spread through the network
+- ✓ **Infrastructure Health Monitoring** - Real-time monitoring of Bluetooth, WiFi, cellular, and mesh network health with failure notifications
 
 ### Offline Map Integration
 The app includes an OpenStreetMap-based offline map for emergency navigation:
@@ -107,7 +108,8 @@ Panic Mode provides automatic escalation when user cannot respond:
 14. **LocationDataStore**: Singleton store for real-time location data sharing across components
 15. **SafeZoneManager**: Manages safe zones (collection points) for emergency gathering
 16. **EmergencyWidget**: Home screen widget for quick emergency mode activation
-14. **PanicWidget**: Home screen widget for quick panic mode activation
+17. **PanicWidget**: Home screen widget for quick panic mode activation
+18. **InfrastructureMonitor**: Real-time health monitoring of critical infrastructure components
 
 ### Permissions Required
 
@@ -220,6 +222,35 @@ The NFC Tap-to-Join feature allows for quick and seamless network joining:
 - **Secure** - Credentials expire after 1 hour
 - **Easy to use** - Simply tap devices together
 - **Works offline** - No internet connection required
+
+### Infrastructure Health Monitoring
+
+The app continuously monitors the health of critical infrastructure components and alerts you when failures occur:
+
+**Monitored Components:**
+- **Bluetooth**: Adapter availability and status
+- **WiFi**: Connection strength and availability
+- **Cellular Network**: Signal strength and connectivity
+- **Mesh Network**: Active nodes and routing status
+
+**Features:**
+- **Real-time Status Display**: Color-coded indicators show the health of each component
+  - ✓ Green: Operational (healthy)
+  - ⚠ Yellow: Degraded (weak signal or partial availability)
+  - ✗ Red: Failed (not working or unavailable)
+- **Overall Health Status**: Combined health assessment of all infrastructure components
+- **Push Notifications**: Get alerted when critical infrastructure fails (can be enabled/disabled in Settings)
+- **Historical Tracking**: The system tracks infrastructure health over time to detect patterns
+- **Automatic Monitoring**: Checks infrastructure health every 30 seconds when emergency mode is active
+
+**How to Use:**
+1. Activate emergency mode to begin infrastructure monitoring
+2. View the "Infrastructure Health" section in the main screen
+3. Enable/disable infrastructure failure notifications in Settings > Infrastructure Alerts
+4. When critical infrastructure fails, you'll receive a push notification with details
+
+This feature helps you quickly identify communication channel failures and adapt your emergency response strategy accordingly.
+
 ## Architecture
 
 ```
