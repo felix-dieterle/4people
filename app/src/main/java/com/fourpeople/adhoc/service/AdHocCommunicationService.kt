@@ -976,7 +976,7 @@ class AdHocCommunicationService : Service() {
         val monitor = infrastructureMonitor ?: return
         
         // Update mesh network stats before checking
-        val activeNodes = meshRoutingManager?.getRouteTable()?.getAllRoutes()?.size ?: 0
+        val activeNodes = meshRoutingManager?.getKnownRoutes()?.size ?: 0
         val routingActive = meshRoutingManager != null
         monitor.updateMeshStats(activeNodes, routingActive)
         
