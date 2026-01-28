@@ -31,6 +31,7 @@ import com.fourpeople.adhoc.util.ErrorLogger
 import com.fourpeople.adhoc.util.FlashlightMorseHelper
 import com.fourpeople.adhoc.util.UltrasoundSignalHelper
 import com.fourpeople.adhoc.util.NFCHelper
+import com.fourpeople.adhoc.util.InfrastructureMonitor
 import com.fourpeople.adhoc.mesh.MeshRoutingManager
 import com.fourpeople.adhoc.mesh.BluetoothMeshTransport
 import com.fourpeople.adhoc.mesh.MeshMessage
@@ -67,6 +68,19 @@ class AdHocCommunicationService : Service() {
         const val EXTRA_WIFI_CONNECTED = "wifi_connected"
         const val ACTION_WIDGET_UPDATE = "com.fourpeople.adhoc.WIDGET_UPDATE"
         
+        // Infrastructure monitoring
+        const val INFRASTRUCTURE_CHECK_INTERVAL = 30000L // 30 seconds
+        const val ACTION_INFRASTRUCTURE_STATUS = "com.fourpeople.adhoc.INFRASTRUCTURE_STATUS"
+        const val ACTION_INFRASTRUCTURE_FAILURE = "com.fourpeople.adhoc.INFRASTRUCTURE_FAILURE"
+        const val EXTRA_INFRA_BLUETOOTH = "infra_bluetooth"
+        const val EXTRA_INFRA_WIFI = "infra_wifi"
+        const val EXTRA_INFRA_CELLULAR = "infra_cellular"
+        const val EXTRA_INFRA_MESH = "infra_mesh"
+        const val EXTRA_INFRA_OVERALL = "infra_overall"
+        const val EXTRA_INFRA_DESCRIPTION = "infra_description"
+        const val CHANNEL_ID_INFRASTRUCTURE = "infrastructure_alerts"
+        const val PREF_INFRASTRUCTURE_NOTIFICATIONS = "infrastructure_notifications_enabled"
+        
         // Preferences
         const val PREFS_NAME = "emergency_prefs"
         const val PREF_IS_ACTIVE = "emergency_mode_is_active"
@@ -93,6 +107,7 @@ class AdHocCommunicationService : Service() {
     private var bluetoothMeshTransport: BluetoothMeshTransport? = null
     private var nfcHelper: NFCHelper? = null
     private var locationSharingManager: LocationSharingManager? = null
+    private var infrastructureMonitor: InfrastructureMonitor? = null
     
     // Status tracking
     private var isBluetoothActive = false
@@ -122,6 +137,15 @@ class AdHocCommunicationService : Service() {
             if (isRunning) {
                 broadcastStatusUpdate()
                 handler.postDelayed(this, STATUS_UPDATE_INTERVAL)
+            }
+        }
+    }
+    
+    private val infrastructureCheckRunnable = object : Runnable {
+        override fun run() {
+            if (isRunning) {
+                performInfrastructureCheck()
+                handler.postDelayed(this, INFRASTRUCTURE_CHECK_INTERVAL)
             }
         }
     }
@@ -197,6 +221,9 @@ class AdHocCommunicationService : Service() {
         
         // Initialize location sharing
         locationSharingManager = LocationSharingManager(applicationContext, deviceId)
+        
+        // Initialize infrastructure monitor
+        infrastructureMonitor = InfrastructureMonitor(applicationContext)
         
         // Set up mesh routing callbacks
         setupMeshRouting()
@@ -375,6 +402,9 @@ class AdHocCommunicationService : Service() {
         
         // Start periodic status updates independently
         handler.postDelayed(statusUpdateRunnable, STATUS_UPDATE_INTERVAL)
+        
+        // Start infrastructure monitoring
+        handler.postDelayed(infrastructureCheckRunnable, INFRASTRUCTURE_CHECK_INTERVAL)
     }
 
     private fun stopEmergencyMode() {
@@ -390,6 +420,7 @@ class AdHocCommunicationService : Service() {
         handler.removeCallbacks(wifiScanRunnable)
         handler.removeCallbacks(meshMaintenanceRunnable)
         handler.removeCallbacks(statusUpdateRunnable)
+        handler.removeCallbacks(infrastructureCheckRunnable)
         
         safeUnregisterReceiver(wifiScanReceiver)
         safeUnregisterReceiver(bluetoothDiscoveryReceiver)
@@ -898,14 +929,26 @@ class AdHocCommunicationService : Service() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            
+            // Emergency communication channel
             val name = "Emergency Communication"
             val descriptionText = "Ad-hoc emergency communication is active"
             val importance = NotificationManager.IMPORTANCE_DEFAULT
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
             }
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
+            
+            // Infrastructure alerts channel
+            val infraName = "Infrastructure Alerts"
+            val infraDescription = "Alerts when critical infrastructure fails"
+            val infraImportance = NotificationManager.IMPORTANCE_HIGH
+            val infraChannel = NotificationChannel(CHANNEL_ID_INFRASTRUCTURE, infraName, infraImportance).apply {
+                description = infraDescription
+                enableVibration(true)
+            }
+            notificationManager.createNotificationChannel(infraChannel)
         }
     }
 
@@ -924,5 +967,92 @@ class AdHocCommunicationService : Service() {
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
+    }
+    
+    /**
+     * Perform infrastructure health check and broadcast status
+     */
+    private fun performInfrastructureCheck() {
+        val monitor = infrastructureMonitor ?: return
+        
+        // Update mesh network stats before checking
+        val activeNodes = meshRoutingManager?.getKnownRoutes()?.size ?: 0
+        val routingActive = meshRoutingManager != null
+        monitor.updateMeshStats(activeNodes, routingActive)
+        
+        // Perform health check
+        val status = monitor.checkHealth()
+        
+        // Broadcast infrastructure status
+        val intent = Intent(ACTION_INFRASTRUCTURE_STATUS)
+        intent.putExtra(EXTRA_INFRA_BLUETOOTH, status.bluetoothHealth.name)
+        intent.putExtra(EXTRA_INFRA_WIFI, status.wifiHealth.name)
+        intent.putExtra(EXTRA_INFRA_CELLULAR, status.cellularHealth.name)
+        intent.putExtra(EXTRA_INFRA_MESH, status.meshHealth.name)
+        intent.putExtra(EXTRA_INFRA_OVERALL, status.overallHealth.name)
+        intent.putExtra(EXTRA_INFRA_DESCRIPTION, monitor.getStatusDescription())
+        sendBroadcast(intent)
+        
+        // Check for critical failures and send notification if enabled
+        if (monitor.hasCriticalFailure()) {
+            val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val notificationsEnabled = prefs.getBoolean(PREF_INFRASTRUCTURE_NOTIFICATIONS, true)
+            
+            if (notificationsEnabled) {
+                sendInfrastructureFailureNotification(status)
+            }
+            
+            // Also broadcast failure event
+            val failureIntent = Intent(ACTION_INFRASTRUCTURE_FAILURE)
+            failureIntent.putExtra(EXTRA_INFRA_OVERALL, status.overallHealth.name)
+            failureIntent.putExtra(EXTRA_INFRA_DESCRIPTION, monitor.getStatusDescription())
+            sendBroadcast(failureIntent)
+        }
+    }
+    
+    /**
+     * Send notification when critical infrastructure fails
+     */
+    private fun sendInfrastructureFailureNotification(status: InfrastructureMonitor.InfrastructureStatus) {
+        val notificationIntent = Intent(this, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, notificationIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        
+        val failedComponents = mutableListOf<String>()
+        if (status.bluetoothHealth == InfrastructureMonitor.HealthStatus.FAILED) {
+            failedComponents.add("Bluetooth")
+        }
+        if (status.wifiHealth == InfrastructureMonitor.HealthStatus.FAILED) {
+            failedComponents.add("WiFi")
+        }
+        if (status.cellularHealth == InfrastructureMonitor.HealthStatus.FAILED) {
+            failedComponents.add("Cellular")
+        }
+        if (status.meshHealth == InfrastructureMonitor.HealthStatus.FAILED) {
+            failedComponents.add("Mesh")
+        }
+        
+        val failureText = if (failedComponents.isNotEmpty()) {
+            "Failed: ${failedComponents.joinToString(", ")}"
+        } else {
+            "Critical infrastructure failure detected"
+        }
+        
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID_INFRASTRUCTURE)
+            .setContentTitle("Infrastructure Failure")
+            .setContentText(failureText)
+            .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setContentIntent(pendingIntent)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setVibrate(longArrayOf(0, 500, 200, 500))
+            .build()
+        
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(3001, notification) // Use unique ID for infrastructure notifications
+        
+        Log.w(TAG, "Infrastructure failure notification sent: $failureText")
     }
 }

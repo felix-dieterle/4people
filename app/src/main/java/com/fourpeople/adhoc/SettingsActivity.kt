@@ -84,6 +84,11 @@ class SettingsActivity : AppCompatActivity() {
             savePanicAutoDataSetting(isChecked)
         }
         
+        // Infrastructure notifications setting
+        binding.infraNotificationsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            saveInfrastructureNotificationsSetting(isChecked)
+        }
+        
         // Event radius setting
         binding.eventRadiusInput.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
@@ -122,6 +127,12 @@ class SettingsActivity : AppCompatActivity() {
             PanicModeService.WARNING_BOTH -> binding.panicWarningBoth.isChecked = true
         }
         binding.panicAutoDataSwitch.isChecked = panicPrefs.getBoolean(PanicModeService.PREF_AUTO_ACTIVATE_DATA, false)
+        
+        // Load infrastructure notifications setting
+        binding.infraNotificationsSwitch.isChecked = emergencyPrefs.getBoolean(
+            com.fourpeople.adhoc.service.AdHocCommunicationService.PREF_INFRASTRUCTURE_NOTIFICATIONS, 
+            true
+        )
         
         // Load event radius setting
         val defaultRadius = emergencyPrefs.getFloat("default_event_radius_km", 100.0f)
@@ -268,6 +279,20 @@ class SettingsActivity : AppCompatActivity() {
         val preferences = getSharedPreferences("panic_settings", Context.MODE_PRIVATE)
         preferences.edit().putBoolean(PanicModeService.PREF_AUTO_ACTIVATE_DATA, enabled).apply()
         Toast.makeText(this, if (enabled) "Auto-activate data enabled" else "Auto-activate data disabled", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun saveInfrastructureNotificationsSetting(enabled: Boolean) {
+        val preferences = getSharedPreferences(
+            com.fourpeople.adhoc.service.AdHocCommunicationService.PREFS_NAME, 
+            Context.MODE_PRIVATE
+        )
+        preferences.edit().putBoolean(
+            com.fourpeople.adhoc.service.AdHocCommunicationService.PREF_INFRASTRUCTURE_NOTIFICATIONS, 
+            enabled
+        ).apply()
+        Toast.makeText(this, 
+            if (enabled) "Infrastructure alerts enabled" else "Infrastructure alerts disabled", 
+            Toast.LENGTH_SHORT).show()
     }
     
     private fun saveEventRadiusSetting() {

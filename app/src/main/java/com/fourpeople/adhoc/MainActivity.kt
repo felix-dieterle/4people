@@ -41,6 +41,13 @@ class MainActivity : AppCompatActivity() {
     private var isHotspotActive = false
     private var isLocationActive = false
     private var isWifiConnected = false
+    
+    // Infrastructure health tracking
+    private var infraBluetoothHealth = "UNKNOWN"
+    private var infraWifiHealth = "UNKNOWN"
+    private var infraCellularHealth = "UNKNOWN"
+    private var infraMeshHealth = "UNKNOWN"
+    private var infraOverallHealth = "UNKNOWN"
 
     private val emergencyReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -67,6 +74,33 @@ class MainActivity : AppCompatActivity() {
                 isWifiConnected = intent.getBooleanExtra(AdHocCommunicationService.EXTRA_WIFI_CONNECTED, false)
                 runOnUiThread {
                     updateStatusUI()
+                }
+            }
+        }
+    }
+    
+    private val infrastructureStatusReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                AdHocCommunicationService.ACTION_INFRASTRUCTURE_STATUS -> {
+                    infraBluetoothHealth = intent.getStringExtra(AdHocCommunicationService.EXTRA_INFRA_BLUETOOTH) ?: "UNKNOWN"
+                    infraWifiHealth = intent.getStringExtra(AdHocCommunicationService.EXTRA_INFRA_WIFI) ?: "UNKNOWN"
+                    infraCellularHealth = intent.getStringExtra(AdHocCommunicationService.EXTRA_INFRA_CELLULAR) ?: "UNKNOWN"
+                    infraMeshHealth = intent.getStringExtra(AdHocCommunicationService.EXTRA_INFRA_MESH) ?: "UNKNOWN"
+                    infraOverallHealth = intent.getStringExtra(AdHocCommunicationService.EXTRA_INFRA_OVERALL) ?: "UNKNOWN"
+                    runOnUiThread {
+                        updateInfrastructureStatusUI()
+                    }
+                }
+                AdHocCommunicationService.ACTION_INFRASTRUCTURE_FAILURE -> {
+                    val description = intent.getStringExtra(AdHocCommunicationService.EXTRA_INFRA_DESCRIPTION) ?: "Infrastructure failure detected"
+                    runOnUiThread {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "⚠ Infrastructure Failure Detected",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                 }
             }
         }
@@ -174,6 +208,11 @@ class MainActivity : AppCompatActivity() {
         } catch (e: IllegalArgumentException) {
             // Receiver not registered
         }
+        try {
+            unregisterReceiver(infrastructureStatusReceiver)
+        } catch (e: IllegalArgumentException) {
+            // Receiver not registered
+        }
     }
 
     private fun setupUI() {
@@ -241,6 +280,17 @@ class MainActivity : AppCompatActivity() {
             registerReceiver(statusUpdateReceiver, statusFilter, Context.RECEIVER_NOT_EXPORTED)
         } else {
             registerReceiver(statusUpdateReceiver, statusFilter)
+        }
+        
+        // Register infrastructure status receiver
+        val infraFilter = IntentFilter().apply {
+            addAction(AdHocCommunicationService.ACTION_INFRASTRUCTURE_STATUS)
+            addAction(AdHocCommunicationService.ACTION_INFRASTRUCTURE_FAILURE)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(infrastructureStatusReceiver, infraFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(infrastructureStatusReceiver, infraFilter)
         }
     }
 
@@ -341,6 +391,56 @@ class MainActivity : AppCompatActivity() {
         } else {
             binding.locationStatusTextView.text = "○ ${getString(R.string.location_sharing_status, getString(R.string.inactive))}"
             binding.locationStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
+        }
+    }
+    
+    private fun updateInfrastructureStatusUI() {
+        // Update Bluetooth infrastructure status
+        val btStatus = getHealthStatusString(infraBluetoothHealth)
+        val btColor = getHealthStatusColor(infraBluetoothHealth)
+        binding.infraBluetoothStatusTextView.text = getString(R.string.infra_bluetooth_status, btStatus)
+        binding.infraBluetoothStatusTextView.setTextColor(ContextCompat.getColor(this, btColor))
+        
+        // Update WiFi infrastructure status
+        val wifiStatus = getHealthStatusString(infraWifiHealth)
+        val wifiColor = getHealthStatusColor(infraWifiHealth)
+        binding.infraWifiStatusTextView.text = getString(R.string.infra_wifi_status, wifiStatus)
+        binding.infraWifiStatusTextView.setTextColor(ContextCompat.getColor(this, wifiColor))
+        
+        // Update Cellular infrastructure status
+        val cellStatus = getHealthStatusString(infraCellularHealth)
+        val cellColor = getHealthStatusColor(infraCellularHealth)
+        binding.infraCellularStatusTextView.text = getString(R.string.infra_cellular_status, cellStatus)
+        binding.infraCellularStatusTextView.setTextColor(ContextCompat.getColor(this, cellColor))
+        
+        // Update Mesh infrastructure status
+        val meshStatus = getHealthStatusString(infraMeshHealth)
+        val meshColor = getHealthStatusColor(infraMeshHealth)
+        binding.infraMeshStatusTextView.text = getString(R.string.infra_mesh_status, meshStatus)
+        binding.infraMeshStatusTextView.setTextColor(ContextCompat.getColor(this, meshColor))
+        
+        // Update Overall infrastructure status
+        val overallStatus = getHealthStatusString(infraOverallHealth)
+        val overallColor = getHealthStatusColor(infraOverallHealth)
+        binding.infraOverallStatusTextView.text = getString(R.string.infra_overall_status, overallStatus)
+        binding.infraOverallStatusTextView.setTextColor(ContextCompat.getColor(this, overallColor))
+    }
+    
+    private fun getHealthStatusString(health: String): String {
+        return when (health) {
+            "HEALTHY" -> getString(R.string.infra_healthy)
+            "DEGRADED" -> getString(R.string.infra_degraded)
+            "FAILED" -> getString(R.string.infra_failed)
+            else -> getString(R.string.infra_unknown)
+        }
+    }
+    
+    private fun getHealthStatusColor(health: String): Int {
+        return when (health) {
+            "HEALTHY" -> android.R.color.holo_green_dark
+            "DEGRADED" -> android.R.color.holo_orange_dark
+            "FAILED" -> android.R.color.holo_red_dark
+            else -> android.R.color.darker_gray
         }
     }
 
