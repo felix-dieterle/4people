@@ -29,6 +29,7 @@ import com.fourpeople.adhoc.util.BatteryMonitor
 import com.fourpeople.adhoc.util.EmergencySmsHelper
 import com.fourpeople.adhoc.util.ErrorLogger
 import com.fourpeople.adhoc.util.FlashlightMorseHelper
+import com.fourpeople.adhoc.util.LogManager
 import com.fourpeople.adhoc.util.UltrasoundSignalHelper
 import com.fourpeople.adhoc.util.NFCHelper
 import com.fourpeople.adhoc.util.InfrastructureMonitor
@@ -297,6 +298,7 @@ class AdHocCommunicationService : Service() {
 
     private fun startEmergencyMode() {
         Log.d(TAG, "Starting emergency mode")
+        LogManager.logStateChange("AdHocCommService", "Emergency mode starting")
         isRunning = true
         
         // Save active state to preferences
@@ -312,29 +314,37 @@ class AdHocCommunicationService : Service() {
         try {
             activateBluetooth()
             Log.d(TAG, "Bluetooth activated")
+            LogManager.logStateChange("AdHocCommService", "Bluetooth channel activated")
         } catch (e: Exception) {
             ErrorLogger.logError(TAG, "Failed to activate Bluetooth, continuing with other channels", e)
+            LogManager.logError("AdHocCommService", "Failed to activate Bluetooth: ${e.message}")
         }
         
         try {
             activateWifiScanning()
             Log.d(TAG, "WiFi scanning activated")
+            LogManager.logStateChange("AdHocCommService", "WiFi scanning activated")
         } catch (e: Exception) {
             ErrorLogger.logError(TAG, "Failed to activate WiFi scanning, continuing with other channels", e)
+            LogManager.logError("AdHocCommService", "Failed to activate WiFi scanning: ${e.message}")
         }
         
         try {
             activateHotspot()
             Log.d(TAG, "Hotspot activation attempted")
+            LogManager.logStateChange("AdHocCommService", "Hotspot activation attempted")
         } catch (e: Exception) {
             ErrorLogger.logError(TAG, "Failed to activate hotspot, continuing with other channels", e)
+            LogManager.logError("AdHocCommService", "Failed to activate hotspot: ${e.message}")
         }
         
         try {
             activateWifiDirect()
             Log.d(TAG, "WiFi Direct activated")
+            LogManager.logStateChange("AdHocCommService", "WiFi Direct activated")
         } catch (e: Exception) {
             ErrorLogger.logError(TAG, "Failed to activate WiFi Direct, continuing with other channels", e)
+            LogManager.logError("AdHocCommService", "Failed to activate WiFi Direct: ${e.message}")
         }
         
         // Activate mesh networking
@@ -409,6 +419,7 @@ class AdHocCommunicationService : Service() {
 
     private fun stopEmergencyMode() {
         Log.d(TAG, "Stopping emergency mode")
+        LogManager.logStateChange("AdHocCommService", "Emergency mode stopping")
         isRunning = false
         
         // Save inactive state to preferences
@@ -818,6 +829,7 @@ class AdHocCommunicationService : Service() {
     
     private fun handleMeshMessage(message: MeshMessage) {
         Log.d(TAG, "Mesh message received from ${message.sourceId}: ${message.payload}")
+        LogManager.logMessage("AdHocCommService", "Mesh message from ${message.sourceId}: ${message.messageType.name}")
         
         // Handle different message types
         when (message.messageType) {
@@ -835,6 +847,7 @@ class AdHocCommunicationService : Service() {
                 when {
                     message.payload.startsWith("EMERGENCY") -> {
                         Log.i(TAG, "Emergency message relayed through mesh network")
+                        LogManager.logEvent("AdHocCommService", "Emergency message via mesh from ${message.sourceId}")
                     }
                     message.payload.startsWith("HELLO") -> {
                         // Hello message for neighbor discovery
@@ -867,6 +880,7 @@ class AdHocCommunicationService : Service() {
                 locationSharingManager?.updateParticipantLocation(locationData)
                 val radiusInfo = if (locationData.isForwarded) " (forwarded, ${locationData.eventRadiusKm}km)" else " (${locationData.eventRadiusKm}km)"
                 Log.i(TAG, "HELP REQUEST from ${locationData.deviceId}$radiusInfo: ${locationData.helpMessage}")
+                LogManager.logEvent("AdHocCommService", "Help request from ${locationData.deviceId}$radiusInfo")
                 
                 // Notify user of help request
                 notifyEmergencyDetected("HELP:${locationData.deviceId}")
