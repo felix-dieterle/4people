@@ -346,4 +346,17 @@
 • Auto-Aktivierung aktiviert<br/>
 • Gute Sichtverbindungen
     ]]></string>
+    
+    <!-- Infrastructure monitoring strings -->
+    <string name="infrastructure_status_header">Infrastructure Health</string>
+    <string name="infra_bluetooth_status">Bluetooth: %s</string>
+    <string name="infra_wifi_status">WiFi: %s</string>
+    <string name="infra_cellular_status">Cellular: %s</string>
+    <string name="infra_mesh_status">Mesh Network: %s</string>
+    <string name="infra_overall_status">Overall: %s</string>
+    <string name="infra_healthy">✓ Operational</string>
+    <string name="infra_degraded">⚠ Degraded</string>
+    <string name="infra_failed">✗ Failed</string>
+    <string name="infra_unknown">? Unknown</string>
+    <string name="location_sharing_status">Location Sharing: %s</string>
 </resources>
