@@ -124,7 +124,7 @@
         <activity
             android:name=".LogWindowActivity"
             android:exported="false"
-            android:label="System Log"
+            android:label="@string/log_window_title"
             android:parentActivityName=".MainActivity" />
 
         <!-- Ad-hoc communication service -->

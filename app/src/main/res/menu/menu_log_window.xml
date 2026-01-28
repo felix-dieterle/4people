@@ -4,7 +4,7 @@
     
     <item
         android:id="@+id/action_clear_logs"
-        android:title="Clear Logs"
+        android:title="@string/clear_logs"
         android:icon="@android:drawable/ic_menu_delete"
         app:showAsAction="ifRoom" />
         

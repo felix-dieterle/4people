@@ -1,6 +1,5 @@
 package com.fourpeople.adhoc
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -9,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.fourpeople.adhoc.util.LogManager
@@ -38,7 +38,7 @@ class LogWindowActivity : AppCompatActivity() {
         setContentView(R.layout.activity_log_window)
         
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "System Log"
+        supportActionBar?.title = getString(R.string.log_window_title)
         
         emptyView = findViewById(R.id.emptyView)
         recyclerView = findViewById(R.id.logRecyclerView)
@@ -84,14 +84,14 @@ class LogWindowActivity : AppCompatActivity() {
     
     private fun showClearLogsDialog() {
         AlertDialog.Builder(this)
-            .setTitle("Clear Logs")
-            .setMessage("Are you sure you want to clear all log entries?")
-            .setPositiveButton("Clear") { _, _ ->
+            .setTitle(R.string.clear_logs_title)
+            .setMessage(R.string.clear_logs_message)
+            .setPositiveButton(R.string.clear) { _, _ ->
                 LogManager.clearLogs()
                 adapter.clearEntries()
                 updateEmptyView()
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
     
@@ -131,14 +131,15 @@ class LogWindowActivity : AppCompatActivity() {
             holder.messageTextView.text = entry.message
             
             // Color code by level
-            val color = when (entry.level) {
-                LogManager.LogLevel.INFO -> Color.parseColor("#2196F3") // Blue
-                LogManager.LogLevel.WARNING -> Color.parseColor("#FF9800") // Orange
-                LogManager.LogLevel.ERROR -> Color.parseColor("#F44336") // Red
-                LogManager.LogLevel.EVENT -> Color.parseColor("#4CAF50") // Green
-                LogManager.LogLevel.STATE_CHANGE -> Color.parseColor("#9C27B0") // Purple
-                LogManager.LogLevel.MESSAGE -> Color.parseColor("#00BCD4") // Cyan
+            val colorResId = when (entry.level) {
+                LogManager.LogLevel.INFO -> R.color.log_level_info
+                LogManager.LogLevel.WARNING -> R.color.log_level_warning
+                LogManager.LogLevel.ERROR -> R.color.log_level_error
+                LogManager.LogLevel.EVENT -> R.color.log_level_event
+                LogManager.LogLevel.STATE_CHANGE -> R.color.log_level_state_change
+                LogManager.LogLevel.MESSAGE -> R.color.log_level_message
             }
+            val color = ContextCompat.getColor(holder.itemView.context, colorResId)
             holder.levelTextView.setTextColor(color)
         }
         

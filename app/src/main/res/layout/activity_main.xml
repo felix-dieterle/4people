@@ -25,7 +25,7 @@
         android:layout_height="48dp"
         android:src="@android:drawable/ic_menu_info_details"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="System Log"
+        android:contentDescription="@string/log_button_description"
         app:layout_constraintEnd_toStartOf="@id/settingsButton"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="24dp"
