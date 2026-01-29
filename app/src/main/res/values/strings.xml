@@ -367,4 +367,13 @@
     <string name="clear_logs_title">Clear Logs</string>
     <string name="clear_logs_message">Are you sure you want to clear all log entries?</string>
     <string name="clear">Clear</string>
+    <string name="activity_log_header">Activity Log</string>
+    <string name="expand_collapse_log">Expand/Collapse Log</string>
+    
+    <!-- Tab titles -->
+    <string name="tab_emergency">Emergency</string>
+    <string name="tab_panic">Panic</string>
+    
+    <!-- Panic mode description -->
+    <string name="panic_mode_description">Panic mode will:\n\n• Broadcast distress signals\n• Activate all communication channels\n• Send alerts using flashlight, ultrasound, and more\n• Notify emergency contacts if necessary</string>
 </resources>

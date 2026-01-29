@@ -62,6 +62,10 @@ class MainActivity : AppCompatActivity() {
     // Log adapter
     private lateinit var logAdapter: LogAdapter
     private var isLogExpanded = false
+    
+    // Fragment references
+    private var emergencyFragment: EmergencyFragment? = null
+    private var panicFragment: PanicFragment? = null
 
     private val emergencyReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -273,14 +277,19 @@ class MainActivity : AppCompatActivity() {
     
     private fun setupTabs() {
         // Set up ViewPager2 with adapter
-        val adapter = MainPagerAdapter(this)
+        val adapter = MainPagerAdapter(this) { position, fragment ->
+            when (position) {
+                0 -> emergencyFragment = fragment as EmergencyFragment
+                1 -> panicFragment = fragment as PanicFragment
+            }
+        }
         binding.viewPager.adapter = adapter
         
         // Link TabLayout with ViewPager2
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = when (position) {
-                0 -> "Emergency"
-                1 -> "Panic"
+                0 -> getString(R.string.tab_emergency)
+                1 -> getString(R.string.tab_panic)
                 else -> ""
             }
         }.attach()
@@ -400,8 +409,7 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun updateEmergencyFragment() {
-        val fragment = supportFragmentManager.findFragmentByTag("f0") as? EmergencyFragment
-        fragment?.updateUI(
+        emergencyFragment?.updateUI(
             isEmergencyActive,
             isBluetoothActive,
             isWifiActive,
@@ -417,23 +425,20 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun updatePanicFragment() {
-        val fragment = supportFragmentManager.findFragmentByTag("f1") as? PanicFragment
-        fragment?.updateUI(isPanicModeActive)
+        panicFragment?.updateUI(isPanicModeActive)
     }
     
     /**
-     * Called by EmergencyFragment to update its UI with binding
+     * Called by EmergencyFragment to update its UI
      */
     fun updateEmergencyUI(binding: FragmentEmergencyBinding) {
-        // Just trigger the fragment update which will use its own binding
         updateEmergencyFragment()
     }
     
     /**
-     * Called by PanicFragment to update its UI with binding
+     * Called by PanicFragment to update its UI
      */
     fun updatePanicUI(binding: FragmentPanicBinding) {
-        // Just trigger the fragment update which will use its own binding
         updatePanicFragment()
     }
     

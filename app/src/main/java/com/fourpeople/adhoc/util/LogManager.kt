@@ -2,6 +2,8 @@ package com.fourpeople.adhoc.util
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Handler
+import android.os.Looper
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -18,8 +20,11 @@ object LogManager {
     
     private const val PREF_NAME = "log_manager_prefs"
     private const val KEY_LOG_ENTRIES = "log_entries"
+    private const val SAVE_DELAY_MS = 1000L // Debounce log saves by 1 second
     private var sharedPreferences: SharedPreferences? = null
     private var isInitialized = false
+    private val saveHandler = Handler(Looper.getMainLooper())
+    private var pendingSave = false
     
     enum class LogLevel {
         INFO,
@@ -105,12 +110,32 @@ object LogManager {
     }
     
     /**
-     * Save logs to persistent storage
+     * Save logs to persistent storage (debounced)
      */
-    private fun saveLogsToStorage() {
+    private fun saveLogsToStorageDebounced() {
+        if (pendingSave) {
+            return // Already scheduled
+        }
+        pendingSave = true
+        saveHandler.postDelayed({
+            saveLogsToStorageNow()
+            pendingSave = false
+        }, SAVE_DELAY_MS)
+    }
+    
+    /**
+     * Save logs to persistent storage immediately
+     */
+    private fun saveLogsToStorageNow() {
         try {
             val jsonArray = JSONArray()
-            logEntries.forEach { entry ->
+            // Only save up to MAX_LOG_ENTRIES to prevent unbounded growth
+            val entriesToSave = if (logEntries.size > MAX_LOG_ENTRIES) {
+                logEntries.takeLast(MAX_LOG_ENTRIES)
+            } else {
+                logEntries
+            }
+            entriesToSave.forEach { entry ->
                 jsonArray.put(entry.toJson())
             }
             sharedPreferences?.edit()?.putString(KEY_LOG_ENTRIES, jsonArray.toString())?.apply()
@@ -187,7 +212,7 @@ object LogManager {
      */
     fun clearLogs() {
         logEntries.clear()
-        saveLogsToStorage()
+        saveLogsToStorageNow()
     }
     
     private fun addLogEntry(level: LogLevel, tag: String, message: String) {
@@ -206,8 +231,8 @@ object LogManager {
             logEntries.removeAt(0)
         }
         
-        // Save to persistent storage
-        saveLogsToStorage()
+        // Save to persistent storage (debounced)
+        saveLogsToStorageDebounced()
         
         // Notify listeners
         listeners.forEach { listener ->
