@@ -2,6 +2,7 @@ package com.fourpeople.adhoc
 
 import android.app.Application
 import com.fourpeople.adhoc.util.ErrorLogger
+import com.fourpeople.adhoc.util.LogManager
 
 /**
  * Application class for the 4people app.
@@ -11,6 +12,9 @@ class FourPeopleApplication : Application() {
     
     override fun onCreate() {
         super.onCreate()
+        
+        // Initialize LogManager with persistent storage
+        LogManager.initialize(this)
         
         // Initialize error logging to file system
         ErrorLogger.initialize(this)

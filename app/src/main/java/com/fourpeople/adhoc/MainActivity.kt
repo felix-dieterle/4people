@@ -12,21 +12,30 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import com.fourpeople.adhoc.databinding.ActivityMainBinding
+import com.fourpeople.adhoc.databinding.FragmentEmergencyBinding
+import com.fourpeople.adhoc.databinding.FragmentPanicBinding
 import com.fourpeople.adhoc.service.AdHocCommunicationService
 import com.fourpeople.adhoc.service.PanicModeService
 import com.fourpeople.adhoc.util.ErrorLogger
 import com.fourpeople.adhoc.util.LogManager
 import com.fourpeople.adhoc.util.NFCHelper
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 
 /**
  * Main activity for the 4people ad-hoc communication app.
- * Allows users to activate emergency communication mode with a single click.
+ * Uses tab-based UI to separate Emergency and Panic modes.
+ * Displays activity log at the bottom, visible across all tabs.
  */
 class MainActivity : AppCompatActivity() {
 
@@ -49,6 +58,14 @@ class MainActivity : AppCompatActivity() {
     private var infraCellularHealth = "UNKNOWN"
     private var infraMeshHealth = "UNKNOWN"
     private var infraOverallHealth = "UNKNOWN"
+    
+    // Log adapter
+    private lateinit var logAdapter: LogAdapter
+    private var isLogExpanded = false
+    
+    // Fragment references
+    private var emergencyFragment: EmergencyFragment? = null
+    private var panicFragment: PanicFragment? = null
 
     private val emergencyReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -180,9 +197,11 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        LogManager.logInfo("MainActivity", "Application started")
+        LogManager.logInfo("MainActivity", "Application started with tab-based UI")
         
         setupUI()
+        setupTabs()
+        setupLogView()
         registerEmergencyReceiver()
         setupNFC()
         handleNfcIntent(intent)
@@ -228,6 +247,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        LogManager.removeListener(logListener)
         try {
             unregisterReceiver(emergencyReceiver)
         } catch (e: IllegalArgumentException) {
@@ -246,19 +266,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        binding.activateButton.setOnClickListener {
-            if (checkPermissions()) {
-                toggleEmergencyMode()
-            } else {
-                pendingEmergencyActivation = true
-                requestPermissions()
-            }
-        }
-
-        binding.emergencyHelpButton.setOnClickListener {
-            showEmergencyModeHelp()
-        }
-
         binding.logButton.setOnClickListener {
             startActivity(Intent(this, LogWindowActivity::class.java))
         }
@@ -266,28 +273,73 @@ class MainActivity : AppCompatActivity() {
         binding.settingsButton.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
-
-        binding.viewLocationsButton.setOnClickListener {
-            startActivity(Intent(this, LocationMapActivity::class.java))
+    }
+    
+    private fun setupTabs() {
+        // Set up ViewPager2 with adapter
+        val adapter = MainPagerAdapter(this) { position, fragment ->
+            when (position) {
+                0 -> emergencyFragment = fragment as EmergencyFragment
+                1 -> panicFragment = fragment as PanicFragment
+            }
         }
-
-        binding.sendHelpButton.setOnClickListener {
-            sendHelpRequest()
+        binding.viewPager.adapter = adapter
+        
+        // Link TabLayout with ViewPager2
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
+            tab.text = when (position) {
+                0 -> getString(R.string.tab_emergency)
+                1 -> getString(R.string.tab_panic)
+                else -> ""
+            }
+        }.attach()
+        
+        LogManager.logEvent("MainActivity", "Tab-based UI initialized")
+    }
+    
+    private fun setupLogView() {
+        // Initialize log RecyclerView
+        binding.logRecyclerView.layoutManager = LinearLayoutManager(this)
+        logAdapter = LogAdapter(LogManager.getLogEntries().toMutableList())
+        binding.logRecyclerView.adapter = logAdapter
+        
+        // Scroll to bottom
+        if (logAdapter.itemCount > 0) {
+            binding.logRecyclerView.scrollToPosition(logAdapter.itemCount - 1)
         }
-
-        binding.panicModeButton.setOnClickListener {
-            togglePanicMode()
+        
+        // Register listener for new log entries
+        LogManager.addListener(logListener)
+        
+        // Setup expand/collapse button
+        binding.expandLogButton.setOnClickListener {
+            toggleLogExpansion()
         }
-
-        binding.panicHelpButton.setOnClickListener {
-            showPanicModeHelp()
+        
+        LogManager.logEvent("MainActivity", "Persistent log view initialized")
+    }
+    
+    private fun toggleLogExpansion() {
+        isLogExpanded = !isLogExpanded
+        val layoutParams = binding.logRecyclerView.layoutParams
+        if (isLogExpanded) {
+            layoutParams.height = resources.displayMetrics.heightPixels / 2
+            binding.expandLogButton.setImageResource(android.R.drawable.arrow_down_float)
+        } else {
+            layoutParams.height = (120 * resources.displayMetrics.density).toInt()
+            binding.expandLogButton.setImageResource(android.R.drawable.arrow_up_float)
         }
-
-        binding.simulationButton.setOnClickListener {
-            startActivity(Intent(this, SimulationActivity::class.java))
+        binding.logRecyclerView.layoutParams = layoutParams
+    }
+    
+    private val logListener = object : LogManager.LogListener {
+        override fun onNewLogEntry(entry: LogManager.LogEntry) {
+            runOnUiThread {
+                logAdapter.addEntry(entry)
+                // Auto-scroll to bottom
+                binding.logRecyclerView.scrollToPosition(logAdapter.itemCount - 1)
+            }
         }
-
-        updateUI()
     }
 
     private fun requestPermissionsOnStartup() {
@@ -350,116 +402,54 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateUI() {
-        if (isEmergencyActive) {
-            binding.statusTextView.text = "🟢 ${getString(R.string.active_mode)}"
-            binding.statusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
-            binding.statusTextView.textSize = 20f
-            binding.activateButton.text = getString(R.string.deactivate_emergency)
-            binding.activateButton.backgroundTintList = ContextCompat.getColorStateList(this, android.R.color.holo_orange_dark)
-            binding.viewLocationsButton.isEnabled = true
-            binding.sendHelpButton.isEnabled = true
-            binding.detailsLayout.visibility = View.VISIBLE
-            binding.scanningTextView.visibility = View.GONE
-        } else {
-            binding.statusTextView.text = "⚪ ${getString(R.string.standby_mode)}"
-            binding.statusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
-            binding.statusTextView.textSize = 18f
-            binding.activateButton.text = getString(R.string.activate_emergency)
-            binding.activateButton.backgroundTintList = ContextCompat.getColorStateList(this, android.R.color.holo_green_dark)
-            binding.viewLocationsButton.isEnabled = false
-            binding.sendHelpButton.isEnabled = false
-            binding.detailsLayout.visibility = View.GONE
-            binding.scanningTextView.visibility = View.VISIBLE
-            
-            // Reset status flags when emergency is deactivated
-            isBluetoothActive = false
-            isWifiActive = false
-            isHotspotActive = false
-            isLocationActive = false
-            isWifiConnected = false
-        }
-        
-        // Update individual feature statuses
-        updateStatusUI()
+        // Update emergency fragment if it exists
+        updateEmergencyFragment()
+        // Update panic fragment if it exists
+        updatePanicFragment()
+    }
+    
+    private fun updateEmergencyFragment() {
+        emergencyFragment?.updateUI(
+            isEmergencyActive,
+            isBluetoothActive,
+            isWifiActive,
+            isHotspotActive,
+            isLocationActive,
+            isWifiConnected,
+            infraBluetoothHealth,
+            infraWifiHealth,
+            infraCellularHealth,
+            infraMeshHealth,
+            infraOverallHealth
+        )
+    }
+    
+    private fun updatePanicFragment() {
+        panicFragment?.updateUI(isPanicModeActive)
+    }
+    
+    /**
+     * Called by EmergencyFragment to update its UI
+     */
+    fun updateEmergencyUI(binding: FragmentEmergencyBinding) {
+        updateEmergencyFragment()
+    }
+    
+    /**
+     * Called by PanicFragment to update its UI
+     */
+    fun updatePanicUI(binding: FragmentPanicBinding) {
+        updatePanicFragment()
     }
     
     private fun updateStatusUI() {
-        // Update Bluetooth status
-        if (isBluetoothActive) {
-            binding.bluetoothStatusTextView.text = "✓ ${getString(R.string.bluetooth_status, getString(R.string.active))}"
-            binding.bluetoothStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
-        } else {
-            binding.bluetoothStatusTextView.text = "○ ${getString(R.string.bluetooth_status, getString(R.string.inactive))}"
-            binding.bluetoothStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
-        }
-        
-        // Update WiFi status
-        if (isWifiActive) {
-            binding.wifiStatusTextView.text = "✓ ${getString(R.string.wifi_status, getString(R.string.active))}"
-            binding.wifiStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
-        } else {
-            binding.wifiStatusTextView.text = "○ ${getString(R.string.wifi_status, getString(R.string.inactive))}"
-            binding.wifiStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
-        }
-        
-        // Update Hotspot status
-        if (isHotspotActive) {
-            binding.hotspotStatusTextView.text = "✓ ${getString(R.string.hotspot_status, getString(R.string.active))}"
-            binding.hotspotStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
-        } else {
-            binding.hotspotStatusTextView.text = "○ ${getString(R.string.hotspot_status, getString(R.string.inactive))}"
-            binding.hotspotStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
-        }
-        
-        // Update WiFi Connection status
-        if (isWifiConnected) {
-            binding.wifiConnectionStatusTextView.text = "✓ ${getString(R.string.wifi_connection_status, getString(R.string.active))}"
-            binding.wifiConnectionStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
-        } else {
-            binding.wifiConnectionStatusTextView.text = "○ ${getString(R.string.wifi_connection_status, getString(R.string.inactive))}"
-            binding.wifiConnectionStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
-        }
-        
-        // Update Location sharing status
-        if (isLocationActive) {
-            binding.locationStatusTextView.text = "✓ ${getString(R.string.location_sharing_status, getString(R.string.active))}"
-            binding.locationStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
-        } else {
-            binding.locationStatusTextView.text = "○ ${getString(R.string.location_sharing_status, getString(R.string.inactive))}"
-            binding.locationStatusTextView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray))
-        }
+        // Status UI is now handled by fragments
+        updateEmergencyFragment()
     }
     
     private fun updateInfrastructureStatusUI() {
-        // Update Bluetooth infrastructure status
-        val btStatus = getHealthStatusString(infraBluetoothHealth)
-        val btColor = getHealthStatusColor(infraBluetoothHealth)
-        binding.infraBluetoothStatusTextView.text = getString(R.string.infra_bluetooth_status, btStatus)
-        binding.infraBluetoothStatusTextView.setTextColor(ContextCompat.getColor(this, btColor))
-        
-        // Update WiFi infrastructure status
-        val wifiStatus = getHealthStatusString(infraWifiHealth)
-        val wifiColor = getHealthStatusColor(infraWifiHealth)
-        binding.infraWifiStatusTextView.text = getString(R.string.infra_wifi_status, wifiStatus)
-        binding.infraWifiStatusTextView.setTextColor(ContextCompat.getColor(this, wifiColor))
-        
-        // Update Cellular infrastructure status
-        val cellStatus = getHealthStatusString(infraCellularHealth)
-        val cellColor = getHealthStatusColor(infraCellularHealth)
-        binding.infraCellularStatusTextView.text = getString(R.string.infra_cellular_status, cellStatus)
-        binding.infraCellularStatusTextView.setTextColor(ContextCompat.getColor(this, cellColor))
-        
-        // Update Mesh infrastructure status
-        val meshStatus = getHealthStatusString(infraMeshHealth)
-        val meshColor = getHealthStatusColor(infraMeshHealth)
-        binding.infraMeshStatusTextView.text = getString(R.string.infra_mesh_status, meshStatus)
-        binding.infraMeshStatusTextView.setTextColor(ContextCompat.getColor(this, meshColor))
-        
-        // Update Overall infrastructure status
-        val overallStatus = getHealthStatusString(infraOverallHealth)
-        val overallColor = getHealthStatusColor(infraOverallHealth)
-        binding.infraOverallStatusTextView.text = getString(R.string.infra_overall_status, overallStatus)
-        binding.infraOverallStatusTextView.setTextColor(ContextCompat.getColor(this, overallColor))
+        // Infrastructure status UI is now handled by fragments
+        updateEmergencyFragment()
     }
     
     private fun getHealthStatusString(health: String): String {
@@ -665,7 +655,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun sendHelpRequest() {
+    fun sendHelpRequest() {
         if (!isEmergencyActive) {
             Toast.makeText(this, "Please activate emergency mode first", Toast.LENGTH_SHORT).show()
             return
@@ -718,7 +708,7 @@ class MainActivity : AppCompatActivity() {
         builder.show()
     }
 
-    private fun togglePanicMode() {
+    fun togglePanicMode() {
         if (!checkPermissions()) {
             // Panic mode requires permissions but not emergency mode activation
             // Show a specific message for panic mode
@@ -769,15 +759,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePanicModeUI() {
-        if (isPanicModeActive) {
-            binding.panicModeButton.text = "🔴 ${getString(R.string.deactivate_panic)}"
-            binding.panicModeButton.backgroundTintList = 
-                ContextCompat.getColorStateList(this, android.R.color.holo_orange_dark)
-        } else {
-            binding.panicModeButton.text = getString(R.string.activate_panic)
-            binding.panicModeButton.backgroundTintList = 
-                ContextCompat.getColorStateList(this, android.R.color.holo_red_dark)
-        }
+        updatePanicFragment()
     }
     
     private fun requestServiceStatusUpdate() {
@@ -792,15 +774,74 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showEmergencyModeHelp() {
+    fun showEmergencyModeHelp() {
         val intent = Intent(this, HelpActivity::class.java)
         intent.putExtra(HelpActivity.EXTRA_INITIAL_TAB, HelpActivity.TAB_EMERGENCY_MODE)
         startActivity(intent)
     }
 
-    private fun showPanicModeHelp() {
+    fun showPanicModeHelp() {
         val intent = Intent(this, HelpActivity::class.java)
         intent.putExtra(HelpActivity.EXTRA_INITIAL_TAB, HelpActivity.TAB_PANIC_MODE)
         startActivity(intent)
+    }
+    
+    // Public methods for fragments to call
+    
+    /**
+     * Handle emergency button click from EmergencyFragment
+     */
+    fun handleEmergencyButtonClick() {
+        if (checkPermissions()) {
+            toggleEmergencyMode()
+        } else {
+            pendingEmergencyActivation = true
+            requestPermissions()
+        }
+    }
+    
+    /**
+     * Log adapter for displaying logs in the bottom panel
+     */
+    private class LogAdapter(
+        private val entries: MutableList<LogManager.LogEntry>
+    ) : RecyclerView.Adapter<LogAdapter.LogViewHolder>() {
+        
+        class LogViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val textView: android.widget.TextView = view as android.widget.TextView
+        }
+        
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
+            val textView = android.widget.TextView(parent.context).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                setPadding(8, 4, 8, 4)
+                textSize = 12f
+            }
+            return LogViewHolder(textView)
+        }
+        
+        override fun onBindViewHolder(holder: LogViewHolder, position: Int) {
+            val entry = entries[position]
+            holder.textView.text = entry.getFormattedEntry()
+            
+            // Color code by level
+            val colorResId = when (entry.level) {
+                LogManager.LogLevel.ERROR -> android.R.color.holo_red_dark
+                LogManager.LogLevel.WARNING -> android.R.color.holo_orange_dark
+                LogManager.LogLevel.EVENT -> android.R.color.holo_blue_dark
+                else -> android.R.color.darker_gray
+            }
+            holder.textView.setTextColor(ContextCompat.getColor(holder.itemView.context, colorResId))
+        }
+        
+        override fun getItemCount(): Int = entries.size
+        
+        fun addEntry(entry: LogManager.LogEntry) {
+            entries.add(entry)
+            notifyItemInserted(entries.size - 1)
+        }
     }
 }
