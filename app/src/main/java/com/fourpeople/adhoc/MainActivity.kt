@@ -650,7 +650,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun sendHelpRequest() {
+    fun sendHelpRequest() {
         if (!isEmergencyActive) {
             Toast.makeText(this, "Please activate emergency mode first", Toast.LENGTH_SHORT).show()
             return
@@ -703,7 +703,7 @@ class MainActivity : AppCompatActivity() {
         builder.show()
     }
 
-    private fun togglePanicMode() {
+    fun togglePanicMode() {
         if (!checkPermissions()) {
             // Panic mode requires permissions but not emergency mode activation
             // Show a specific message for panic mode
@@ -769,13 +769,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showEmergencyModeHelp() {
+    fun showEmergencyModeHelp() {
         val intent = Intent(this, HelpActivity::class.java)
         intent.putExtra(HelpActivity.EXTRA_INITIAL_TAB, HelpActivity.TAB_EMERGENCY_MODE)
         startActivity(intent)
     }
 
-    private fun showPanicModeHelp() {
+    fun showPanicModeHelp() {
         val intent = Intent(this, HelpActivity::class.java)
         intent.putExtra(HelpActivity.EXTRA_INITIAL_TAB, HelpActivity.TAB_PANIC_MODE)
         startActivity(intent)
