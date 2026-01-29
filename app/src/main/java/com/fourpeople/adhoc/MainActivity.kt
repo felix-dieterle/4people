@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -20,7 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.fourpeople.adhoc.databinding.ActivityMainTabsBinding
+import com.fourpeople.adhoc.databinding.ActivityMainBinding
 import com.fourpeople.adhoc.databinding.FragmentEmergencyBinding
 import com.fourpeople.adhoc.databinding.FragmentPanicBinding
 import com.fourpeople.adhoc.service.AdHocCommunicationService
@@ -38,7 +39,7 @@ import com.google.android.material.tabs.TabLayoutMediator
  */
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainTabsBinding
+    private lateinit var binding: ActivityMainBinding
     private var isEmergencyActive = false
     private var isPanicModeActive = false
     private var nfcHelper: NFCHelper? = null
@@ -61,7 +62,6 @@ class MainActivity : AppCompatActivity() {
     // Log adapter
     private lateinit var logAdapter: LogAdapter
     private var isLogExpanded = false
-    private var infraOverallHealth = "UNKNOWN"
 
     private val emergencyReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -190,7 +190,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainTabsBinding.inflate(layoutInflater)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         LogManager.logInfo("MainActivity", "Application started with tab-based UI")
