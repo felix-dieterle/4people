@@ -19,6 +19,17 @@ All emergency devices use the naming pattern `4people-<unique-id>` for both:
 
 This allows automatic detection of emergency situations by scanning for this pattern.
 
+### Interoperability with Other Emergency Apps
+
+The 4people app implements the **Standard Emergency Protocol Specification (SEPS) v1.0**, enabling interoperability with other emergency communication apps:
+- ✓ **Standard protocol support** - JSON-based message format for maximum compatibility
+- ✓ **SEPS device naming** - Supports `SEPS-4people-<id>` pattern for cross-app discovery
+- ✓ **Message forwarding** - Relays messages from other SEPS-compliant apps
+- ✓ **Protocol negotiation** - Automatically detects and adapts to different app capabilities
+- ✓ **Backward compatibility** - Works with both legacy 4people devices and new SEPS devices
+
+See [EMERGENCY_PROTOCOL_SPEC.md](EMERGENCY_PROTOCOL_SPEC.md) for full protocol specification and [INTEROPERABILITY_GUIDE.md](INTEROPERABILITY_GUIDE.md) for implementation guide.
+
 ## Features
 
 ### Active Mode
@@ -34,6 +45,7 @@ When emergency mode is activated:
 - ✓ SMS emergency broadcast to contacts
 - ✓ **Mesh network routing** - Multi-hop message forwarding through intermediate devices
 - ✓ **Automatic route discovery** - AODV-like protocol for finding paths to distant devices
+- ✓ **SEPS protocol support** - Interoperability with other emergency apps implementing standard emergency protocols
 - ✓ **Trust-based message evaluation** - Assess message trustworthiness based on sender trust level, hop count, and peer verifications
 - ✓ **Flashlight Morse code signaling (optional)**
 - ✓ **Ultrasound emergency beacon (optional)**
@@ -370,6 +382,8 @@ The app uses multiple communication channels that work in different scenarios:
 
 For detailed information about the project, see:
 
+- **[EMERGENCY_PROTOCOL_SPEC.md](EMERGENCY_PROTOCOL_SPEC.md)**: Standard Emergency Protocol Specification (SEPS) v1.0
+- **[INTEROPERABILITY_GUIDE.md](INTEROPERABILITY_GUIDE.md)**: Guide for implementing SEPS in other emergency apps
 - **[NOTFALL_SZENARIEN.md](NOTFALL_SZENARIEN.md)**: Comprehensive emergency scenarios, flowcharts, and improvement recommendations (German)
 - **[IMPLEMENTATION.md](IMPLEMENTATION.md)**: Technical implementation details
 - **[FLOW.md](FLOW.md)**: System flow diagrams and architecture
@@ -388,6 +402,7 @@ For detailed information about the project, see:
 - [x] **Mesh network with multi-hop routing** - Implemented! Messages relay through intermediate devices
 - [x] **Emergency location sharing** - Implemented! GPS coordinates broadcast to network participants
 - [x] **Help requests with location** - Implemented! Send emergency help requests with GPS position
+- [x] **Standard emergency protocols (SEPS)** - Implemented! Interoperability with other emergency apps
 - [x] **Trust-based message evaluation** - Implemented! Evaluate message trustworthiness based on sender trust, hop count, and connection security
 - [x] **Secure connection tracking** - Implemented! Track and prefer secure routes in mesh network
 - [x] **Emergency propagation simulation** - Implemented! Visual simulation of message spread through network
@@ -400,6 +415,8 @@ For detailed information about the project, see:
 - [x] SMS emergency broadcast to contacts
 - [x] **NFC tap-to-join for quick network setup** - Implemented! Tap devices together to share credentials
 - [ ] Contact-based emergency signaling (calling frequent contacts)
+- [ ] iOS version for cross-platform compatibility
+- [ ] Desktop/Web client for emergency coordination centers
 
 For a complete list of potential improvements with detailed analysis, see [NOTFALL_SZENARIEN.md](NOTFALL_SZENARIEN.md#verbesserungsvorschläge).
 
