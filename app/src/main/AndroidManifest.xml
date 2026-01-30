@@ -89,6 +89,21 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="application/vnd.fourpeople.adhoc" />
             </intent-filter>
+            <!-- Intent filter for activating Panic Mode -->
+            <intent-filter>
+                <action android:name="com.fourpeople.adhoc.action.ACTIVATE_PANIC_MODE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <!-- Intent filter for activating Emergency Mode -->
+            <intent-filter>
+                <action android:name="com.fourpeople.adhoc.action.ACTIVATE_EMERGENCY_MODE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            
+            <!-- App shortcuts metadata -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
 
         <activity
