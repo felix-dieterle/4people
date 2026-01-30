@@ -376,4 +376,12 @@
     
     <!-- Panic mode description -->
     <string name="panic_mode_description">Panic mode will:\n\n• Broadcast distress signals\n• Activate all communication channels\n• Send alerts using flashlight, ultrasound, and more\n• Notify emergency contacts if necessary</string>
+    
+    <!-- App shortcuts strings -->
+    <string name="shortcut_panic_short">Panic Mode</string>
+    <string name="shortcut_panic_long">Activate Panic Mode</string>
+    <string name="shortcut_panic_disabled">Panic mode is not available</string>
+    <string name="shortcut_emergency_short">Emergency</string>
+    <string name="shortcut_emergency_long">Activate Emergency Communication</string>
+    <string name="shortcut_emergency_disabled">Emergency mode is not available</string>
 </resources>

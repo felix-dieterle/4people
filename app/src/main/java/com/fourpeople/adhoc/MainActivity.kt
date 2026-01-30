@@ -205,6 +205,7 @@ class MainActivity : AppCompatActivity() {
         registerEmergencyReceiver()
         setupNFC()
         handleNfcIntent(intent)
+        handleShortcutIntent(intent)
         
         // Request all permissions on startup to ensure they're available
         // for critical services (standby monitoring, boot receiver, etc.)
@@ -213,7 +214,9 @@ class MainActivity : AppCompatActivity() {
     
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         handleNfcIntent(intent)
+        handleShortcutIntent(intent)
     }
     
     override fun onResume() {
@@ -622,6 +625,36 @@ class MainActivity : AppCompatActivity() {
                         "Invalid or expired NFC credentials",
                         Toast.LENGTH_SHORT
                     ).show()
+                }
+            }
+        }
+    }
+    
+    /**
+     * Handle intents from app shortcuts and Google Assistant
+     */
+    private fun handleShortcutIntent(intent: Intent?) {
+        when (intent?.action) {
+            "com.fourpeople.adhoc.action.ACTIVATE_PANIC_MODE" -> {
+                LogManager.logEvent("MainActivity", "Panic mode activation requested via shortcut/Google Assistant")
+                // Switch to panic tab
+                binding.viewPager.setCurrentItem(1, true)
+                // Activate panic mode if not already active
+                if (!isPanicModeActive) {
+                    togglePanicMode()
+                } else {
+                    Toast.makeText(this, R.string.panic_active, Toast.LENGTH_SHORT).show()
+                }
+            }
+            "com.fourpeople.adhoc.action.ACTIVATE_EMERGENCY_MODE" -> {
+                LogManager.logEvent("MainActivity", "Emergency mode activation requested via shortcut/Google Assistant")
+                // Switch to emergency tab
+                binding.viewPager.setCurrentItem(0, true)
+                // Activate emergency mode if not already active
+                if (!isEmergencyActive) {
+                    handleEmergencyButtonClick()
+                } else {
+                    Toast.makeText(this, R.string.emergency_active, Toast.LENGTH_SHORT).show()
                 }
             }
         }

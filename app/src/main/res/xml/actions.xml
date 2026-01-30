@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<actions>
+    <!-- Google Assistant action to activate Panic Mode -->
+    <action intentName="actions.intent.ACTIVATE_PANIC_MODE">
+        <fulfillment urlTemplate="fourpeople://activate_panic_mode">
+            <parameter-mapping
+                intentParameter="panic_mode"
+                urlParameter="mode" />
+        </fulfillment>
+    </action>
+    
+    <!-- Google Assistant action to activate Emergency Mode -->
+    <action intentName="actions.intent.ACTIVATE_EMERGENCY_MODE">
+        <fulfillment urlTemplate="fourpeople://activate_emergency_mode">
+            <parameter-mapping
+                intentParameter="emergency_mode"
+                urlParameter="mode" />
+        </fulfillment>
+    </action>
+</actions>
