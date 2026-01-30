@@ -13,7 +13,6 @@
             android:action="com.fourpeople.adhoc.action.ACTIVATE_PANIC_MODE"
             android:targetPackage="com.fourpeople.adhoc"
             android:targetClass="com.fourpeople.adhoc.MainActivity" />
-        <categories android:name="android.shortcut.conversation" />
     </shortcut>
     
     <!-- Shortcut to activate Emergency Communication Mode -->
@@ -28,7 +27,6 @@
             android:action="com.fourpeople.adhoc.action.ACTIVATE_EMERGENCY_MODE"
             android:targetPackage="com.fourpeople.adhoc"
             android:targetClass="com.fourpeople.adhoc.MainActivity" />
-        <categories android:name="android.shortcut.conversation" />
     </shortcut>
     
 </shortcuts>
