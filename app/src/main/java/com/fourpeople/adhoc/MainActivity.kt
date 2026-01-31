@@ -209,6 +209,16 @@ class MainActivity : AppCompatActivity() {
             ErrorLogger.logInfo("MainActivity", "Content view set successfully")
 
             LogManager.logInfo("MainActivity", "Application started with tab-based UI")
+            
+            // Show log directory path to user
+            val logPath = ErrorLogger.getLogDirectoryPath()
+            ErrorLogger.logInfo("MainActivity", "Showing log directory toast to user: $logPath")
+            Toast.makeText(
+                this,
+                "Logs saved to:\n$logPath",
+                Toast.LENGTH_LONG
+            ).show()
+            
             ErrorLogger.logInfo("MainActivity", "Calling setupUI...")
             setupUI()
             ErrorLogger.logInfo("MainActivity", "setupUI completed")
