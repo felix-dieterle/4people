@@ -486,14 +486,51 @@ class MainActivity : AppCompatActivity() {
      * Called by EmergencyFragment to update its UI
      */
     fun updateEmergencyUI(binding: FragmentEmergencyBinding) {
-        updateEmergencyFragment()
+        // Update status text
+        if (isEmergencyActive) {
+            binding.statusTextView.text = "🟢 ${getString(R.string.emergency_active)}"
+            binding.activateButton.text = getString(R.string.deactivate_emergency)
+            binding.scanningTextView.visibility = View.GONE
+            binding.detailsLayout.visibility = View.VISIBLE
+            binding.infrastructureHeaderTextView.visibility = View.VISIBLE
+            binding.infrastructureStatusLayout.visibility = View.VISIBLE
+        } else {
+            binding.statusTextView.text = "⚪ ${getString(R.string.emergency_inactive)}"
+            binding.activateButton.text = getString(R.string.activate_emergency)
+            binding.scanningTextView.visibility = View.VISIBLE
+            binding.detailsLayout.visibility = View.GONE
+            binding.infrastructureHeaderTextView.visibility = View.GONE
+            binding.infrastructureStatusLayout.visibility = View.GONE
+        }
+
+        // Update individual status indicators
+        binding.bluetoothStatusTextView.text = "Bluetooth: ${if (isBluetoothActive) "Active ✓" else "Inactive"}"
+        binding.wifiStatusTextView.text = "WiFi: ${if (isWifiActive) "Active ✓" else "Inactive"}"
+        binding.hotspotStatusTextView.text = "Hotspot: ${if (isHotspotActive) "Active ✓" else "Inactive"}"
+        binding.wifiConnectionStatusTextView.text = "WiFi Connection: ${if (isWifiConnected) "Connected ✓" else "Not Connected"}"
+        binding.locationStatusTextView.text = "Location Sharing: ${if (isLocationActive) "Active ✓" else "Inactive"}"
+
+        // Update infrastructure status
+        binding.infraBluetoothStatusTextView.text = "Bluetooth: $infraBluetoothHealth"
+        binding.infraWifiStatusTextView.text = "WiFi: $infraWifiHealth"
+        binding.infraCellularStatusTextView.text = "Cellular: $infraCellularHealth"
+        binding.infraMeshStatusTextView.text = "Mesh Network: $infraMeshHealth"
+        binding.infraOverallStatusTextView.text = "Overall Status: $infraOverallHealth"
     }
     
     /**
      * Called by PanicFragment to update its UI
      */
     fun updatePanicUI(binding: FragmentPanicBinding) {
-        updatePanicFragment()
+        if (isPanicModeActive) {
+            binding.panicModeButton.text = "🔴 ${getString(R.string.deactivate_panic)}"
+            binding.panicModeButton.backgroundTintList = 
+                getColorStateList(android.R.color.holo_green_dark)
+        } else {
+            binding.panicModeButton.text = getString(R.string.activate_panic)
+            binding.panicModeButton.backgroundTintList =
+                getColorStateList(android.R.color.holo_red_dark)
+        }
     }
     
     private fun updateStatusUI() {
