@@ -33,11 +33,11 @@ class FourPeopleApplication : Application() {
             Log.d("FourPeopleApplication", "Crash handler set up")
             
             val logPath = ErrorLogger.getLogDirectoryPath()
-            ErrorLogger.logInfo("FourPeopleApplication", "========================================")
+            ErrorLogger.logInfo("FourPeopleApplication", "==============================================================================")
             ErrorLogger.logInfo("FourPeopleApplication", "Application started successfully")
             ErrorLogger.logInfo("FourPeopleApplication", "LOG DIRECTORY: $logPath")
             ErrorLogger.logInfo("FourPeopleApplication", "Please check this directory for log files")
-            ErrorLogger.logInfo("FourPeopleApplication", "========================================")
+            ErrorLogger.logInfo("FourPeopleApplication", "==============================================================================")
             
             Log.d("FourPeopleApplication", "==================== Application onCreate COMPLETED ====================")
             Log.d("FourPeopleApplication", "Log directory: $logPath")

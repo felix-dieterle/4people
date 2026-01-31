@@ -33,7 +33,7 @@ object ErrorLogger {
      */
     fun initialize(context: Context) {
         try {
-            Log.d(TAG, "=== ErrorLogger Initialization START ===")
+            Log.d(TAG, "==================== ErrorLogger Initialization START ====================")
             
             // Try to use the Downloads directory for better accessibility
             logDirectory = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -84,16 +84,15 @@ object ErrorLogger {
             rotateLogsIfNeeded()
             
             val logPath = logDirectory?.absolutePath ?: "unknown"
-            Log.d(TAG, "=== ErrorLogger initialized successfully ===")
+            Log.d(TAG, "==================== ErrorLogger initialized successfully ====================")
             Log.d(TAG, "Log directory: $logPath")
             Log.d(TAG, "Current log file: ${currentLogFile?.name}")
             
             // Log initialization to file
-            logInfo(TAG, "===========================================")
-            logInfo(TAG, "ErrorLogger initialized successfully")
+            logInfo(TAG, "==================== ErrorLogger initialized successfully ====================")
             logInfo(TAG, "Log directory: $logPath")
             logInfo(TAG, "Current log file: ${currentLogFile?.name}")
-            logInfo(TAG, "===========================================")
+            logInfo(TAG, "==============================================================================")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize ErrorLogger", e)
         }
