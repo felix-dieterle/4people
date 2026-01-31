@@ -25,6 +25,11 @@ The `ErrorLogger` utility class provides a centralized way to log errors to both
 - **Fallback (if external storage unavailable)**: `/data/data/com.fourpeople.adhoc/files/4people_logs/`
 - File naming pattern: `4people_log_YYYYMMDD_HHmmss.txt`
 
+**Note:** The log file location is displayed in a Toast message when the app starts. On Android 10+, logs are stored in app-specific storage which can be accessed via:
+1. File manager apps with permission to access app data
+2. Via ADB: `adb pull /sdcard/Android/data/com.fourpeople.adhoc/files/Download/4people_logs/`
+3. The app will show the exact path in logcat and in the startup toast
+
 ### 2. Global Crash Handler
 
 The application now includes a global uncaught exception handler that automatically logs all crashes to the file system before the app terminates.

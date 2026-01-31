@@ -121,10 +121,11 @@ object ErrorLogger {
     private fun verifyLogFileWritable(): Boolean {
         return try {
             val testFile = currentLogFile ?: return false
+            val testContent = "Test write at ${System.currentTimeMillis()}\n"
             FileWriter(testFile, true).use { writer ->
-                writer.write("") // Empty write to test
+                writer.write(testContent)
             }
-            testFile.exists() && testFile.canRead()
+            testFile.exists() && testFile.canWrite()
         } catch (e: Exception) {
             Log.e(TAG, "Test write to log file failed", e)
             false
