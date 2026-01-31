@@ -196,28 +196,58 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         
         try {
-            ErrorLogger.logError("MainActivity", "onCreate called with action: ${intent?.action}")
+            ErrorLogger.logInfo("MainActivity", "==================== onCreate START ====================")
+            ErrorLogger.logInfo("MainActivity", "onCreate called with action: ${intent?.action}")
+            ErrorLogger.logInfo("MainActivity", "savedInstanceState is null: ${savedInstanceState == null}")
             
+            ErrorLogger.logInfo("MainActivity", "Inflating ActivityMainBinding...")
             binding = ActivityMainBinding.inflate(layoutInflater)
+            ErrorLogger.logInfo("MainActivity", "ActivityMainBinding inflated successfully")
+            
+            ErrorLogger.logInfo("MainActivity", "Setting content view...")
             setContentView(binding.root)
+            ErrorLogger.logInfo("MainActivity", "Content view set successfully")
 
             LogManager.logInfo("MainActivity", "Application started with tab-based UI")
-            
+            ErrorLogger.logInfo("MainActivity", "Calling setupUI...")
             setupUI()
+            ErrorLogger.logInfo("MainActivity", "setupUI completed")
+            
+            ErrorLogger.logInfo("MainActivity", "Calling setupTabs...")
             setupTabs()
+            ErrorLogger.logInfo("MainActivity", "setupTabs completed")
+            
+            ErrorLogger.logInfo("MainActivity", "Calling setupLogView...")
             setupLogView()
+            ErrorLogger.logInfo("MainActivity", "setupLogView completed")
+            
+            ErrorLogger.logInfo("MainActivity", "Calling registerEmergencyReceiver...")
             registerEmergencyReceiver()
+            ErrorLogger.logInfo("MainActivity", "registerEmergencyReceiver completed")
+            
+            ErrorLogger.logInfo("MainActivity", "Calling setupNFC...")
             setupNFC()
+            ErrorLogger.logInfo("MainActivity", "setupNFC completed")
+            
+            ErrorLogger.logInfo("MainActivity", "Calling handleNfcIntent...")
             handleNfcIntent(intent)
+            ErrorLogger.logInfo("MainActivity", "handleNfcIntent completed")
+            
+            ErrorLogger.logInfo("MainActivity", "Calling handleShortcutIntent...")
             handleShortcutIntent(intent)
+            ErrorLogger.logInfo("MainActivity", "handleShortcutIntent completed")
             
             // Request all permissions on startup to ensure they're available
             // for critical services (standby monitoring, boot receiver, etc.)
+            ErrorLogger.logInfo("MainActivity", "Calling requestPermissionsOnStartup...")
             requestPermissionsOnStartup()
+            ErrorLogger.logInfo("MainActivity", "requestPermissionsOnStartup completed")
             
-            ErrorLogger.logError("MainActivity", "onCreate completed successfully")
+            ErrorLogger.logInfo("MainActivity", "==================== onCreate COMPLETED SUCCESSFULLY ====================")
         } catch (e: Exception) {
-            ErrorLogger.logError("MainActivity", "Exception in onCreate", e)
+            ErrorLogger.logError("MainActivity", "!!! EXCEPTION in onCreate !!!", e)
+            ErrorLogger.logError("MainActivity", "Exception type: ${e.javaClass.name}")
+            ErrorLogger.logError("MainActivity", "Exception message: ${e.message}")
             // Don't finish - let the user see the error
         }
     }
@@ -310,29 +340,51 @@ class MainActivity : AppCompatActivity() {
     
     private fun setupTabs() {
         try {
-            ErrorLogger.logInfo("MainActivity", "setupTabs started")
+            ErrorLogger.logInfo("MainActivity", "--- setupTabs START ---")
+            
+            ErrorLogger.logInfo("MainActivity", "Checking if binding.viewPager exists: ${::binding.isInitialized}")
+            ErrorLogger.logInfo("MainActivity", "Checking if binding.tabLayout exists: ${::binding.isInitialized}")
+            
             // Set up ViewPager2 with adapter
+            ErrorLogger.logInfo("MainActivity", "Creating MainPagerAdapter...")
             val adapter = MainPagerAdapter(this) { position, fragment ->
+                ErrorLogger.logInfo("MainActivity", "Fragment callback invoked for position: $position, fragment type: ${fragment.javaClass.simpleName}")
                 when (position) {
-                    0 -> emergencyFragment = fragment as EmergencyFragment
-                    1 -> panicFragment = fragment as PanicFragment
+                    0 -> {
+                        emergencyFragment = fragment as EmergencyFragment
+                        ErrorLogger.logInfo("MainActivity", "EmergencyFragment reference stored")
+                    }
+                    1 -> {
+                        panicFragment = fragment as PanicFragment
+                        ErrorLogger.logInfo("MainActivity", "PanicFragment reference stored")
+                    }
                 }
             }
+            ErrorLogger.logInfo("MainActivity", "MainPagerAdapter created successfully")
+            
+            ErrorLogger.logInfo("MainActivity", "Setting adapter to ViewPager2...")
             binding.viewPager.adapter = adapter
+            ErrorLogger.logInfo("MainActivity", "Adapter set successfully to ViewPager2")
             
             // Link TabLayout with ViewPager2
+            ErrorLogger.logInfo("MainActivity", "Creating TabLayoutMediator...")
             TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
-                tab.text = when (position) {
+                val tabName = when (position) {
                     0 -> getString(R.string.tab_emergency)
                     1 -> getString(R.string.tab_panic)
                     else -> ""
                 }
+                ErrorLogger.logInfo("MainActivity", "Setting tab text for position $position: $tabName")
+                tab.text = tabName
             }.attach()
+            ErrorLogger.logInfo("MainActivity", "TabLayoutMediator attached successfully")
             
             LogManager.logEvent("MainActivity", "Tab-based UI initialized")
-            ErrorLogger.logInfo("MainActivity", "setupTabs completed")
+            ErrorLogger.logInfo("MainActivity", "--- setupTabs COMPLETED ---")
         } catch (e: Exception) {
-            ErrorLogger.logError("MainActivity", "Exception in setupTabs", e)
+            ErrorLogger.logError("MainActivity", "!!! EXCEPTION in setupTabs !!!", e)
+            ErrorLogger.logError("MainActivity", "Exception type: ${e.javaClass.name}")
+            ErrorLogger.logError("MainActivity", "Exception message: ${e.message}")
             throw e
         }
     }

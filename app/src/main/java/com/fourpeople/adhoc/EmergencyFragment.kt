@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.fourpeople.adhoc.databinding.FragmentEmergencyBinding
+import com.fourpeople.adhoc.util.ErrorLogger
 
 /**
  * Fragment for Emergency Mode functionality.
@@ -27,45 +28,65 @@ class EmergencyFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        ErrorLogger.logInfo("EmergencyFragment", "onCreateView called")
+        ErrorLogger.logInfo("EmergencyFragment", "Inflating FragmentEmergencyBinding...")
         _binding = FragmentEmergencyBinding.inflate(inflater, container, false)
+        ErrorLogger.logInfo("EmergencyFragment", "FragmentEmergencyBinding inflated successfully")
+        ErrorLogger.logInfo("EmergencyFragment", "Returning binding.root")
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        ErrorLogger.logInfo("EmergencyFragment", "onViewCreated called")
+        ErrorLogger.logInfo("EmergencyFragment", "Calling setupUI...")
         setupUI()
+        ErrorLogger.logInfo("EmergencyFragment", "setupUI completed")
     }
 
     override fun onResume() {
         super.onResume()
+        ErrorLogger.logInfo("EmergencyFragment", "onResume called")
+        ErrorLogger.logInfo("EmergencyFragment", "Calling mainActivity.updateEmergencyUI...")
         mainActivity.updateEmergencyUI(binding)
+        ErrorLogger.logInfo("EmergencyFragment", "mainActivity.updateEmergencyUI completed")
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        ErrorLogger.logInfo("EmergencyFragment", "onDestroyView called")
         _binding = null
     }
 
     private fun setupUI() {
+        ErrorLogger.logInfo("EmergencyFragment", "setupUI: Setting up button click listeners...")
+        
         binding.activateButton.setOnClickListener {
+            ErrorLogger.logInfo("EmergencyFragment", "activateButton clicked")
             mainActivity.handleEmergencyButtonClick()
         }
 
         binding.emergencyHelpButton.setOnClickListener {
+            ErrorLogger.logInfo("EmergencyFragment", "emergencyHelpButton clicked")
             mainActivity.showEmergencyModeHelp()
         }
 
         binding.viewLocationsButton.setOnClickListener {
+            ErrorLogger.logInfo("EmergencyFragment", "viewLocationsButton clicked")
             startActivity(Intent(requireContext(), LocationMapActivity::class.java))
         }
 
         binding.sendHelpButton.setOnClickListener {
+            ErrorLogger.logInfo("EmergencyFragment", "sendHelpButton clicked")
             mainActivity.sendHelpRequest()
         }
 
         binding.simulationButton.setOnClickListener {
+            ErrorLogger.logInfo("EmergencyFragment", "simulationButton clicked")
             startActivity(Intent(requireContext(), SimulationActivity::class.java))
         }
+        
+        ErrorLogger.logInfo("EmergencyFragment", "setupUI: All button click listeners set up successfully")
     }
 
     /**
