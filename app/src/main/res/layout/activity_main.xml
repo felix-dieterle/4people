@@ -74,8 +74,7 @@
         android:background="?android:attr/dividerHorizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/logHeaderLayout"
-        android:layout_marginBottom="0dp" />
+        app:layout_constraintBottom_toTopOf="@id/logHeaderLayout" />
 
     <LinearLayout
         android:id="@+id/logHeaderLayout"
