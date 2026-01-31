@@ -1,6 +1,8 @@
 package com.fourpeople.adhoc.util
 
 import android.content.Context
+import android.os.Build
+import android.os.Environment
 import android.util.Log
 import java.io.File
 import java.io.FileWriter
@@ -12,12 +14,14 @@ import java.util.Locale
 /**
  * Centralized error logging utility that writes errors to the file system.
  * This helps investigate crashes and errors by persisting logs that survive app restarts.
+ * 
+ * Logs are saved to the Downloads directory as .txt files for easy access and sharing.
  */
 object ErrorLogger {
     private const val TAG = "ErrorLogger"
-    private const val LOG_DIR_NAME = "error_logs"
-    private const val MAX_LOG_FILES = 5
-    private const val MAX_LOG_SIZE_BYTES = 1024 * 1024 // 1 MB
+    private const val LOG_DIR_NAME = "4people_logs"
+    private const val MAX_LOG_FILES = 10
+    private const val MAX_LOG_SIZE_BYTES = 2 * 1024 * 1024 // 2 MB
     
     private var logDirectory: File? = null
     private var currentLogFile: File? = null
@@ -29,8 +33,22 @@ object ErrorLogger {
      */
     fun initialize(context: Context) {
         try {
-            // Use app-specific storage that doesn't require permissions
-            logDirectory = File(context.filesDir, LOG_DIR_NAME)
+            // Try to use the Downloads directory for better accessibility
+            logDirectory = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // Android 10+ use app-specific directory in Downloads
+                File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), LOG_DIR_NAME)
+            } else {
+                // Older Android versions use public Downloads directory
+                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), LOG_DIR_NAME)
+            }
+            
+            // Fallback to internal storage if external storage is not available
+            if (logDirectory?.exists() == false && logDirectory?.mkdirs() == false) {
+                Log.w(TAG, "Could not create log directory in Downloads, using internal storage")
+                logDirectory = File(context.filesDir, LOG_DIR_NAME)
+                logDirectory?.mkdirs()
+            }
+            
             logDirectory?.let { dir ->
                 if (!dir.exists()) {
                     dir.mkdirs()
@@ -43,7 +61,11 @@ object ErrorLogger {
             // Clean up old log files
             rotateLogsIfNeeded()
             
-            Log.d(TAG, "ErrorLogger initialized. Log directory: ${logDirectory?.absolutePath}")
+            val logPath = logDirectory?.absolutePath ?: "unknown"
+            Log.d(TAG, "ErrorLogger initialized. Log directory: $logPath")
+            
+            // Log initialization to file
+            logError(TAG, "ErrorLogger initialized at: $logPath")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize ErrorLogger", e)
         }
@@ -88,6 +110,18 @@ object ErrorLogger {
     }
     
     /**
+     * Log an info message with a tag and message.
+     */
+    fun logInfo(tag: String, message: String) {
+        try {
+            Log.i(tag, message)
+            writeToFile(tag, "INFO", message, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to log info to file", e)
+        }
+    }
+    
+    /**
      * Log an uncaught exception (typically from the global exception handler).
      */
     fun logCrash(thread: Thread, throwable: Throwable) {
@@ -105,7 +139,7 @@ object ErrorLogger {
      */
     fun getLogFiles(): List<File> {
         return try {
-            logDirectory?.listFiles()?.filter { it.isFile && it.name.endsWith(".log") }
+            logDirectory?.listFiles()?.filter { it.isFile && it.name.endsWith(".txt") }
                 ?.sortedByDescending { it.lastModified() } ?: emptyList()
         } catch (e: Exception) {
             Log.e(TAG, "Failed to get log files", e)
@@ -124,6 +158,13 @@ object ErrorLogger {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to clear log files", e)
         }
+    }
+    
+    /**
+     * Get the path to the log directory for display to the user.
+     */
+    fun getLogDirectoryPath(): String {
+        return logDirectory?.absolutePath ?: "Unknown"
     }
     
     private fun writeToFile(tag: String, level: String, message: String, throwable: Throwable?) {
@@ -169,7 +210,7 @@ object ErrorLogger {
         
         // Create a new log file with current timestamp
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        return File(logDirectory, "error_log_$timestamp.log")
+        return File(logDirectory, "4people_log_$timestamp.txt")
     }
     
     private fun rotateLogsIfNeeded() {

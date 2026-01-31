@@ -194,52 +194,75 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        
+        try {
+            ErrorLogger.logError("MainActivity", "onCreate called with action: ${intent?.action}")
+            
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        LogManager.logInfo("MainActivity", "Application started with tab-based UI")
-        
-        setupUI()
-        setupTabs()
-        setupLogView()
-        registerEmergencyReceiver()
-        setupNFC()
-        handleNfcIntent(intent)
-        handleShortcutIntent(intent)
-        
-        // Request all permissions on startup to ensure they're available
-        // for critical services (standby monitoring, boot receiver, etc.)
-        requestPermissionsOnStartup()
+            LogManager.logInfo("MainActivity", "Application started with tab-based UI")
+            
+            setupUI()
+            setupTabs()
+            setupLogView()
+            registerEmergencyReceiver()
+            setupNFC()
+            handleNfcIntent(intent)
+            handleShortcutIntent(intent)
+            
+            // Request all permissions on startup to ensure they're available
+            // for critical services (standby monitoring, boot receiver, etc.)
+            requestPermissionsOnStartup()
+            
+            ErrorLogger.logError("MainActivity", "onCreate completed successfully")
+        } catch (e: Exception) {
+            ErrorLogger.logError("MainActivity", "Exception in onCreate", e)
+            // Don't finish - let the user see the error
+        }
     }
     
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        setIntent(intent)
-        handleNfcIntent(intent)
-        handleShortcutIntent(intent)
+        try {
+            ErrorLogger.logError("MainActivity", "onNewIntent called with action: ${intent.action}")
+            setIntent(intent)
+            handleNfcIntent(intent)
+            handleShortcutIntent(intent)
+        } catch (e: Exception) {
+            ErrorLogger.logError("MainActivity", "Exception in onNewIntent", e)
+        }
     }
     
     override fun onResume() {
         super.onResume()
-        nfcHelper?.enableForegroundDispatch(this)
-        
-        // Check if panic mode service is actually running and update state
-        isPanicModeActive = PanicModeService.isActive(this)
-        updatePanicModeUI()
-        
-        // Check if emergency mode service is running and request status update
-        isEmergencyActive = AdHocCommunicationService.isActive(this)
-        if (isEmergencyActive) {
-            requestServiceStatusUpdate()
-        }
-        
-        // Update UI to reflect current state
-        updateUI()
-        
-        // Check if permissions were revoked and update UI accordingly
-        if (!checkPermissions()) {
-            // Update UI to reflect that permissions are needed
+        try {
+            ErrorLogger.logError("MainActivity", "onResume called")
+            
+            nfcHelper?.enableForegroundDispatch(this)
+            
+            // Check if panic mode service is actually running and update state
+            isPanicModeActive = PanicModeService.isActive(this)
+            updatePanicModeUI()
+            
+            // Check if emergency mode service is running and request status update
+            isEmergencyActive = AdHocCommunicationService.isActive(this)
+            if (isEmergencyActive) {
+                requestServiceStatusUpdate()
+            }
+            
+            // Update UI to reflect current state
             updateUI()
+            
+            // Check if permissions were revoked and update UI accordingly
+            if (!checkPermissions()) {
+                // Update UI to reflect that permissions are needed
+                updateUI()
+            }
+            
+            ErrorLogger.logError("MainActivity", "onResume completed successfully")
+        } catch (e: Exception) {
+            ErrorLogger.logError("MainActivity", "Exception in onResume", e)
         }
     }
     
@@ -269,42 +292,58 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        binding.logButton.setOnClickListener {
-            startActivity(Intent(this, LogWindowActivity::class.java))
-        }
+        try {
+            ErrorLogger.logInfo("MainActivity", "setupUI started")
+            binding.logButton.setOnClickListener {
+                startActivity(Intent(this, LogWindowActivity::class.java))
+            }
 
-        binding.settingsButton.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
+            binding.settingsButton.setOnClickListener {
+                startActivity(Intent(this, SettingsActivity::class.java))
+            }
+            ErrorLogger.logInfo("MainActivity", "setupUI completed")
+        } catch (e: Exception) {
+            ErrorLogger.logError("MainActivity", "Exception in setupUI", e)
+            throw e
         }
     }
     
     private fun setupTabs() {
-        // Set up ViewPager2 with adapter
-        val adapter = MainPagerAdapter(this) { position, fragment ->
-            when (position) {
-                0 -> emergencyFragment = fragment as EmergencyFragment
-                1 -> panicFragment = fragment as PanicFragment
+        try {
+            ErrorLogger.logInfo("MainActivity", "setupTabs started")
+            // Set up ViewPager2 with adapter
+            val adapter = MainPagerAdapter(this) { position, fragment ->
+                when (position) {
+                    0 -> emergencyFragment = fragment as EmergencyFragment
+                    1 -> panicFragment = fragment as PanicFragment
+                }
             }
+            binding.viewPager.adapter = adapter
+            
+            // Link TabLayout with ViewPager2
+            TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
+                tab.text = when (position) {
+                    0 -> getString(R.string.tab_emergency)
+                    1 -> getString(R.string.tab_panic)
+                    else -> ""
+                }
+            }.attach()
+            
+            LogManager.logEvent("MainActivity", "Tab-based UI initialized")
+            ErrorLogger.logInfo("MainActivity", "setupTabs completed")
+        } catch (e: Exception) {
+            ErrorLogger.logError("MainActivity", "Exception in setupTabs", e)
+            throw e
         }
-        binding.viewPager.adapter = adapter
-        
-        // Link TabLayout with ViewPager2
-        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
-            tab.text = when (position) {
-                0 -> getString(R.string.tab_emergency)
-                1 -> getString(R.string.tab_panic)
-                else -> ""
-            }
-        }.attach()
-        
-        LogManager.logEvent("MainActivity", "Tab-based UI initialized")
     }
     
     private fun setupLogView() {
-        // Initialize log RecyclerView
-        binding.logRecyclerView.layoutManager = LinearLayoutManager(this)
-        logAdapter = LogAdapter(LogManager.getLogEntries().toMutableList())
-        binding.logRecyclerView.adapter = logAdapter
+        try {
+            ErrorLogger.logInfo("MainActivity", "setupLogView started")
+            // Initialize log RecyclerView
+            binding.logRecyclerView.layoutManager = LinearLayoutManager(this)
+            logAdapter = LogAdapter(LogManager.getLogEntries().toMutableList())
+            binding.logRecyclerView.adapter = logAdapter
         
         // Scroll to bottom
         if (logAdapter.itemCount > 0) {
@@ -320,6 +359,11 @@ class MainActivity : AppCompatActivity() {
         }
         
         LogManager.logEvent("MainActivity", "Persistent log view initialized")
+        ErrorLogger.logInfo("MainActivity", "setupLogView completed")
+        } catch (e: Exception) {
+            ErrorLogger.logError("MainActivity", "Exception in setupLogView", e)
+            throw e
+        }
     }
     
     private fun toggleLogExpansion() {
@@ -356,30 +400,37 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun registerEmergencyReceiver() {
-        val filter = IntentFilter("com.fourpeople.adhoc.EMERGENCY_DETECTED")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(emergencyReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(emergencyReceiver, filter)
-        }
-        
-        // Register status update receiver
-        val statusFilter = IntentFilter(AdHocCommunicationService.ACTION_STATUS_UPDATE)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(statusUpdateReceiver, statusFilter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(statusUpdateReceiver, statusFilter)
-        }
-        
-        // Register infrastructure status receiver
-        val infraFilter = IntentFilter().apply {
-            addAction(AdHocCommunicationService.ACTION_INFRASTRUCTURE_STATUS)
-            addAction(AdHocCommunicationService.ACTION_INFRASTRUCTURE_FAILURE)
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(infrastructureStatusReceiver, infraFilter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(infrastructureStatusReceiver, infraFilter)
+        try {
+            ErrorLogger.logInfo("MainActivity", "registerEmergencyReceiver started")
+            val filter = IntentFilter("com.fourpeople.adhoc.EMERGENCY_DETECTED")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(emergencyReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(emergencyReceiver, filter)
+            }
+            
+            // Register status update receiver
+            val statusFilter = IntentFilter(AdHocCommunicationService.ACTION_STATUS_UPDATE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(statusUpdateReceiver, statusFilter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(statusUpdateReceiver, statusFilter)
+            }
+            
+            // Register infrastructure status receiver
+            val infraFilter = IntentFilter().apply {
+                addAction(AdHocCommunicationService.ACTION_INFRASTRUCTURE_STATUS)
+                addAction(AdHocCommunicationService.ACTION_INFRASTRUCTURE_FAILURE)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(infrastructureStatusReceiver, infraFilter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(infrastructureStatusReceiver, infraFilter)
+            }
+            ErrorLogger.logInfo("MainActivity", "registerEmergencyReceiver completed")
+        } catch (e: Exception) {
+            ErrorLogger.logError("MainActivity", "Exception in registerEmergencyReceiver", e)
+            throw e
         }
     }
 
@@ -602,31 +653,43 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun setupNFC() {
-        nfcHelper = NFCHelper(this)
-        if (nfcHelper?.initialize() == true) {
-            // NFC is available - set a placeholder device ID
-            // The actual device ID will be updated when emergency mode is activated
-            nfcHelper?.setDeviceId(NFCHelper.DEVICE_ID_PLACEHOLDER)
+        try {
+            ErrorLogger.logInfo("MainActivity", "setupNFC started")
+            nfcHelper = NFCHelper(this)
+            if (nfcHelper?.initialize() == true) {
+                // NFC is available - set a placeholder device ID
+                // The actual device ID will be updated when emergency mode is activated
+                nfcHelper?.setDeviceId(NFCHelper.DEVICE_ID_PLACEHOLDER)
+            }
+            ErrorLogger.logInfo("MainActivity", "setupNFC completed")
+        } catch (e: Exception) {
+            ErrorLogger.logError("MainActivity", "Exception in setupNFC", e)
+            // NFC is optional, don't throw
         }
     }
     
     private fun handleNfcIntent(intent: Intent?) {
-        if (intent?.action == NfcAdapter.ACTION_NDEF_DISCOVERED) {
-            val rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
-            if (rawMessages != null && rawMessages.isNotEmpty()) {
-                val message = rawMessages[0] as NdefMessage
-                val credentials = nfcHelper?.parseNdefMessage(message)
-                
-                if (credentials != null && credentials.isValid()) {
-                    onNetworkCredentialsReceived(credentials)
-                } else {
-                    Toast.makeText(
-                        this,
-                        "Invalid or expired NFC credentials",
-                        Toast.LENGTH_SHORT
-                    ).show()
+        try {
+            if (intent?.action == NfcAdapter.ACTION_NDEF_DISCOVERED) {
+                ErrorLogger.logInfo("MainActivity", "NFC intent detected")
+                val rawMessages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
+                if (rawMessages != null && rawMessages.isNotEmpty()) {
+                    val message = rawMessages[0] as NdefMessage
+                    val credentials = nfcHelper?.parseNdefMessage(message)
+                    
+                    if (credentials != null && credentials.isValid()) {
+                        onNetworkCredentialsReceived(credentials)
+                    } else {
+                        Toast.makeText(
+                            this,
+                            "Invalid or expired NFC credentials",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             }
+        } catch (e: Exception) {
+            ErrorLogger.logError("MainActivity", "Exception in handleNfcIntent", e)
         }
     }
     
@@ -634,29 +697,41 @@ class MainActivity : AppCompatActivity() {
      * Handle intents from app shortcuts and Google Assistant
      */
     private fun handleShortcutIntent(intent: Intent?) {
-        when (intent?.action) {
-            "com.fourpeople.adhoc.action.ACTIVATE_PANIC_MODE" -> {
-                LogManager.logEvent("MainActivity", "Panic mode activation requested via shortcut/Google Assistant")
-                // Switch to panic tab
-                binding.viewPager.setCurrentItem(1, true)
-                // Activate panic mode if not already active
-                if (!isPanicModeActive) {
-                    togglePanicMode()
-                } else {
-                    Toast.makeText(this, R.string.panic_active, Toast.LENGTH_SHORT).show()
+        try {
+            when (intent?.action) {
+                "com.fourpeople.adhoc.action.ACTIVATE_PANIC_MODE" -> {
+                    ErrorLogger.logInfo("MainActivity", "Panic mode activation requested via shortcut/Google Assistant")
+                    LogManager.logEvent("MainActivity", "Panic mode activation requested via shortcut/Google Assistant")
+                    // Switch to panic tab
+                    binding.viewPager.setCurrentItem(1, true)
+                    // Activate panic mode if not already active
+                    if (!isPanicModeActive) {
+                        togglePanicMode()
+                    } else {
+                        Toast.makeText(this, R.string.panic_active, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                "com.fourpeople.adhoc.action.ACTIVATE_EMERGENCY_MODE" -> {
+                    ErrorLogger.logInfo("MainActivity", "Emergency mode activation requested via shortcut/Google Assistant")
+                    LogManager.logEvent("MainActivity", "Emergency mode activation requested via shortcut/Google Assistant")
+                    // Switch to emergency tab
+                    binding.viewPager.setCurrentItem(0, true)
+                    // Activate emergency mode if not already active
+                    if (!isEmergencyActive) {
+                        handleEmergencyButtonClick()
+                    } else {
+                        Toast.makeText(this, R.string.emergency_active, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                else -> {
+                    // Normal app launch or other intent - do nothing
+                    if (intent?.action != null && intent.action != Intent.ACTION_MAIN) {
+                        ErrorLogger.logInfo("MainActivity", "Unhandled intent action: ${intent.action}")
+                    }
                 }
             }
-            "com.fourpeople.adhoc.action.ACTIVATE_EMERGENCY_MODE" -> {
-                LogManager.logEvent("MainActivity", "Emergency mode activation requested via shortcut/Google Assistant")
-                // Switch to emergency tab
-                binding.viewPager.setCurrentItem(0, true)
-                // Activate emergency mode if not already active
-                if (!isEmergencyActive) {
-                    handleEmergencyButtonClick()
-                } else {
-                    Toast.makeText(this, R.string.emergency_active, Toast.LENGTH_SHORT).show()
-                }
-            }
+        } catch (e: Exception) {
+            ErrorLogger.logError("MainActivity", "Exception in handleShortcutIntent", e)
         }
     }
     

@@ -1,6 +1,7 @@
 package com.fourpeople.adhoc
 
 import android.app.Application
+import android.util.Log
 import com.fourpeople.adhoc.util.ErrorLogger
 import com.fourpeople.adhoc.util.LogManager
 
@@ -13,14 +14,27 @@ class FourPeopleApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         
-        // Initialize LogManager with persistent storage
-        LogManager.initialize(this)
-        
-        // Initialize error logging to file system
-        ErrorLogger.initialize(this)
-        
-        // Set up global uncaught exception handler for crash logging
-        setupCrashHandler()
+        try {
+            Log.d("FourPeopleApplication", "Application onCreate started")
+            
+            // Initialize LogManager with persistent storage
+            LogManager.initialize(this)
+            Log.d("FourPeopleApplication", "LogManager initialized")
+            
+            // Initialize error logging to file system
+            ErrorLogger.initialize(this)
+            Log.d("FourPeopleApplication", "ErrorLogger initialized")
+            
+            // Set up global uncaught exception handler for crash logging
+            setupCrashHandler()
+            Log.d("FourPeopleApplication", "Crash handler set up")
+            
+            ErrorLogger.logInfo("FourPeopleApplication", "Application started successfully")
+            ErrorLogger.logInfo("FourPeopleApplication", "Log directory: ${ErrorLogger.getLogDirectoryPath()}")
+        } catch (e: Exception) {
+            Log.e("FourPeopleApplication", "Failed to initialize application", e)
+            ErrorLogger.logError("FourPeopleApplication", "Failed to initialize application", e)
+        }
     }
     
     private fun setupCrashHandler() {

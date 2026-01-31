@@ -9,6 +9,7 @@ import android.os.Build
 import android.widget.RemoteViews
 import com.fourpeople.adhoc.R
 import com.fourpeople.adhoc.service.PanicModeService
+import com.fourpeople.adhoc.util.ErrorLogger
 
 /**
  * Panic Mode Widget Provider for one-click panic mode activation.
@@ -28,6 +29,7 @@ class PanicWidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
+        ErrorLogger.logInfo("PanicWidget", "onUpdate called for ${appWidgetIds.size} widgets")
         // Update all active widget instances
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
@@ -37,9 +39,12 @@ class PanicWidget : AppWidgetProvider() {
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         
+        ErrorLogger.logInfo("PanicWidget", "onReceive called with action: ${intent.action}")
+        
         when (intent.action) {
             ACTION_ACTIVATE_PANIC -> {
                 // Activate panic mode
+                ErrorLogger.logInfo("PanicWidget", "Activating panic mode from widget")
                 activatePanicMode(context)
             }
             PanicModeService.ACTION_WIDGET_UPDATE -> {
@@ -57,65 +62,78 @@ class PanicWidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
-        // Check if panic mode is currently active
-        val isActive = PanicModeService.isActive(context)
-        
-        // Create an Intent to activate panic mode
-        val intent = Intent(context, PanicWidget::class.java).apply {
-            action = ACTION_ACTIVATE_PANIC
-        }
-        
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            0,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        // Construct the RemoteViews object
-        val views = RemoteViews(context.packageName, R.layout.panic_widget).apply {
-            setOnClickPendingIntent(R.id.panic_widget_button, pendingIntent)
+        try {
+            // Check if panic mode is currently active
+            val isActive = PanicModeService.isActive(context)
             
-            // Update text based on current state
-            val textResId = if (isActive) R.string.deactivate_panic else R.string.activate_panic
-            setTextViewText(R.id.panic_widget_text, context.getString(textResId))
-            
-            // Update background color to indicate state - darker red when active
-            val backgroundColor = if (isActive) {
-                0xFF8B0000.toInt() // Dark red when active
-            } else {
-                0xFFD32F2F.toInt() // Normal red when inactive
+            // Create an Intent to activate panic mode
+            val intent = Intent(context, PanicWidget::class.java).apply {
+                action = ACTION_ACTIVATE_PANIC
             }
-            setInt(R.id.panic_widget_button, "setBackgroundColor", backgroundColor)
-        }
+            
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
 
-        // Update the widget
-        appWidgetManager.updateAppWidget(appWidgetId, views)
+            // Construct the RemoteViews object
+            val views = RemoteViews(context.packageName, R.layout.panic_widget).apply {
+                setOnClickPendingIntent(R.id.panic_widget_button, pendingIntent)
+                
+                // Update text based on current state
+                val textResId = if (isActive) R.string.deactivate_panic else R.string.activate_panic
+                setTextViewText(R.id.panic_widget_text, context.getString(textResId))
+                
+                // Update background color to indicate state - darker red when active
+                val backgroundColor = if (isActive) {
+                    0xFF8B0000.toInt() // Dark red when active
+                } else {
+                    0xFFD32F2F.toInt() // Normal red when inactive
+                }
+                setInt(R.id.panic_widget_button, "setBackgroundColor", backgroundColor)
+            }
+
+            // Update the widget
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+            ErrorLogger.logInfo("PanicWidget", "Widget $appWidgetId updated, isActive=$isActive")
+        } catch (e: Exception) {
+            ErrorLogger.logError("PanicWidget", "Failed to update widget $appWidgetId", e)
+        }
     }
 
     private fun activatePanicMode(context: Context) {
-        // Toggle panic mode based on current state
-        val isActive = PanicModeService.isActive(context)
-        val serviceIntent = Intent(context, PanicModeService::class.java).apply {
-            action = if (isActive) {
-                PanicModeService.ACTION_STOP
-            } else {
-                PanicModeService.ACTION_START
+        try {
+            // Toggle panic mode based on current state
+            val isActive = PanicModeService.isActive(context)
+            ErrorLogger.logInfo("PanicWidget", "Panic mode current state: $isActive, toggling...")
+            
+            val serviceIntent = Intent(context, PanicModeService::class.java).apply {
+                action = if (isActive) {
+                    PanicModeService.ACTION_STOP
+                } else {
+                    PanicModeService.ACTION_START
+                }
             }
-        }
-        
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(serviceIntent)
-        } else {
-            context.startService(serviceIntent)
-        }
-        
-        // Update all widget instances
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        val thisWidget = android.content.ComponentName(context, PanicWidget::class.java)
-        val appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget)
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
+            } else {
+                context.startService(serviceIntent)
+            }
+            
+            // Update all widget instances
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val thisWidget = android.content.ComponentName(context, PanicWidget::class.java)
+            val appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget)
+            for (appWidgetId in appWidgetIds) {
+                updateAppWidget(context, appWidgetManager, appWidgetId)
+            }
+            
+            ErrorLogger.logInfo("PanicWidget", "Panic mode toggled successfully")
+        } catch (e: Exception) {
+            ErrorLogger.logError("PanicWidget", "Failed to activate panic mode", e)
         }
     }
 }
