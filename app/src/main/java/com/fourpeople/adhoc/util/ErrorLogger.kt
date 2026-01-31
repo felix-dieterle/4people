@@ -39,38 +39,48 @@ object ErrorLogger {
             logDirectory = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 Log.d(TAG, "Android version >= Q (10), using app-specific directory in Downloads")
                 // Android 10+ use app-specific directory in Downloads
-                File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), LOG_DIR_NAME)
+                val externalDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                if (externalDir != null) {
+                    File(externalDir, LOG_DIR_NAME)
+                } else {
+                    Log.w(TAG, "getExternalFilesDir returned null, using internal storage")
+                    File(context.filesDir, LOG_DIR_NAME)
+                }
             } else {
                 Log.d(TAG, "Android version < Q (10), using public Downloads directory")
                 // Older Android versions use public Downloads directory
-                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), LOG_DIR_NAME)
+                try {
+                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), LOG_DIR_NAME)
+                } catch (e: Exception) {
+                    Log.w(TAG, "Could not access public Downloads, using internal storage", e)
+                    File(context.filesDir, LOG_DIR_NAME)
+                }
             }
             
             Log.d(TAG, "Attempting to create log directory: ${logDirectory?.absolutePath}")
             
-            // Fallback to internal storage if external storage is not available
-            if (logDirectory?.exists() == false && logDirectory?.mkdirs() == false) {
-                Log.w(TAG, "Could not create log directory in Downloads, using internal storage")
-                logDirectory = File(context.filesDir, LOG_DIR_NAME)
-                Log.d(TAG, "Using internal storage directory: ${logDirectory?.absolutePath}")
-                val mkdirsResult = logDirectory?.mkdirs()
-                Log.d(TAG, "Internal storage mkdirs result: $mkdirsResult")
-            }
-            
+            // Ensure directory exists
             logDirectory?.let { dir ->
                 if (!dir.exists()) {
                     Log.d(TAG, "Directory does not exist, creating: ${dir.absolutePath}")
                     val created = dir.mkdirs()
                     Log.d(TAG, "mkdirs result: $created")
+                    if (!created && !dir.exists()) {
+                        Log.e(TAG, "CRITICAL: Failed to create directory!")
+                        // Last resort fallback
+                        logDirectory = File(context.filesDir, LOG_DIR_NAME)
+                        logDirectory?.mkdirs()
+                        Log.d(TAG, "Using fallback internal storage: ${logDirectory?.absolutePath}")
+                    }
                 } else {
                     Log.d(TAG, "Directory already exists: ${dir.absolutePath}")
                 }
                 
                 // Verify directory is writable
                 if (dir.canWrite()) {
-                    Log.d(TAG, "Directory is writable")
+                    Log.d(TAG, "Directory is writable: YES")
                 } else {
-                    Log.w(TAG, "WARNING: Directory is NOT writable!")
+                    Log.e(TAG, "Directory is writable: NO - this will cause logging failures!")
                 }
             }
             
@@ -78,6 +88,10 @@ object ErrorLogger {
             Log.d(TAG, "Getting current or creating new log file...")
             currentLogFile = getCurrentOrNewLogFile()
             Log.d(TAG, "Current log file: ${currentLogFile?.absolutePath}")
+            
+            // Verify we can actually write to the log file
+            val testWriteSuccess = verifyLogFileWritable()
+            Log.d(TAG, "Test write to log file: ${if (testWriteSuccess) "SUCCESS" else "FAILED"}")
             
             // Clean up old log files
             Log.d(TAG, "Rotating logs if needed...")
@@ -87,14 +101,33 @@ object ErrorLogger {
             Log.d(TAG, "==================== ErrorLogger initialized successfully ====================")
             Log.d(TAG, "Log directory: $logPath")
             Log.d(TAG, "Current log file: ${currentLogFile?.name}")
+            Log.d(TAG, "Test write: ${if (testWriteSuccess) "SUCCESS" else "FAILED"}")
             
             // Log initialization to file
             logInfo(TAG, "==================== ErrorLogger initialized successfully ====================")
             logInfo(TAG, "Log directory: $logPath")
             logInfo(TAG, "Current log file: ${currentLogFile?.name}")
+            logInfo(TAG, "Android version: ${Build.VERSION.SDK_INT} (${Build.VERSION.RELEASE})")
             logInfo(TAG, "==============================================================================")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize ErrorLogger", e)
+        }
+    }
+    
+    /**
+     * Verify that we can actually write to the log file.
+     * Returns true if write succeeds, false otherwise.
+     */
+    private fun verifyLogFileWritable(): Boolean {
+        return try {
+            val testFile = currentLogFile ?: return false
+            FileWriter(testFile, true).use { writer ->
+                writer.write("") // Empty write to test
+            }
+            testFile.exists() && testFile.canRead()
+        } catch (e: Exception) {
+            Log.e(TAG, "Test write to log file failed", e)
+            false
         }
     }
     
