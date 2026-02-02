@@ -127,7 +127,9 @@ class SimulationDataClassesTest {
             peopleUninformed = 30,
             wifiNetworks = 10,
             simulationTime = 5000L,
-            eventOccurred = true
+            eventOccurred = true,
+            infrastructureFailure = InfrastructureFailureMode.DATA_BACKBONE,
+            smsAvailable = true
         )
         
         assertEquals(100, stats.totalPeople)

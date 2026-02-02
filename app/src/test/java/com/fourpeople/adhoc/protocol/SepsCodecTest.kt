@@ -133,7 +133,7 @@ class SepsCodecTest {
         val location = SepsLocation.fromJson(update.payload.getJSONObject("location"))
         assertEquals(52.5200, location.latitude, 0.0001)
         assertEquals(13.4050, location.longitude, 0.0001)
-        assertEquals(10.0, location.accuracy, 0.01)
+        assertEquals(10.0, location.accuracy ?: 0.0, 0.01)
     }
     
     @Test
