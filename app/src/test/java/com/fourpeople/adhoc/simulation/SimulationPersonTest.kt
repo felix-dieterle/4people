@@ -231,17 +231,28 @@ class SimulationPersonTest {
     }
 
     @Test
-    fun testSimulationPersonCustomMovementSpeed() {
-        val person = SimulationPerson(
+    fun testSimulationPersonMovementSpeedSetByMoving() {
+        // When isMoving=true, movementSpeed is automatically set to WALKING_SPEED
+        val movingPerson = SimulationPerson(
             id = "person-014",
             latitude = 0.0,
             longitude = 0.0,
             hasApp = true,
-            isMoving = true,
-            movementSpeed = 3.0  // Custom speed
+            isMoving = true
         )
 
-        assertEquals(3.0, person.movementSpeed, 0.001)
+        assertEquals(SimulationPerson.WALKING_SPEED, movingPerson.movementSpeed, 0.001)
+        
+        // When isMoving=false, movementSpeed is automatically set to STATIONARY_SPEED
+        val stationaryPerson = SimulationPerson(
+            id = "person-015",
+            latitude = 0.0,
+            longitude = 0.0,
+            hasApp = true,
+            isMoving = false
+        )
+
+        assertEquals(SimulationPerson.STATIONARY_SPEED, stationaryPerson.movementSpeed, 0.001)
     }
 
     @Test
