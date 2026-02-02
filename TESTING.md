@@ -9,6 +9,22 @@ The app uses JUnit 4 for unit testing. All tests are located in:
 app/src/test/java/com/fourpeople/adhoc/
 ```
 
+## Test Coverage Summary
+
+The project has comprehensive test coverage across all critical domains:
+
+- **Total Test Files**: 48+
+- **Coverage Areas**: 
+  - Core Services (AdHocCommunication, PanicMode, StandbyMonitoring)
+  - Location Domain (LocationSharing, SafeZone, LocationDataStore)
+  - Mesh Networking (MeshRouting, RouteTable, MeshMessage)
+  - Trust System (TrustManager, MessageVerification, ContactTrustLevel)
+  - Protocol Handlers (SEPS Protocol, Codec)
+  - Utility Helpers (LogManager, BatteryMonitor, EmergencySms)
+  - Simulation Engine (Scenarios, Person, WiFi)
+  - Widgets (EmergencyWidget, PanicWidget)
+  - Receivers (Boot, Broadcast, PhoneCall)
+
 ## Test Files Overview
 
 ### 1. AdHocCommunicationTest.kt
@@ -68,6 +84,106 @@ Security and robustness tests:
 - Edge case handling
 - Pattern matching security
 
+### Location Domain Tests
+
+#### 9. LocationSharingManagerTest.kt
+Tests location sharing functionality:
+- Location sharing activation/deactivation
+- Participant location tracking
+- Help request creation and forwarding
+- Event radius filtering
+- Stale location cleanup
+
+#### 10. SafeZoneTest.kt
+Tests safe zone data model:
+- Safe zone creation with various parameters
+- Validity checking (24-hour expiration)
+- Coordinate handling (including negative values)
+- Data class immutability and copying
+
+#### 11. SafeZoneManagerTest.kt
+Tests safe zone singleton manager:
+- Adding and removing safe zones
+- Finding nearest safe zone
+- Listener notifications
+- Automatic cleanup of invalid zones
+- Thread safety
+
+#### 12. LocationDataStoreTest.kt
+Tests location data singleton store:
+- Location updates and retrieval
+- Help request filtering
+- Listener notifications
+- Stale location cleanup
+- Thread safety
+
+### Utility Helper Tests
+
+#### 13. LogManagerTest.kt
+Tests centralized logging system:
+- Multiple log levels (INFO, WARNING, ERROR, EVENT, etc.)
+- Log entry formatting and timestamps
+- Listener notifications
+- Log persistence (JSON serialization)
+- Maximum log entry limits
+
+#### 14. BatteryMonitorTest.kt
+Tests battery-aware adaptive scanning:
+- Battery level reading
+- Adaptive scan intervals based on battery
+- Emergency vs standby mode intervals
+- Battery mode descriptions
+
+#### 15. EmergencySmsHelperTest.kt
+Tests SMS emergency notifications:
+- Contact list management
+- SMS enable/disable settings
+- International phone number support
+- Whitespace and empty value handling
+
+### Simulation Domain Tests
+
+#### 16. SimulationScenarioTest.kt
+Tests simulation scenarios:
+- Predefined scenario configurations
+- Location types (city, village)
+- Infrastructure failure modes
+- Verbal transmission settings
+- Approaching behavior settings
+- Parameter validation
+
+#### 17. SimulationWiFiTest.kt
+Tests WiFi access point simulation:
+- WiFi AP creation with position and range
+- Coordinate handling
+- Range customization
+
+#### 18. SimulationPersonTest.kt
+Tests person simulation:
+- Person state (moving, indoor, has app)
+- Movement speeds (walking, approaching, stationary)
+- Event reception tracking
+- Verbal transmission
+- Approaching behavior
+
+### Trust System Tests
+
+#### 19. ContactTrustLevelTest.kt
+Tests contact trust levels:
+- Trust level constants (Unknown, Known, Friend, Family)
+- Trust factor calculation (0.0 to 1.0)
+- Manual vs automatic trust setting
+- Trust level validation
+- Descriptive labels
+
+#### 20. MessageVerificationTest.kt
+Tests message verification system:
+- Confirmation and rejection tracking
+- Verifier identification
+- Timestamp tracking
+- Optional comments
+- Multiple verifications per message
+
 ## Running Tests
 
 ### Using Gradle (Recommended)
@@ -84,6 +200,9 @@ Security and robustness tests:
 
 # Run only release unit tests
 ./gradlew app:testReleaseUnitTest
+
+# Run tests and continue on failure
+./gradlew test --continue
 ```
 
 ### Using Android Studio
@@ -100,7 +219,56 @@ Security and robustness tests:
 
 # Run a specific test method
 ./gradlew test --tests com.fourpeople.adhoc.AdHocCommunicationTest.emergencyPatternIsCorrect
+
+# Run all tests in a package
+./gradlew test --tests "com.fourpeople.adhoc.location.*"
 ```
+
+## Automated CI/CD Testing
+
+The project includes automated testing in GitHub Actions workflows:
+
+### Pull Request Testing (`.github/workflows/pr-build.yml`)
+- Runs on every pull request to `main`
+- Executes full unit test suite
+- Publishes test results as PR check
+- Builds release APK
+- Must pass before merge
+
+### Release Testing (`.github/workflows/release.yml`)
+- Runs on every push to `main`
+- Executes full unit test suite
+- Publishes test results
+- Builds and publishes release APK
+- Increments version number
+
+### Dedicated Test Workflow (`.github/workflows/test.yml`)
+Runs comprehensive testing on pull requests and pushes:
+
+**Unit Tests Job:**
+- Runs all unit tests with `./gradlew test --continue`
+- Publishes detailed test reports
+- Uploads test results as artifacts (retained 30 days)
+- Fails workflow if tests fail
+
+**Lint Job:**
+- Runs Android lint checks
+- Uploads lint reports
+- Helps maintain code quality
+
+### Viewing Test Results in CI
+
+1. Navigate to the "Actions" tab in GitHub
+2. Select the workflow run
+3. View "Unit Test Results" check
+4. Download test artifacts for detailed HTML reports
+
+### Test Report Artifacts
+
+After each CI run, test reports are available:
+- **test-results**: JUnit XML test results
+- **test-reports**: HTML test reports with detailed output
+- Retained for 30 days
 
 ## Test Categories
 
