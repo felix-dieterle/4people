@@ -1,5 +1,8 @@
 # 4people - Ad-hoc Emergency Communication
 
+![Tests](https://github.com/felix-dieterle/4people/actions/workflows/test.yml/badge.svg)
+![Build](https://github.com/felix-dieterle/4people/actions/workflows/pr-build.yml/badge.svg)
+
 Emergency communication app for Android that enables ad-hoc networking when traditional infrastructure fails.
 
 ## Konzept (Concept)
