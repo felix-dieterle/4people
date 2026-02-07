@@ -19,16 +19,30 @@ android {
 
     signingConfigs {
         create("release") {
-            // Use debug keystore for development and CI builds
-            // This ensures APKs are installable without manual signing
-            // For production Google Play Store releases, configure a proper release keystore:
-            // - Generate a release keystore: keytool -genkey -v -keystore release.keystore ...
-            // - Store keystore file securely (not in version control)
-            // - Use environment variables for credentials in CI
-            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"  
-            keyPassword = "android"
+            // Release signing configuration
+            // Priority: Use release keystore from environment if available, otherwise fall back to debug keystore
+            
+            val keystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
+            val keystorePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+            val keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+            val keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            
+            if (keystorePath != null && keystorePassword != null && keyAlias != null && keyPassword != null) {
+                // Production release configuration from environment variables
+                storeFile = file(keystorePath)
+                storePassword = keystorePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+                println("Using release keystore from environment: $keystorePath")
+            } else {
+                // Fallback to debug keystore for local development
+                // WARNING: Debug-signed APKs cannot update production APKs!
+                storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+                storePassword = "android"
+                this.keyAlias = "androiddebugkey"
+                this.keyPassword = "android"
+                println("WARNING: Using debug keystore - APKs will not be updateable!")
+            }
         }
     }
     
@@ -39,9 +53,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Sign release builds with debug key for now
-            // Replace with actual release signing config for production
+            // Sign all release builds consistently
             signingConfig = signingConfigs.getByName("release")
+        }
+        debug {
+            // Debug builds use the default debug signing config
+            // This is separate from release builds
         }
     }
     compileOptions {
