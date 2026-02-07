@@ -31,15 +31,31 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       
-      - name: Generate debug keystore
+      - name: Set up signing keystore
         run: |
-          # Create .android directory if it doesn't exist
-          mkdir -p ~/.android
-          # Generate debug keystore with default Android debug key values
-          keytool -genkey -v -keystore ~/.android/debug.keystore \
-            -storepass android -alias androiddebugkey -keypass android \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US"
+          # Check if release keystore secret is available
+          if [ -n "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ]; then
+            echo "Setting up release keystore from secrets..."
+            echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+            # Mask sensitive values before writing to environment
+            echo "::add-mask::${{ secrets.RELEASE_KEYSTORE_PASSWORD }}"
+            echo "::add-mask::${{ secrets.RELEASE_KEY_PASSWORD }}"
+            echo "RELEASE_KEYSTORE_PATH=release.keystore" >> $GITHUB_ENV
+            echo "RELEASE_KEYSTORE_PASSWORD=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+            echo "RELEASE_KEY_ALIAS=${{ secrets.RELEASE_KEY_ALIAS }}" >> $GITHUB_ENV
+            echo "RELEASE_KEY_PASSWORD=${{ secrets.RELEASE_KEY_PASSWORD }}" >> $GITHUB_ENV
+            echo "✓ Release keystore configured - APKs will be updateable"
+          else
+            echo "WARNING: No release keystore configured in GitHub secrets"
+            echo "Falling back to debug keystore - APKs will NOT be updateable"
+            echo "To fix this, add RELEASE_KEYSTORE_BASE64 and related secrets to GitHub"
+            # Generate debug keystore as fallback
+            mkdir -p ~/.android
+            keytool -genkey -v -keystore ~/.android/debug.keystore \
+              -storepass android -alias androiddebugkey -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
       
       - name: Get current version
         id: get_version

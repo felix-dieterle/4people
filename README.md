@@ -152,23 +152,39 @@ The app requires the following permissions for full functionality:
 # Build debug APK
 ./gradlew assembleDebug
 
-# Build release APK (signed with debug key for testing)
+# Build release APK
 ./gradlew assembleRelease
 
 # Install on connected device
 ./gradlew installDebug
 ```
 
-**Note about APK Signing**: Release builds are signed with the Android debug keystore to make them installable. For production distribution through Google Play Store, replace the signing configuration in `app/build.gradle.kts` with a proper release keystore.
+### APK Signing and Updates
+
+**Important**: For APKs to be updateable, they must be signed with the same keystore across all versions.
+
+- **Local Development**: By default, debug keystore is used (APKs not updateable)
+- **Production Releases**: Configure a release keystore in GitHub secrets for updateable APKs
+- **Setup Instructions**: See [RELEASE_KEYSTORE_SETUP.md](RELEASE_KEYSTORE_SETUP.md) for detailed configuration guide
+
+**Without a release keystore**, each build will be signed with a different key, preventing app updates (users must uninstall and reinstall).
 
 ## Releases
 
 This project uses automated releases through GitHub Actions. When changes are merged to the `main` branch:
 
 1. **Version is automatically incremented**: Both `versionCode` and `versionName` are bumped
-2. **Release APK is built and signed**: A signed APK is generated using the debug keystore
+2. **Release APK is built and signed**: A signed APK is generated
 3. **GitHub Release is created**: A new release with the version tag is published
 4. **APK is attached**: The built APK is automatically uploaded to the release
+
+**APK Updateability**: 
+- ✅ If a release keystore is configured in GitHub secrets, APKs will be updateable across versions
+- ⚠️ Without a release keystore, APKs use debug signing and cannot update each other
+
+See [RELEASE_KEYSTORE_SETUP.md](RELEASE_KEYSTORE_SETUP.md) for instructions on configuring a release keystore.
+
+For more details about the release workflow, see [RELEASE_WORKFLOW.md](RELEASE_WORKFLOW.md).
 
 ### Download Latest Release
 
@@ -382,6 +398,8 @@ The app uses multiple communication channels that work in different scenarios:
 
 For detailed information about the project, see:
 
+- **[RELEASE_KEYSTORE_SETUP.md](RELEASE_KEYSTORE_SETUP.md)**: Guide for setting up release keystore to enable updateable APKs
+- **[RELEASE_WORKFLOW.md](RELEASE_WORKFLOW.md)**: Automated build and release workflow documentation
 - **[EMERGENCY_PROTOCOL_SPEC.md](EMERGENCY_PROTOCOL_SPEC.md)**: Standard Emergency Protocol Specification (SEPS) v1.0
 - **[INTEROPERABILITY_GUIDE.md](INTEROPERABILITY_GUIDE.md)**: Guide for implementing SEPS in other emergency apps
 - **[NOTFALL_SZENARIEN.md](NOTFALL_SZENARIEN.md)**: Comprehensive emergency scenarios, flowcharts, and improvement recommendations (German)

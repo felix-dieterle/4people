@@ -29,3 +29,9 @@ captures/
 output.json
 *.log
 node_modules/
+
+# Keystore files - NEVER commit these!
+*.keystore
+*.jks
+*.keystore.base64
+release.keystore

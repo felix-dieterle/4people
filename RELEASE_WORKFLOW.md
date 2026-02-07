@@ -4,6 +4,8 @@
 
 This document explains the automated build and release workflows for the 4people Android app.
 
+**IMPORTANT**: For APKs to be updateable across versions, you must configure a release keystore. See [RELEASE_KEYSTORE_SETUP.md](RELEASE_KEYSTORE_SETUP.md) for detailed instructions.
+
 ## Workflows
 
 ### PR Build Check (`pr-build.yml`)
@@ -24,16 +26,22 @@ Runs on every pull request to `main` branch to catch build issues early.
 Runs when code is merged to `main` branch to create official releases, or can be triggered manually.
 
 **Features:**
-1. **Increments the version** (both `versionCode` and `versionName`)
-2. **Builds a release APK** using Gradle
-3. **Creates a GitHub release** with the version tag
-4. **Uploads the APK** to the release
-5. **Saves the APK as a workflow artifact** for 90 days
-6. **Generates debug keystore** automatically for signing
+1. **Sets up signing keystore** - Uses release keystore from GitHub secrets if configured, otherwise falls back to debug keystore
+2. **Increments the version** (both `versionCode` and `versionName`)
+3. **Builds a release APK** using Gradle
+4. **Creates a GitHub release** with the version tag
+5. **Uploads the APK** to the release
+6. **Saves the APK as a workflow artifact** for 90 days
 
 **When it runs:** 
 - Automatically on every push to `main` branch
 - Manually via the GitHub Actions UI (workflow_dispatch)
+
+**APK Updateability:**
+- ✅ **If release keystore is configured**: APKs are signed with the same key and can update each other
+- ⚠️ **If release keystore is NOT configured**: Falls back to debug keystore, APKs are NOT updateable
+
+See [RELEASE_KEYSTORE_SETUP.md](RELEASE_KEYSTORE_SETUP.md) for keystore setup instructions.
 
 ## How It Works
 
@@ -57,7 +65,10 @@ This ensures the workflow doesn't trigger itself when it commits the version bum
 
 1. **Checkout code**: Fetches the repository
 2. **Set up JDK 17**: Configures Java for Android builds
-3. **Generate debug keystore**: Creates Android debug keystore for signing
+3. **Set up signing keystore**: 
+   - Checks for release keystore in GitHub secrets
+   - If found: Decodes base64 keystore and configures environment variables
+   - If not found: Falls back to generating debug keystore
 4. **Get current version**: Extracts version from `app/build.gradle.kts`
 5. **Increment version**: Calculates new version numbers
 6. **Commit version bump**: Commits updated version to main branch
@@ -203,6 +214,6 @@ grep -A 1 "versionCode\|versionName" app/build.gradle.kts
 - Each merge creates exactly one release
 - APK artifacts from releases are retained for 90 days
 - APK artifacts from PR builds are retained for 7 days
-- **Release APKs are signed with the Android debug keystore** (generated automatically in CI) to make them installable
-- The debug keystore is generated using standard Android debug key values for consistency
-- For production releases with Google Play Store, replace the debug signing configuration with a proper release keystore
+- **For updateable APKs**, configure a release keystore in GitHub secrets (see [RELEASE_KEYSTORE_SETUP.md](RELEASE_KEYSTORE_SETUP.md))
+- **Without a release keystore**, builds fall back to debug keystore and APKs will NOT be updateable
+- For Google Play Store publishing, see Google's official app signing documentation
