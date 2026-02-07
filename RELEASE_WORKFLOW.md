@@ -21,7 +21,7 @@ Runs on every pull request to `main` branch to catch build issues early.
 
 ### Release Workflow (`release.yml`)
 
-Runs when code is merged to `main` branch to create official releases.
+Runs when code is merged to `main` branch to create official releases, or can be triggered manually.
 
 **Features:**
 1. **Increments the version** (both `versionCode` and `versionName`)
@@ -31,7 +31,9 @@ Runs when code is merged to `main` branch to create official releases.
 5. **Saves the APK as a workflow artifact** for 90 days
 6. **Generates debug keystore** automatically for signing
 
-**When it runs:** On every push to `main` branch
+**When it runs:** 
+- Automatically on every push to `main` branch
+- Manually via the GitHub Actions UI (workflow_dispatch)
 
 ## How It Works
 
@@ -98,7 +100,26 @@ This ensures the workflow doesn't trigger itself when it commits the version bum
 
 ### Testing Release Workflow
 
-### Prerequisites
+There are two ways to trigger the release workflow:
+1. **Automatically** - by merging/pushing to the `main` branch
+2. **Manually** - using the GitHub Actions UI
+
+#### Manual Triggering
+
+To manually trigger a release build:
+
+1. **Navigate to Actions tab** in the GitHub repository
+2. **Select "Build and Release APK"** from the workflows list
+3. **Click "Run workflow"** button (top right)
+4. **Select the branch** (usually `main`)
+5. **Click "Run workflow"** to start the build
+
+This is useful for:
+- Creating a release without making code changes
+- Re-running a failed release build
+- Testing the release workflow
+
+#### Prerequisites
 
 - Push access to the `main` branch
 - GitHub Actions enabled for the repository
