@@ -33,7 +33,7 @@ android {
                 storePassword = keystorePassword
                 this.keyAlias = keyAlias
                 this.keyPassword = keyPassword
-                println("Using release keystore from environment: $keystorePath")
+                println("Using release keystore from environment")
             } else {
                 // Fallback to debug keystore for local development
                 // WARNING: Debug-signed APKs cannot update production APKs!

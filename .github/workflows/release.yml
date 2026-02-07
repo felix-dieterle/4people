@@ -37,6 +37,9 @@ jobs:
           if [ -n "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ]; then
             echo "Setting up release keystore from secrets..."
             echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+            # Mask sensitive values before writing to environment
+            echo "::add-mask::${{ secrets.RELEASE_KEYSTORE_PASSWORD }}"
+            echo "::add-mask::${{ secrets.RELEASE_KEY_PASSWORD }}"
             echo "RELEASE_KEYSTORE_PATH=release.keystore" >> $GITHUB_ENV
             echo "RELEASE_KEYSTORE_PASSWORD=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
             echo "RELEASE_KEY_ALIAS=${{ secrets.RELEASE_KEY_ALIAS }}" >> $GITHUB_ENV

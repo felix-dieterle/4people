@@ -48,14 +48,17 @@ keytool -genkey -v -keystore 4people-release.keystore \
 GitHub secrets can only store text, so we need to encode the binary keystore file:
 
 ```bash
-# On Linux/macOS
+# On Linux
 base64 -w 0 4people-release.keystore > 4people-release.keystore.base64
+
+# On macOS
+base64 -i 4people-release.keystore -o 4people-release.keystore.base64
 
 # On Windows (PowerShell)
 [Convert]::ToBase64String([IO.File]::ReadAllBytes("4people-release.keystore")) > 4people-release.keystore.base64
 ```
 
-This creates a text file containing the base64-encoded keystore.
+**Note**: Different platforms have different base64 options. The important thing is that the output should be a single continuous line without line breaks.
 
 ### Step 3: Add Secrets to GitHub
 
