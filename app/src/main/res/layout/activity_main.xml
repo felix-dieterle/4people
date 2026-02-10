@@ -74,7 +74,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="12dp">
 
             <!-- Emergency Section Header -->
             <LinearLayout
@@ -82,7 +82,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="8dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -115,54 +115,54 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/activate_emergency"
-                android:textSize="16sp"
-                android:padding="14dp" />
+                android:textSize="15sp"
+                android:padding="12dp" />
 
             <LinearLayout
                 android:id="@+id/detailsLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="12dp">
+                android:layout_marginTop="8dp">
 
                 <TextView
                     android:id="@+id/bluetoothStatusTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/bluetooth_status"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="6dp" />
+                    android:textSize="13sp"
+                    android:layout_marginBottom="4dp" />
 
                 <TextView
                     android:id="@+id/wifiStatusTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/wifi_status"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="6dp" />
+                    android:textSize="13sp"
+                    android:layout_marginBottom="4dp" />
 
                 <TextView
                     android:id="@+id/hotspotStatusTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/hotspot_status"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="6dp" />
+                    android:textSize="13sp"
+                    android:layout_marginBottom="4dp" />
                     
                 <TextView
                     android:id="@+id/wifiConnectionStatusTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/wifi_connection_status"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="6dp" />
+                    android:textSize="13sp"
+                    android:layout_marginBottom="4dp" />
 
                 <TextView
                     android:id="@+id/locationStatusTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/location_sharing_status"
-                    android:textSize="14sp" />
+                    android:textSize="13sp" />
             </LinearLayout>
 
             <!-- Infrastructure Status Section -->
@@ -171,17 +171,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/infrastructure_status_header"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="6dp" />
 
             <LinearLayout
                 android:id="@+id/infrastructureStatusLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="12dp"
+                android:padding="8dp"
                 android:background="@android:drawable/dialog_holo_light_frame">
 
                 <TextView
@@ -189,39 +189,39 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/infra_bluetooth_status"
-                    android:textSize="13sp"
-                    android:layout_marginBottom="4dp" />
+                    android:textSize="12sp"
+                    android:layout_marginBottom="3dp" />
 
                 <TextView
                     android:id="@+id/infraWifiStatusTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/infra_wifi_status"
-                    android:textSize="13sp"
-                    android:layout_marginBottom="4dp" />
+                    android:textSize="12sp"
+                    android:layout_marginBottom="3dp" />
 
                 <TextView
                     android:id="@+id/infraCellularStatusTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/infra_cellular_status"
-                    android:textSize="13sp"
-                    android:layout_marginBottom="4dp" />
+                    android:textSize="12sp"
+                    android:layout_marginBottom="3dp" />
 
                 <TextView
                     android:id="@+id/infraMeshStatusTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/infra_mesh_status"
-                    android:textSize="13sp"
-                    android:layout_marginBottom="4dp" />
+                    android:textSize="12sp"
+                    android:layout_marginBottom="3dp" />
 
                 <TextView
                     android:id="@+id/infraOverallStatusTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/infra_overall_status"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -231,7 +231,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="12dp">
+                android:layout_marginTop="8dp">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/viewLocationsButton"
@@ -239,7 +239,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/view_locations"
-                    android:layout_marginEnd="6dp"
+                    android:layout_marginEnd="4dp"
+                    android:textSize="12sp"
                     style="@style/Widget.Material3.Button.OutlinedButton" />
 
                 <com.google.android.material.button.MaterialButton
@@ -249,8 +250,19 @@
                     android:layout_weight="1"
                     android:text="@string/send_help_request"
                     android:backgroundTint="#FF5722"
-                    android:layout_marginStart="6dp" />
+                    android:textSize="12sp"
+                    android:layout_marginStart="4dp" />
             </LinearLayout>
+
+            <!-- Simulation Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/simulationButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/open_simulation"
+                android:textSize="12sp"
+                android:layout_marginTop="8dp"
+                style="@style/Widget.Material3.Button.OutlinedButton" />
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
@@ -260,7 +272,7 @@
         android:id="@+id/panicCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp"
         app:strokeWidth="2dp"
@@ -273,7 +285,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="12dp">
 
             <!-- Panic Mode Section Header -->
             <LinearLayout
@@ -281,7 +293,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="8dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -314,39 +326,25 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/activate_panic"
-                android:textSize="16sp"
-                android:padding="14dp"
+                android:textSize="15sp"
+                android:padding="12dp"
                 android:backgroundTint="#D32F2F" />
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
-
-    <!-- Additional Features Section -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/simulationButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/open_simulation"
-        android:textSize="14sp"
-        android:padding="12dp"
-        style="@style/Widget.Material3.Button.OutlinedButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/panicCard"
-        android:layout_marginTop="16dp" />
 
     <TextView
         android:id="@+id/scanningTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/scanning_for_emergencies"
-        android:textSize="14sp"
+        android:textSize="13sp"
         android:textStyle="italic"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/simulationButton"
+        app:layout_constraintTop_toBottomOf="@id/panicCard"
         android:layout_marginTop="12dp"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="12dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>
