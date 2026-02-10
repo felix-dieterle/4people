@@ -349,6 +349,8 @@
     
     <!-- Infrastructure monitoring strings -->
     <string name="infrastructure_status_header">Infrastructure Health</string>
+    <string name="emergency_communication_title">Emergency Communication</string>
+    <string name="panic_mode_title">Panic Mode</string>
     <string name="infra_bluetooth_status">Bluetooth: %s</string>
     <string name="infra_wifi_status">WiFi: %s</string>
     <string name="infra_cellular_status">Cellular: %s</string>
