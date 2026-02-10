@@ -23,13 +23,6 @@ class SimulationActivityTest {
     )
 
     @Test
-    fun testSimulationActivityLaunches() {
-        // Verify simulation screen launches
-        onView(withId(R.id.scenarioSpinner))
-            .check(matches(isDisplayed()))
-    }
-
-    @Test
     fun testScenarioSpinnerDisplayed() {
         // Verify scenario selection spinner is present
         onView(withId(R.id.scenarioSpinner))

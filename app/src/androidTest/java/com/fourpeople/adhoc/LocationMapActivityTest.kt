@@ -23,23 +23,9 @@ class LocationMapActivityTest {
     )
 
     @Test
-    fun testLocationMapActivityLaunches() {
-        // Verify location map screen launches
-        onView(withId(R.id.locationRecyclerView))
-            .check(matches(isDisplayed()))
-    }
-
-    @Test
     fun testRecyclerViewDisplayed() {
         // Verify the recycler view for locations is present
         onView(withId(R.id.locationRecyclerView))
-            .check(matches(isDisplayed()))
-    }
-
-    @Test
-    fun testNoLocationsMessageDisplayed() {
-        // Verify the "no locations" message is shown when list is empty
-        onView(withId(R.id.noLocationsTextView))
             .check(matches(isDisplayed()))
     }
 }

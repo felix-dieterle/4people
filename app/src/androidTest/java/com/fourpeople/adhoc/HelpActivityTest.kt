@@ -23,13 +23,6 @@ class HelpActivityTest {
     )
 
     @Test
-    fun testHelpActivityLaunches() {
-        // Verify help screen launches
-        onView(withId(R.id.tabLayout))
-            .check(matches(isDisplayed()))
-    }
-
-    @Test
     fun testTabLayoutDisplayed() {
         // Verify tab layout is present
         onView(withId(R.id.tabLayout))

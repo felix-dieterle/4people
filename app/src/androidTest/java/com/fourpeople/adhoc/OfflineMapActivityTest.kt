@@ -23,13 +23,6 @@ class OfflineMapActivityTest {
     )
 
     @Test
-    fun testOfflineMapActivityLaunches() {
-        // Verify offline map screen launches
-        onView(withId(R.id.mapView))
-            .check(matches(isDisplayed()))
-    }
-
-    @Test
     fun testMapViewDisplayed() {
         // Verify the map view is present
         onView(withId(R.id.mapView))

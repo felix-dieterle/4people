@@ -23,13 +23,6 @@ class SettingsActivityTest {
     )
 
     @Test
-    fun testSettingsActivityLaunches() {
-        // Verify settings screen launches and displays
-        onView(withId(R.id.standbyMonitoringSwitch))
-            .check(matches(isDisplayed()))
-    }
-
-    @Test
     fun testStandbyMonitoringSwitchDisplayed() {
         // Verify standby monitoring switch is present
         onView(withId(R.id.standbyMonitoringSwitch))
