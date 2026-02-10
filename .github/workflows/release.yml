@@ -41,68 +41,132 @@ jobs:
             -keyalg RSA -keysize 2048 -validity 10000 \
             -dname "CN=Android Debug,O=Android,C=US"
       
-      - name: Get current version
+      - name: Get current version from code
         id: get_version
         run: |
           # Extract version with validation
-          VERSION_CODE=$(grep "versionCode = " app/build.gradle.kts | awk '{print $3}')
-          VERSION_NAME=$(grep "versionName = " app/build.gradle.kts | awk '{print $3}' | tr -d '"')
+          CODE_VERSION_CODE=$(grep "versionCode = " app/build.gradle.kts | awk '{print $3}')
+          CODE_VERSION_NAME=$(grep "versionName = " app/build.gradle.kts | awk '{print $3}' | tr -d '"')
           
           # Validate extraction
-          if [ -z "$VERSION_CODE" ] || [ -z "$VERSION_NAME" ]; then
+          if [ -z "$CODE_VERSION_CODE" ] || [ -z "$CODE_VERSION_NAME" ]; then
             echo "Error: Failed to extract version from app/build.gradle.kts"
             exit 1
           fi
           
           # Validate version code is a number
-          if ! [[ "$VERSION_CODE" =~ ^[0-9]+$ ]]; then
-            echo "Error: Invalid versionCode format: $VERSION_CODE"
+          if ! [[ "$CODE_VERSION_CODE" =~ ^[0-9]+$ ]]; then
+            echo "Error: Invalid versionCode format: $CODE_VERSION_CODE"
             exit 1
           fi
           
-          echo "current_version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
-          echo "current_version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
-          echo "Current version: $VERSION_NAME ($VERSION_CODE)"
+          echo "code_version_code=$CODE_VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "code_version_name=$CODE_VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "Code version: $CODE_VERSION_NAME ($CODE_VERSION_CODE)"
       
-      - name: Increment version
-        id: increment_version
+      - name: Get latest release version from GitHub
+        id: get_latest_release
         run: |
-          CURRENT_CODE=${{ steps.get_version.outputs.current_version_code }}
-          CURRENT_NAME=${{ steps.get_version.outputs.current_version_name }}
+          # Fetch latest release information
+          LATEST_RELEASE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/latest")
+          
+          # Check if any releases exist
+          if echo "$LATEST_RELEASE" | jq -e '.tag_name' > /dev/null 2>&1; then
+            RELEASE_TAG=$(echo "$LATEST_RELEASE" | jq -r '.tag_name')
+            # Extract version from tag (e.g., v1.0.48 -> 1.0.48)
+            RELEASE_VERSION_NAME=$(echo "$RELEASE_TAG" | sed 's/^v//')
+            
+            # Extract version code from release body if present
+            RELEASE_BODY=$(echo "$LATEST_RELEASE" | jq -r '.body')
+            if echo "$RELEASE_BODY" | grep -q "Build [0-9]"; then
+              RELEASE_VERSION_CODE=$(echo "$RELEASE_BODY" | grep -oP "Build \K[0-9]+")
+            else
+              # Fallback: set to 0 to use code version
+              RELEASE_VERSION_CODE=0
+            fi
+            
+            echo "release_version_code=$RELEASE_VERSION_CODE" >> $GITHUB_OUTPUT
+            echo "release_version_name=$RELEASE_VERSION_NAME" >> $GITHUB_OUTPUT
+            echo "release_exists=true" >> $GITHUB_OUTPUT
+            echo "Latest release: $RELEASE_VERSION_NAME ($RELEASE_VERSION_CODE)"
+          else
+            echo "release_exists=false" >> $GITHUB_OUTPUT
+            echo "No previous releases found"
+          fi
+      
+      - name: Determine next version
+        id: next_version
+        run: |
+          CODE_VERSION_CODE=${{ steps.get_version.outputs.code_version_code }}
+          CODE_VERSION_NAME=${{ steps.get_version.outputs.code_version_name }}
+          RELEASE_EXISTS=${{ steps.get_latest_release.outputs.release_exists }}
+          
+          if [ "$RELEASE_EXISTS" = "true" ]; then
+            RELEASE_VERSION_CODE=${{ steps.get_latest_release.outputs.release_version_code }}
+            RELEASE_VERSION_NAME=${{ steps.get_latest_release.outputs.release_version_name }}
+            
+            # Use the maximum version code and increment
+            if [ "$RELEASE_VERSION_CODE" -ge "$CODE_VERSION_CODE" ]; then
+              BASE_VERSION_CODE=$RELEASE_VERSION_CODE
+              BASE_VERSION_NAME=$RELEASE_VERSION_NAME
+              echo "Using release version as base (release >= code)"
+            else
+              BASE_VERSION_CODE=$CODE_VERSION_CODE
+              BASE_VERSION_NAME=$CODE_VERSION_NAME
+              echo "Using code version as base (code > release)"
+            fi
+          else
+            # No releases yet, use code version
+            BASE_VERSION_CODE=$CODE_VERSION_CODE
+            BASE_VERSION_NAME=$CODE_VERSION_NAME
+            echo "No releases found, using code version as base"
+          fi
           
           # Increment version code
-          NEW_CODE=$((CURRENT_CODE + 1))
+          NEW_CODE=$((BASE_VERSION_CODE + 1))
           
           # Increment version name (semver patch)
-          # Handle both X.Y and X.Y.Z format
-          if [[ "$CURRENT_NAME" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+          if [[ "$BASE_VERSION_NAME" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
             MAJOR="${BASH_REMATCH[1]}"
             MINOR="${BASH_REMATCH[2]}"
             PATCH="${BASH_REMATCH[3]}"
             NEW_PATCH=$((PATCH + 1))
             NEW_NAME="${MAJOR}.${MINOR}.${NEW_PATCH}"
-          elif [[ "$CURRENT_NAME" =~ ^([0-9]+)\.([0-9]+)$ ]]; then
+          elif [[ "$BASE_VERSION_NAME" =~ ^([0-9]+)\.([0-9]+)$ ]]; then
             MAJOR="${BASH_REMATCH[1]}"
             MINOR="${BASH_REMATCH[2]}"
             NEW_MINOR=$((MINOR + 1))
             NEW_NAME="${MAJOR}.${NEW_MINOR}.0"
           else
-            echo "Error: Unsupported version format: $CURRENT_NAME"
+            echo "Error: Unsupported version format: $BASE_VERSION_NAME"
             exit 1
           fi
           
+          echo "base_version_code=$BASE_VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "base_version_name=$BASE_VERSION_NAME" >> $GITHUB_OUTPUT
           echo "new_version_code=$NEW_CODE" >> $GITHUB_OUTPUT
           echo "new_version_name=$NEW_NAME" >> $GITHUB_OUTPUT
-          echo "New version: $NEW_NAME ($NEW_CODE)"
+          echo "Next version: $NEW_NAME ($NEW_CODE)"
+      
+      - name: Update version in code
+        id: update_version
+        run: |
+          CODE_VERSION_CODE=${{ steps.get_version.outputs.code_version_code }}
+          CODE_VERSION_NAME=${{ steps.get_version.outputs.code_version_name }}
+          NEW_CODE=${{ steps.next_version.outputs.new_version_code }}
+          NEW_NAME=${{ steps.next_version.outputs.new_version_name }}
+          
+          echo "Updating from $CODE_VERSION_NAME ($CODE_VERSION_CODE) to $NEW_NAME ($NEW_CODE)"
           
           # Update build.gradle.kts using perl for safer substitution
           # versionCode is numeric (validated above), no escaping needed
-          perl -i -pe "s/versionCode = $CURRENT_CODE/versionCode = $NEW_CODE/" app/build.gradle.kts
+          perl -i -pe "s/versionCode = $CODE_VERSION_CODE/versionCode = $NEW_CODE/" app/build.gradle.kts
           
           # Escape dots in version name for regex matching
-          CURRENT_NAME_ESCAPED=$(echo "$CURRENT_NAME" | sed 's/\./\\./g')
+          CODE_NAME_ESCAPED=$(echo "$CODE_VERSION_NAME" | sed 's/\./\\./g')
           NEW_NAME_ESCAPED=$(echo "$NEW_NAME" | sed 's/\./\\./g')
-          perl -i -pe "s/versionName = \"$CURRENT_NAME_ESCAPED\"/versionName = \"$NEW_NAME_ESCAPED\"/" app/build.gradle.kts
+          perl -i -pe "s/versionName = \"$CODE_NAME_ESCAPED\"/versionName = \"$NEW_NAME_ESCAPED\"/" app/build.gradle.kts
           
           # Verify the changes were applied
           if ! grep -q "versionCode = $NEW_CODE" app/build.gradle.kts; then
@@ -119,7 +183,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add app/build.gradle.kts
-          git commit -m "Bump version to ${{ steps.increment_version.outputs.new_version_name }} (build ${{ steps.increment_version.outputs.new_version_code }})"
+          git commit -m "Bump version to ${{ steps.next_version.outputs.new_version_name }} (build ${{ steps.next_version.outputs.new_version_code }})"
           git push
       
       - name: Build Release APK
@@ -146,22 +210,22 @@ jobs:
           echo "APK built at: $APK_PATH"
           
           # Rename APK with version
-          NEW_APK_NAME="4people-v${{ steps.increment_version.outputs.new_version_name }}.apk"
+          NEW_APK_NAME="4people-v${{ steps.next_version.outputs.new_version_name }}.apk"
           cp "$APK_PATH" "$NEW_APK_NAME"
           echo "renamed_apk=$NEW_APK_NAME" >> $GITHUB_OUTPUT
       
       - name: Create Release and Upload APK
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.increment_version.outputs.new_version_name }}
-          name: Release v${{ steps.increment_version.outputs.new_version_name }}
+          tag_name: v${{ steps.next_version.outputs.new_version_name }}
+          name: Release v${{ steps.next_version.outputs.new_version_name }}
           body: |
-            ## 4people v${{ steps.increment_version.outputs.new_version_name }}
+            ## 4people v${{ steps.next_version.outputs.new_version_name }}
             
             Automatic release build from commit ${{ github.sha }}
             
             ### Changes
-            Build ${{ steps.increment_version.outputs.new_version_code }}
+            Build ${{ steps.next_version.outputs.new_version_code }}
             
             ### Download
             Download the APK below to install on your Android device.
@@ -179,6 +243,6 @@ jobs:
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: 4people-v${{ steps.increment_version.outputs.new_version_name }}-apk
+          name: 4people-v${{ steps.next_version.outputs.new_version_name }}-apk
           path: ${{ steps.find_apk.outputs.apk_path }}
           retention-days: 90
