@@ -67,9 +67,24 @@ jobs:
       - name: Get latest release version from GitHub
         id: get_latest_release
         run: |
-          # Fetch latest release information
-          LATEST_RELEASE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          # Fetch latest release information with error handling
+          HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/release.json \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/releases/latest")
+          
+          # Check for HTTP errors
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            if [ "$HTTP_CODE" -eq 404 ]; then
+              echo "No releases found (HTTP 404)"
+              echo "release_exists=false" >> $GITHUB_OUTPUT
+              exit 0
+            else
+              echo "Error: GitHub API request failed with HTTP $HTTP_CODE"
+              exit 1
+            fi
+          fi
+          
+          LATEST_RELEASE=$(cat /tmp/release.json)
           
           # Check if any releases exist
           if echo "$LATEST_RELEASE" | jq -e '.tag_name' > /dev/null 2>&1; then
@@ -79,10 +94,11 @@ jobs:
             
             # Extract version code from release body if present
             RELEASE_BODY=$(echo "$LATEST_RELEASE" | jq -r '.body')
-            if echo "$RELEASE_BODY" | grep -q "Build [0-9]"; then
+            if echo "$RELEASE_BODY" | grep -q "Build [0-9]\+"; then
               RELEASE_VERSION_CODE=$(echo "$RELEASE_BODY" | grep -oP "Build \K[0-9]+")
             else
-              # Fallback: set to 0 to use code version
+              # Fallback: set to 0 to ensure code version will be used as base
+              # (since code version will always be >= 1, it will be chosen as the maximum)
               RELEASE_VERSION_CODE=0
             fi
             
