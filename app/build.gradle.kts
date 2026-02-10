@@ -11,8 +11,8 @@ android {
         applicationId = "com.fourpeople.adhoc"
         minSdk = 26
         targetSdk = 34
-        versionCode = 39
-        versionName = "1.0.38"
+        versionCode = 50
+        versionName = "1.0.49"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
