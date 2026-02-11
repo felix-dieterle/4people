@@ -157,10 +157,10 @@ class SepsMessageTest {
         
         assertEquals(52.5200, parsed.latitude, 0.0001)
         assertEquals(13.4050, parsed.longitude, 0.0001)
-        assertEquals(10.0, parsed.accuracy, 0.01)
-        assertEquals(45.0, parsed.altitude, 0.01)
-        assertEquals(1.5, parsed.speed, 0.01)
-        assertEquals(180.0, parsed.bearing, 0.01)
+        assertEquals(10.0, parsed.accuracy!!, 0.01)
+        assertEquals(45.0, parsed.altitude!!, 0.01)
+        assertEquals(1.5, parsed.speed!!, 0.01)
+        assertEquals(180.0, parsed.bearing!!, 0.01)
     }
     
     @Test
