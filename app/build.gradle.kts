@@ -70,8 +70,9 @@ dependencies {
     implementation("org.osmdroid:osmdroid-android:6.1.18")
     
     testImplementation("junit:junit:4.13.2")
-    // Mockito 5.x - using versions confirmed available in Maven Central
-    testImplementation("org.mockito:mockito-core:5.3.0")
+    // Mockito 5.2.0 - using matching versions confirmed available in Maven Central
+    // Both mockito-core and mockito-inline must use the same version for compatibility
+    testImplementation("org.mockito:mockito-core:5.2.0")
     testImplementation("org.mockito:mockito-inline:5.2.0")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
