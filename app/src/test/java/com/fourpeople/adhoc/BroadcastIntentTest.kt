@@ -2,10 +2,13 @@ package com.fourpeople.adhoc
 
 import org.junit.Test
 import org.junit.Assert.*
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /**
  * Tests for broadcast intent actions and integration patterns.
  */
+@RunWith(RobolectricTestRunner::class)
 class BroadcastIntentTest {
 
     @Test

@@ -74,6 +74,8 @@ dependencies {
     // Both mockito-core and mockito-inline must use the same version for compatibility
     testImplementation("org.mockito:mockito-core:5.2.0")
     testImplementation("org.mockito:mockito-inline:5.2.0")
+    // Robolectric for Android framework testing in unit tests
+    testImplementation("org.robolectric:robolectric:4.16.1")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }
