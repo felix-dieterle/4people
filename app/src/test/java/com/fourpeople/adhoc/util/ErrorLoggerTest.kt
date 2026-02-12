@@ -21,7 +21,7 @@ class ErrorLoggerTest {
         MockitoAnnotations.openMocks(this)
         // Create a temporary directory for testing
         tempDir = createTempDir("error_logger_test")
-        `when`(mockContext.filesDir).thenReturn(tempDir)
+        `when`(mockContext.getFilesDir()).thenReturn(tempDir)
     }
     
     @Test
