@@ -4,6 +4,8 @@ import android.content.Context
 import org.junit.Test
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.times
@@ -16,6 +18,7 @@ import org.mockito.Mockito.argThat
 /**
  * Tests for MeshRoutingManager functionality.
  */
+@RunWith(RobolectricTestRunner::class)
 class MeshRoutingManagerTest {
     
     private lateinit var context: Context
