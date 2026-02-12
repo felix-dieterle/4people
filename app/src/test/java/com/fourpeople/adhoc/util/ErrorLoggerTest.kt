@@ -3,14 +3,12 @@ package com.fourpeople.adhoc.util
 import android.content.Context
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.*
-import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.MockitoAnnotations
 import java.io.File
 import org.junit.Assert.*
 
-@RunWith(MockitoJUnitRunner::class)
 class ErrorLoggerTest {
     
     @Mock
@@ -20,6 +18,7 @@ class ErrorLoggerTest {
     
     @Before
     fun setUp() {
+        MockitoAnnotations.openMocks(this)
         // Create a temporary directory for testing
         tempDir = createTempDir("error_logger_test")
         `when`(mockContext.filesDir).thenReturn(tempDir)
