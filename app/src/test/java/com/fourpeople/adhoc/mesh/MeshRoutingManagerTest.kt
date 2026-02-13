@@ -21,17 +21,19 @@ class MeshRoutingManagerTest {
     private lateinit var context: Context
     private lateinit var routingManager: MeshRoutingManager
     private val deviceId = "testDevice"
-    private lateinit var autoCloseable: AutoCloseable
+    private var autoCloseable: AutoCloseable? = null
     
     @Before
     fun setup() {
+        // Clear any leftover Mockito state from previous tests
+        validateMockitoUsage()
         autoCloseable = MockitoAnnotations.openMocks(this)
         routingManager = MeshRoutingManager(context, deviceId)
     }
     
     @After
     fun tearDown() {
-        autoCloseable.close()
+        autoCloseable?.close()
     }
     
     @Test
