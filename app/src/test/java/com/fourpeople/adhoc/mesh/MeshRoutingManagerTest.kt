@@ -80,7 +80,7 @@ class MeshRoutingManagerTest {
         routingManager.broadcastMessage("Test broadcast")
         
         // Verify forwarder was called
-        verify(forwarder, atLeastOnce())).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
+        verify(forwarder, atLeastOnce()).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
     }
     
     @Test
@@ -99,7 +99,7 @@ class MeshRoutingManagerTest {
         routingManager.receiveMessage(message, "device1")
         
         // Verify listener was called
-        verify(listener, times(1)).onMessageReceived(any())
+        verify(listener, times(1)).onMessageReceived(ArgumentMatchers.any())
     }
     
     @Test
@@ -117,13 +117,13 @@ class MeshRoutingManagerTest {
         
         // Receive message first time
         routingManager.receiveMessage(message, "device1")
-        verify(listener, times(1)).onMessageReceived(any())
+        verify(listener, times(1)).onMessageReceived(ArgumentMatchers.any())
         
         // Receive same message again (duplicate)
         routingManager.receiveMessage(message, "device1")
         
         // Listener should still only be called once
-        verify(listener, times(1)).onMessageReceived(any())
+        verify(listener, times(1)).onMessageReceived(ArgumentMatchers.any())
     }
     
     @Test
@@ -154,7 +154,7 @@ class MeshRoutingManagerTest {
         routingManager.receiveMessage(message, "device2")
         
         // Should forward to neighbors
-        verify(forwarder, atLeastOnce())).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
+        verify(forwarder, atLeastOnce()).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
     }
     
     @Test
@@ -174,7 +174,7 @@ class MeshRoutingManagerTest {
         routingManager.receiveMessage(message, "device1")
         
         // Should not forward - verify no forwarding happened at all
-        verify(forwarder, never())).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
+        verify(forwarder, never()).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
     }
     
     @Test
@@ -193,7 +193,7 @@ class MeshRoutingManagerTest {
         routingManager.receiveMessage(rreq, "device1")
         
         // Should either reply or forward
-        verify(forwarder, atLeastOnce())).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
+        verify(forwarder, atLeastOnce()).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
     }
     
     @Test
@@ -213,7 +213,7 @@ class MeshRoutingManagerTest {
         routingManager.receiveMessage(rreq, "device1")
         
         // Should send route reply - verify forwarder was called at least once
-        verify(forwarder, atLeastOnce())).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
+        verify(forwarder, atLeastOnce()).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
     }
     
     @Test
