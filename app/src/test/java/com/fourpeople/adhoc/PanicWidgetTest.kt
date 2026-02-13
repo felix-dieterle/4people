@@ -15,6 +15,7 @@ import org.mockito.MockitoAnnotations
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.anyInt
+import org.mockito.Mockito.anyBoolean
 
 /**
  * Test class for PanicWidget
@@ -39,7 +40,7 @@ class PanicWidgetTest {
         
         // Setup SharedPreferences mock
         `when`(context.getSharedPreferences(anyString(), anyInt())).thenReturn(sharedPreferences)
-        `when`(sharedPreferences.getBoolean(anyString(), org.mockito.Mockito.anyBoolean())).thenReturn(false)
+        `when`(sharedPreferences.getBoolean(anyString(), anyBoolean())).thenReturn(false)
         `when`(context.packageName).thenReturn("com.fourpeople.adhoc")
         
         widget = PanicWidget()

@@ -65,16 +65,21 @@ data class LocationData(
         
         /**
          * Unescapes a JSON string value.
+         * Uses a two-pass approach with a unique placeholder to avoid interference between replacements.
          */
         private fun unescapeJsonString(str: String): String {
+            // Use an unlikely Unicode character sequence as placeholder
+            val placeholder = "\uFFFF\uFFFE"
             return str
+                .replace("\\\\", placeholder)
                 .replace("\\\"", "\"")
-                .replace("\\\\", "\\")
                 .replace("\\n", "\n")
                 .replace("\\r", "\r")
                 .replace("\\t", "\t")
                 .replace("\\b", "\b")
                 .replace("\\f", "\u000C")
+                // Replace placeholder with single backslash
+                .replace(placeholder, "\\")
         }
     }
     
