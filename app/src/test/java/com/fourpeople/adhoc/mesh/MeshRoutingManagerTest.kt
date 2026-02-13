@@ -4,11 +4,12 @@ import android.content.Context
 import org.junit.Test
 import org.junit.Assert.*
 import org.junit.Before
-import org.junit.After
+import org.junit.Rule
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.mockito.Mock
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
+import org.mockito.junit.MockitoRule
 import org.mockito.Mockito.*
 
 /**
@@ -17,21 +18,17 @@ import org.mockito.Mockito.*
 @RunWith(RobolectricTestRunner::class)
 class MeshRoutingManagerTest {
     
+    @get:Rule
+    val mockitoRule: MockitoRule = MockitoJUnit.rule()
+    
     @Mock
     private lateinit var context: Context
     private lateinit var routingManager: MeshRoutingManager
     private val deviceId = "testDevice"
-    private var autoCloseable: AutoCloseable? = null
     
     @Before
     fun setup() {
-        autoCloseable = MockitoAnnotations.openMocks(this)
         routingManager = MeshRoutingManager(context, deviceId)
-    }
-    
-    @After
-    fun tearDown() {
-        autoCloseable?.close()
     }
     
     @Test
