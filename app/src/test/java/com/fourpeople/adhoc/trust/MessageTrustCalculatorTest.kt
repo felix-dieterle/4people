@@ -86,7 +86,7 @@ class MessageTrustCalculatorTest {
             verifications = emptyList()
         )
         
-        // Trust factor 0.0 * 0.6 + 1.0 * 0.4 = 0.0 + 0.40 = 0.40
+        // Trust factor: 0.0 * 0.5 (sender) + 1.0 * 0.3 (hops) + 0.1 (security) = 0.40
         assertEquals(0.40, score, 0.01)
     }
     
