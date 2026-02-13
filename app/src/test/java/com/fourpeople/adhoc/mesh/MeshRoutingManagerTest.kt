@@ -4,13 +4,13 @@ import android.content.Context
 import org.junit.Test
 import org.junit.Assert.*
 import org.junit.Before
-import org.junit.Rule
+import org.junit.After
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.mockito.Mock
-import org.mockito.junit.MockitoJUnit
-import org.mockito.junit.MockitoRule
+import org.mockito.MockitoAnnotations
 import org.mockito.Mockito.*
+import org.mockito.ArgumentMatchers
 
 /**
  * Tests for MeshRoutingManager functionality.
@@ -18,17 +18,21 @@ import org.mockito.Mockito.*
 @RunWith(RobolectricTestRunner::class)
 class MeshRoutingManagerTest {
     
-    @get:Rule
-    val mockitoRule: MockitoRule = MockitoJUnit.rule()
-    
     @Mock
     private lateinit var context: Context
     private lateinit var routingManager: MeshRoutingManager
     private val deviceId = "testDevice"
+    private var closeable: AutoCloseable? = null
     
     @Before
     fun setup() {
+        closeable = MockitoAnnotations.openMocks(this)
         routingManager = MeshRoutingManager(context, deviceId)
+    }
+    
+    @After
+    fun tearDown() {
+        closeable?.close()
     }
     
     @Test
@@ -76,7 +80,7 @@ class MeshRoutingManagerTest {
         routingManager.broadcastMessage("Test broadcast")
         
         // Verify forwarder was called
-        verify(forwarder, atLeastOnce()).forwardMessage(any(), anyString())
+        verify(forwarder, atLeastOnce())).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
     }
     
     @Test
@@ -150,7 +154,7 @@ class MeshRoutingManagerTest {
         routingManager.receiveMessage(message, "device2")
         
         // Should forward to neighbors
-        verify(forwarder, atLeastOnce()).forwardMessage(any(), anyString())
+        verify(forwarder, atLeastOnce())).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
     }
     
     @Test
@@ -170,7 +174,7 @@ class MeshRoutingManagerTest {
         routingManager.receiveMessage(message, "device1")
         
         // Should not forward - verify no forwarding happened at all
-        verify(forwarder, never()).forwardMessage(any(), anyString())
+        verify(forwarder, never())).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
     }
     
     @Test
@@ -189,7 +193,7 @@ class MeshRoutingManagerTest {
         routingManager.receiveMessage(rreq, "device1")
         
         // Should either reply or forward
-        verify(forwarder, atLeastOnce()).forwardMessage(any(), anyString())
+        verify(forwarder, atLeastOnce())).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
     }
     
     @Test
@@ -209,7 +213,7 @@ class MeshRoutingManagerTest {
         routingManager.receiveMessage(rreq, "device1")
         
         // Should send route reply - verify forwarder was called at least once
-        verify(forwarder, atLeastOnce()).forwardMessage(any(), anyString())
+        verify(forwarder, atLeastOnce())).forwardMessage(ArgumentMatchers.any(), ArgumentMatchers.anyString())
     }
     
     @Test
