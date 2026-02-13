@@ -3,10 +3,13 @@ package com.fourpeople.adhoc.protocol
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /**
  * Tests for SEPS protocol message encoding and decoding.
  */
+@RunWith(RobolectricTestRunner::class)
 class SepsMessageTest {
     
     @Test

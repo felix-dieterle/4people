@@ -5,11 +5,14 @@ import android.content.SharedPreferences
 import org.junit.Before
 import org.junit.Test
 import org.junit.Assert.*
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import org.mockito.Mockito.*
 
 /**
  * Unit tests for TrustManager class.
  */
+@RunWith(RobolectricTestRunner::class)
 class TrustManagerTest {
     
     private lateinit var mockContext: Context

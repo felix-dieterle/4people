@@ -3,10 +3,13 @@ package com.fourpeople.adhoc.mesh
 import org.junit.Test
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /**
  * Tests for RouteTable functionality.
  */
+@RunWith(RobolectricTestRunner::class)
 class RouteTableTest {
     
     private lateinit var routeTable: RouteTable

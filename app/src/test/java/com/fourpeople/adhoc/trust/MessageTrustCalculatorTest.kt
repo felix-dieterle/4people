@@ -5,11 +5,14 @@ import android.content.SharedPreferences
 import org.junit.Before
 import org.junit.Test
 import org.junit.Assert.*
+import org.junit.runner.RunWith
 import org.mockito.Mockito.*
+import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests for MessageTrustCalculator class.
  */
+@RunWith(RobolectricTestRunner::class)
 class MessageTrustCalculatorTest {
     
     private lateinit var mockContext: Context
