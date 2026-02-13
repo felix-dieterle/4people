@@ -28,28 +28,30 @@ data class LocationData(
          */
         fun fromJson(json: String): LocationData? {
             return try {
-                val deviceIdMatch = Regex(""""deviceId":"([^"]+)"""").find(json)
+                // Updated regex to handle escaped quotes properly
+                // Use (?:[^"\\]|\\.)* to match any character except unescaped quotes
+                val deviceIdMatch = Regex(""""deviceId":"((?:[^"\\]|\\.)*?)"""").find(json)
                 val latMatch = Regex(""""latitude":(-?[\d.]+)""").find(json)
                 val lonMatch = Regex(""""longitude":(-?[\d.]+)""").find(json)
                 val accMatch = Regex(""""accuracy":([\d.]+)""").find(json)
                 val altMatch = Regex(""""altitude":(-?[\d.]+)""").find(json)
                 val timeMatch = Regex(""""timestamp":(\d+)""").find(json)
                 val helpMatch = Regex(""""isHelpRequest":(true|false)""").find(json)
-                val msgMatch = Regex(""""helpMessage":"([^"]*)"""").find(json)
+                val msgMatch = Regex(""""helpMessage":"((?:[^"\\]|\\.)*?)"""").find(json)
                 val radiusMatch = Regex(""""eventRadiusKm":([\d.]+)""").find(json)
                 val forwardedMatch = Regex(""""isForwarded":(true|false)""").find(json)
                 
                 if (deviceIdMatch != null && latMatch != null && lonMatch != null && 
                     accMatch != null && altMatch != null && timeMatch != null && helpMatch != null) {
                     LocationData(
-                        deviceId = deviceIdMatch.groupValues[1],
+                        deviceId = unescapeJsonString(deviceIdMatch.groupValues[1]),
                         latitude = latMatch.groupValues[1].toDouble(),
                         longitude = lonMatch.groupValues[1].toDouble(),
                         accuracy = accMatch.groupValues[1].toFloat(),
                         altitude = altMatch.groupValues[1].toDouble(),
                         timestamp = timeMatch.groupValues[1].toLong(),
                         isHelpRequest = helpMatch.groupValues[1].toBoolean(),
-                        helpMessage = msgMatch?.groupValues?.get(1)?.takeIf { it.isNotEmpty() },
+                        helpMessage = msgMatch?.groupValues?.get(1)?.takeIf { it.isNotEmpty() }?.let { unescapeJsonString(it) },
                         eventRadiusKm = radiusMatch?.groupValues?.get(1)?.toDoubleOrNull() ?: 100.0,
                         isForwarded = forwardedMatch?.groupValues?.get(1)?.toBoolean() ?: false
                     )
@@ -59,6 +61,20 @@ data class LocationData(
             } catch (e: Exception) {
                 null
             }
+        }
+        
+        /**
+         * Unescapes a JSON string value.
+         */
+        private fun unescapeJsonString(str: String): String {
+            return str
+                .replace("\\\"", "\"")
+                .replace("\\\\", "\\")
+                .replace("\\n", "\n")
+                .replace("\\r", "\r")
+                .replace("\\t", "\t")
+                .replace("\\b", "\b")
+                .replace("\\f", "\u000C")
         }
     }
     

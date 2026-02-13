@@ -6,6 +6,8 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.mockito.Mock
+import org.mockito.MockitoAnnotations
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.times
@@ -21,13 +23,14 @@ import org.mockito.Mockito.argThat
 @RunWith(RobolectricTestRunner::class)
 class MeshRoutingManagerTest {
     
+    @Mock
     private lateinit var context: Context
     private lateinit var routingManager: MeshRoutingManager
     private val deviceId = "testDevice"
     
     @Before
     fun setup() {
-        context = mock(Context::class.java)
+        MockitoAnnotations.openMocks(this)
         routingManager = MeshRoutingManager(context, deviceId)
     }
     
