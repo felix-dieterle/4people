@@ -10,8 +10,6 @@ import org.robolectric.RobolectricTestRunner
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.Mockito.*
-import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatcher
 
 /**
  * Tests for MeshRoutingManager functionality.
