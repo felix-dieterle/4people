@@ -63,7 +63,7 @@ class MessageTrustCalculatorTest {
         )
         
         // Trust factor: 0.67 * 0.5 (sender) + 1.0 * 0.3 (hops) + 0.1 (security) = 0.735
-        assertEquals(0.73, score, 0.01)
+        assertEquals(0.735, score, 0.01)
     }
     
     @Test
@@ -75,7 +75,7 @@ class MessageTrustCalculatorTest {
         )
         
         // Trust factor: 0.33 * 0.5 (sender) + 1.0 * 0.3 (hops) + 0.1 (security) = 0.565
-        assertEquals(0.56, score, 0.01)
+        assertEquals(0.565, score, 0.01)
     }
     
     @Test
@@ -103,7 +103,7 @@ class MessageTrustCalculatorTest {
         // Hop score: (1.0 - 0.2) * 0.3 = 0.24
         // Security: 0.1
         // Total: 0.335 + 0.24 + 0.1 = 0.675
-        assertEquals(0.67, score, 0.01)
+        assertEquals(0.675, score, 0.01)
     }
     
     @Test
