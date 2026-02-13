@@ -25,8 +25,6 @@ class MeshRoutingManagerTest {
     
     @Before
     fun setup() {
-        // Clear any leftover Mockito state from previous tests
-        validateMockitoUsage()
         autoCloseable = MockitoAnnotations.openMocks(this)
         routingManager = MeshRoutingManager(context, deviceId)
     }
