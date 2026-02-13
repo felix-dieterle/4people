@@ -5,10 +5,13 @@ import com.fourpeople.adhoc.location.SafeZone
 import com.fourpeople.adhoc.mesh.MeshMessage
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /**
  * Tests for SEPS protocol codec that converts between internal and SEPS formats.
  */
+@RunWith(RobolectricTestRunner::class)
 class SepsCodecTest {
     
     @Test

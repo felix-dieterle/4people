@@ -3,6 +3,7 @@ package com.fourpeople.adhoc
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import com.fourpeople.adhoc.widget.PanicWidget
 import org.junit.Assert.*
 import org.junit.Before
@@ -11,6 +12,10 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.anyString
+import org.mockito.Mockito.anyInt
+import org.mockito.Mockito.anyBoolean
 
 /**
  * Test class for PanicWidget
@@ -23,12 +28,21 @@ class PanicWidgetTest {
 
     @Mock
     private lateinit var appWidgetManager: AppWidgetManager
+    
+    @Mock
+    private lateinit var sharedPreferences: SharedPreferences
 
     private lateinit var widget: PanicWidget
 
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
+        
+        // Setup SharedPreferences mock
+        `when`(context.getSharedPreferences(anyString(), anyInt())).thenReturn(sharedPreferences)
+        `when`(sharedPreferences.getBoolean(anyString(), anyBoolean())).thenReturn(false)
+        `when`(context.packageName).thenReturn("com.fourpeople.adhoc")
+        
         widget = PanicWidget()
     }
 
