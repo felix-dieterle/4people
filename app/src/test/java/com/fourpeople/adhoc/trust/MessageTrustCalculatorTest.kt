@@ -50,8 +50,8 @@ class MessageTrustCalculatorTest {
             verifications = emptyList()
         )
         
-        // Trust factor 1.0 * 0.6 + 1.0 * 0.4 = 1.0
-        assertEquals(1.0, score, 0.01)
+        // Trust factor: 1.0 * 0.5 (sender) + 1.0 * 0.3 (hops) + 0.1 (security) = 0.9
+        assertEquals(0.90, score, 0.01)
     }
     
     @Test
@@ -62,8 +62,8 @@ class MessageTrustCalculatorTest {
             verifications = emptyList()
         )
         
-        // Trust factor 0.67 * 0.6 + 1.0 * 0.4 = 0.40 + 0.40 = 0.80
-        assertEquals(0.80, score, 0.01)
+        // Trust factor: 0.67 * 0.5 (sender) + 1.0 * 0.3 (hops) + 0.1 (security) = 0.735
+        assertEquals(0.73, score, 0.01)
     }
     
     @Test
@@ -74,8 +74,8 @@ class MessageTrustCalculatorTest {
             verifications = emptyList()
         )
         
-        // Trust factor 0.33 * 0.6 + 1.0 * 0.4 = 0.20 + 0.40 = 0.60
-        assertEquals(0.60, score, 0.01)
+        // Trust factor: 0.33 * 0.5 (sender) + 1.0 * 0.3 (hops) + 0.1 (security) = 0.565
+        assertEquals(0.56, score, 0.01)
     }
     
     @Test
@@ -98,11 +98,12 @@ class MessageTrustCalculatorTest {
             verifications = emptyList()
         )
         
-        // Sender: 0.67 * 0.6 = 0.40
+        // Sender: 0.67 * 0.5 = 0.335
         // Hop penalty: 2 * 0.1 = 0.2
-        // Hop score: (1.0 - 0.2) * 0.4 = 0.32
-        // Total: 0.40 + 0.32 = 0.72
-        assertEquals(0.72, score, 0.01)
+        // Hop score: (1.0 - 0.2) * 0.3 = 0.24
+        // Security: 0.1
+        // Total: 0.335 + 0.24 + 0.1 = 0.675
+        assertEquals(0.67, score, 0.01)
     }
     
     @Test
@@ -113,11 +114,12 @@ class MessageTrustCalculatorTest {
             verifications = emptyList()
         )
         
-        // Sender: 0.0 * 0.6 = 0.0
+        // Sender: 0.0 * 0.5 = 0.0
         // Hop penalty: 5 * 0.1 = 0.5 (max penalty)
-        // Hop score: (1.0 - 0.5) * 0.4 = 0.20
-        // Total: 0.0 + 0.20 = 0.20
-        assertEquals(0.20, score, 0.01)
+        // Hop score: (1.0 - 0.5) * 0.3 = 0.15
+        // Security: 0.1
+        // Total: 0.0 + 0.15 + 0.1 = 0.25
+        assertEquals(0.25, score, 0.01)
     }
     
     @Test
