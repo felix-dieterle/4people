@@ -3,6 +3,8 @@ package com.fourpeople.adhoc.simulation
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /**
  * Unit tests for the SimulationEngine.
@@ -15,6 +17,7 @@ import org.junit.Test
  * - People movement logic
  * - Statistics calculation
  */
+@RunWith(RobolectricTestRunner::class)
 class SimulationEngineTest {
     
     private lateinit var engine: SimulationEngine
