@@ -39,14 +39,6 @@ class MainActivityTest {
     }
 
     @Test
-    fun testPanicModeButtonDisplayed() {
-        // Verify panic mode button is present
-        onView(withId(R.id.panicModeButton))
-            .check(matches(isDisplayed()))
-            .check(matches(withText(R.string.activate_panic)))
-    }
-
-    @Test
     fun testSettingsButtonDisplayed() {
         // Verify settings button is accessible
         onView(withId(R.id.settingsButton))

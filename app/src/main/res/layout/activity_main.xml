@@ -267,72 +267,6 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Panic Mode Card Section -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/panicCard"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp"
-        app:strokeWidth="2dp"
-        app:strokeColor="#D32F2F"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/emergencyCard">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="12dp">
-
-            <!-- Panic Mode Section Header -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="🚨"
-                    android:textSize="18sp"
-                    android:importantForAccessibility="no"
-                    android:layout_marginEnd="8dp" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/panic_mode_title"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="#C62828" />
-
-                <ImageButton
-                    android:id="@+id/panicHelpButton"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@android:drawable/ic_menu_info_details"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/help_panic_mode_description" />
-            </LinearLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/panicModeButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/activate_panic"
-                android:textSize="15sp"
-                android:padding="12dp"
-                android:backgroundTint="#D32F2F" />
-
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
     <TextView
         android:id="@+id/scanningTextView"
         android:layout_width="wrap_content"
@@ -342,7 +276,7 @@
         android:textStyle="italic"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/panicCard"
+        app:layout_constraintTop_toBottomOf="@id/emergencyCard"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="12dp" />
 
