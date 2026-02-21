@@ -167,8 +167,8 @@ class NFCHelper(private val context: Context) {
      * 
      * @param activity The activity to disable foreground dispatch for
      */
-    fun disableForegroundDispatch(activity: Activity) {
-        nfcAdapter?.let { adapter ->
+    fun disableForegroundDispatch(@Suppress("UNUSED_PARAMETER") activity: Activity) {
+        nfcAdapter?.let { _ ->
             try {
                 // Android Beam was removed in API 30, no cleanup needed
                 Log.d(TAG, "NFC foreground dispatch disabled")
