@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 class SimulationActivityTest {
 
     @get:Rule
-    val activityRule = ActivityScenarioRule(
+    val activityRule = ActivityScenarioRule<SimulationActivity>(
         Intent(ApplicationProvider.getApplicationContext(), SimulationActivity::class.java)
     )
 
@@ -32,21 +32,21 @@ class SimulationActivityTest {
     @Test
     fun testSimulationCanvasDisplayed() {
         // Verify the simulation canvas is displayed
-        onView(withId(R.id.simulationCanvas))
+        onView(withId(R.id.simulationMapView))
             .check(matches(isDisplayed()))
     }
 
     @Test
     fun testStartButtonDisplayed() {
         // Verify start simulation button is present
-        onView(withId(R.id.startButton))
+        onView(withId(R.id.startEventButton))
             .check(matches(isDisplayed()))
     }
 
     @Test
     fun testStatisticsDisplayed() {
         // Verify statistics section is visible
-        onView(withId(R.id.statisticsTextView))
+        onView(withId(R.id.statsText))
             .check(matches(isDisplayed()))
     }
 }
