@@ -18,14 +18,14 @@ import org.junit.runner.RunWith
 class LocationMapActivityTest {
 
     @get:Rule
-    val activityRule = ActivityScenarioRule(
+    val activityRule = ActivityScenarioRule<LocationMapActivity>(
         Intent(ApplicationProvider.getApplicationContext(), LocationMapActivity::class.java)
     )
 
     @Test
     fun testRecyclerViewDisplayed() {
         // Verify the recycler view for locations is present
-        onView(withId(R.id.locationRecyclerView))
+        onView(withId(R.id.participantRecyclerView))
             .check(matches(isDisplayed()))
     }
 }

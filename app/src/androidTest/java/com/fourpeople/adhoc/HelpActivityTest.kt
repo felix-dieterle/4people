@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 class HelpActivityTest {
 
     @get:Rule
-    val activityRule = ActivityScenarioRule(
+    val activityRule = ActivityScenarioRule<HelpActivity>(
         Intent(ApplicationProvider.getApplicationContext(), HelpActivity::class.java)
     )
 

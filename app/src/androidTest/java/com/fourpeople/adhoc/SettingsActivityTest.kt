@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 class SettingsActivityTest {
 
     @get:Rule
-    val activityRule = ActivityScenarioRule(
+    val activityRule = ActivityScenarioRule<SettingsActivity>(
         Intent(ApplicationProvider.getApplicationContext(), SettingsActivity::class.java)
     )
 
@@ -32,17 +32,17 @@ class SettingsActivityTest {
     @Test
     fun testAutoActivationSwitchDisplayed() {
         // Verify auto-activation switch is present
-        onView(withId(R.id.autoActivationSwitch))
+        onView(withId(R.id.autoActivateSwitch))
             .check(matches(isDisplayed()))
     }
 
     @Test
     fun testSettingsLabelsDisplayed() {
         // Verify setting labels are visible
-        onView(withId(R.id.standbyMonitoringLabel))
+        onView(withId(R.id.standbyTitle))
             .check(matches(isDisplayed()))
         
-        onView(withId(R.id.autoActivationLabel))
+        onView(withId(R.id.autoActivateTitle))
             .check(matches(isDisplayed()))
     }
 }
