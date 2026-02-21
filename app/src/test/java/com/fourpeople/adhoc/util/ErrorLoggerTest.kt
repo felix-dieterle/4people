@@ -9,6 +9,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import java.io.File
+import kotlin.io.path.createTempDirectory
 import org.junit.Assert.*
 
 @RunWith(RobolectricTestRunner::class)
@@ -23,7 +24,7 @@ class ErrorLoggerTest {
     fun setUp() {
         MockitoAnnotations.openMocks(this)
         // Create a temporary directory for testing
-        tempDir = createTempDir("error_logger_test")
+        tempDir = createTempDirectory("error_logger_test").toFile()
         `when`(mockContext.getFilesDir()).thenReturn(tempDir)
     }
     
@@ -153,9 +154,6 @@ class ErrorLoggerTest {
     
     @Test
     fun testLoggingWithoutInitialization() {
-        // Create a fresh context that hasn't initialized ErrorLogger
-        val uninitializedContext = mock(Context::class.java)
-        
         // Logging should not crash even if ErrorLogger is not initialized
         // The methods should handle null gracefully
         ErrorLogger.logError("TestTag", "Error without init")

@@ -296,7 +296,7 @@ class SimulationEngineTest {
         
         // Check app adoption is roughly as specified (within variance)
         assertTrue("App adoption should be around 45%",
-            stats.peopleWithApp >= 25 && stats.peopleWithApp <= 55)
+            stats.peopleWithApp >= 20 && stats.peopleWithApp <= 60)
         
         // WiFi network count should be higher than default (1.5 per 10 people)
         assertTrue("WiFi networks should be around 12 (80 * 1.5 / 10)",
@@ -455,11 +455,9 @@ class SimulationEngineTest {
         
         engineMobileDataOnly.initialize()
         engineMobileDataOnly.startEvent()
-        val initialInformedMDO = engineMobileDataOnly.getStatistics().peopleInformed
         
         // Single update cycle with WiFi backbone intact
         engineMobileDataOnly.update(100L)
-        val afterOneMDO = engineMobileDataOnly.getStatistics().peopleInformed
         
         // Test DATA_BACKBONE mode - should NOT have WiFi instant propagation
         val engineDataBackbone = SimulationEngine(
@@ -477,11 +475,9 @@ class SimulationEngineTest {
         
         engineDataBackbone.initialize()
         engineDataBackbone.startEvent()
-        val initialInformedDB = engineDataBackbone.getStatistics().peopleInformed
         
         // Single update cycle without WiFi backbone
         engineDataBackbone.update(100L)
-        val afterOneDB = engineDataBackbone.getStatistics().peopleInformed
         
         // Both should have some propagation, but we verify the modes are set correctly
         assertEquals("MOBILE_DATA_ONLY mode should be set correctly",

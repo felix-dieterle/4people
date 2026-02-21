@@ -18,7 +18,7 @@ import org.junit.runner.RunWith
 class OfflineMapActivityTest {
 
     @get:Rule
-    val activityRule = ActivityScenarioRule(
+    val activityRule = ActivityScenarioRule<OfflineMapActivity>(
         Intent(ApplicationProvider.getApplicationContext(), OfflineMapActivity::class.java)
     )
 

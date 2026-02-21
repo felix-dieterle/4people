@@ -111,7 +111,6 @@ class AdaptiveScanningTest {
         val emergency10s = 10000L
         val emergency20s = 20000L
         val emergency40s = 40000L
-        val emergency60s = 60000L
         
         // Each tier should be roughly 2x the previous
         assertTrue(emergency20s >= emergency10s * 2)
@@ -121,7 +120,6 @@ class AdaptiveScanningTest {
         val standby30s = 30000L
         val standby60s = 60000L
         val standby120s = 120000L
-        val standby300s = 300000L
         
         // Each tier should be 2x or more the previous
         assertTrue(standby60s >= standby30s * 2)
