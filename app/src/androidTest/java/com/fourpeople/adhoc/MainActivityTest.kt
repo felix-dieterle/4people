@@ -23,6 +23,7 @@ class MainActivityTest {
     val grantPermissionRule: GrantPermissionRule = GrantPermissionRule.grant(
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.ACCESS_BACKGROUND_LOCATION,
         Manifest.permission.READ_PHONE_STATE,
         Manifest.permission.SEND_SMS,
         Manifest.permission.CAMERA,
