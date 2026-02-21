@@ -19,7 +19,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.fourpeople.adhoc.databinding.ActivityMainBinding
 import com.fourpeople.adhoc.service.AdHocCommunicationService
-import com.fourpeople.adhoc.service.PanicModeService
 import com.fourpeople.adhoc.util.ErrorLogger
 import com.fourpeople.adhoc.util.LogManager
 import com.fourpeople.adhoc.util.NFCHelper
@@ -32,7 +31,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private var isEmergencyActive = false
-    private var isPanicModeActive = false
     private var nfcHelper: NFCHelper? = null
     private var pendingEmergencyActivation = false
     
@@ -201,10 +199,6 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         nfcHelper?.enableForegroundDispatch(this)
         
-        // Check if panic mode service is actually running and update state
-        isPanicModeActive = PanicModeService.isActive(this)
-        updatePanicModeUI()
-        
         // Check if emergency mode service is running and request status update
         isEmergencyActive = AdHocCommunicationService.isActive(this)
         if (isEmergencyActive) {
@@ -273,14 +267,6 @@ class MainActivity : AppCompatActivity() {
 
         binding.sendHelpButton.setOnClickListener {
             sendHelpRequest()
-        }
-
-        binding.panicModeButton.setOnClickListener {
-            togglePanicMode()
-        }
-
-        binding.panicHelpButton.setOnClickListener {
-            showPanicModeHelp()
         }
 
         binding.simulationButton.setOnClickListener {
@@ -718,68 +704,6 @@ class MainActivity : AppCompatActivity() {
         builder.show()
     }
 
-    private fun togglePanicMode() {
-        if (!checkPermissions()) {
-            // Panic mode requires permissions but not emergency mode activation
-            // Show a specific message for panic mode
-            AlertDialog.Builder(this)
-                .setTitle(R.string.permission_required)
-                .setMessage(R.string.panic_permission_message)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    requestPermissions()
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
-            return
-        }
-
-        val intent = Intent(this, PanicModeService::class.java)
-        if (!isPanicModeActive) {
-            // Show confirmation dialog before activating panic mode
-            AlertDialog.Builder(this)
-                .setTitle(R.string.activate_panic)
-                .setMessage("Activating panic mode will:\n\n" +
-                        "• Request confirmation every 30 seconds\n" +
-                        "• Alert with vibration if no confirmation\n" +
-                        "• Escalate to full alarm if still no response\n" +
-                        "• Notify emergency contacts if necessary\n\n" +
-                        "Are you sure you want to activate panic mode?")
-                .setPositiveButton(android.R.string.yes) { _, _ ->
-                    isPanicModeActive = true
-                    LogManager.logEvent("MainActivity", "Panic mode activated by user")
-                    intent.action = PanicModeService.ACTION_START
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        startForegroundService(intent)
-                    } else {
-                        startService(intent)
-                    }
-                    updatePanicModeUI()
-                    Toast.makeText(this, R.string.panic_active, Toast.LENGTH_SHORT).show()
-                }
-                .setNegativeButton(android.R.string.no, null)
-                .show()
-        } else {
-            isPanicModeActive = false
-            LogManager.logEvent("MainActivity", "Panic mode deactivated by user")
-            intent.action = PanicModeService.ACTION_STOP
-            startService(intent)
-            updatePanicModeUI()
-            Toast.makeText(this, R.string.panic_inactive, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun updatePanicModeUI() {
-        if (isPanicModeActive) {
-            binding.panicModeButton.text = "🔴 ${getString(R.string.deactivate_panic)}"
-            binding.panicModeButton.backgroundTintList = 
-                ContextCompat.getColorStateList(this, android.R.color.holo_orange_dark)
-        } else {
-            binding.panicModeButton.text = getString(R.string.activate_panic)
-            binding.panicModeButton.backgroundTintList = 
-                ContextCompat.getColorStateList(this, android.R.color.holo_red_dark)
-        }
-    }
-    
     private fun requestServiceStatusUpdate() {
         try {
             val intent = Intent(this, AdHocCommunicationService::class.java)
@@ -795,12 +719,6 @@ class MainActivity : AppCompatActivity() {
     private fun showEmergencyModeHelp() {
         val intent = Intent(this, HelpActivity::class.java)
         intent.putExtra(HelpActivity.EXTRA_INITIAL_TAB, HelpActivity.TAB_EMERGENCY_MODE)
-        startActivity(intent)
-    }
-
-    private fun showPanicModeHelp() {
-        val intent = Intent(this, HelpActivity::class.java)
-        intent.putExtra(HelpActivity.EXTRA_INITIAL_TAB, HelpActivity.TAB_PANIC_MODE)
         startActivity(intent)
     }
 }

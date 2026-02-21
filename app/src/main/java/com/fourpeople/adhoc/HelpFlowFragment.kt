@@ -56,8 +56,6 @@ class HelpFlowFragment : Fragment() {
                 Pair(R.string.help_flow_idle_title, R.string.help_flow_idle_content)
             HelpActivity.TAB_EMERGENCY_MODE -> 
                 Pair(R.string.help_flow_emergency_title, R.string.help_flow_emergency_content)
-            HelpActivity.TAB_PANIC_MODE -> 
-                Pair(R.string.help_flow_panic_title, R.string.help_flow_panic_content)
             HelpActivity.TAB_NETWORK_CASCADE -> 
                 Pair(R.string.help_flow_cascade_title, R.string.help_flow_cascade_content)
             else -> throw IllegalArgumentException("Invalid flow type: $flowType")

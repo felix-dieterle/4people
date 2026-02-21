@@ -141,13 +141,6 @@
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
 
-        <!-- Panic mode service -->
-        <service
-            android:name=".service.PanicModeService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="connectedDevice" />
-
         <!-- Boot receiver for standby mode -->
         <receiver
             android:name=".receiver.BootReceiver"
@@ -191,18 +184,6 @@
                 android:resource="@xml/emergency_widget_info" />
         </receiver>
         
-        <!-- Panic widget -->
-        <receiver
-            android:name=".widget.PanicWidget"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.fourpeople.adhoc.PANIC_WIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/panic_widget_info" />
-        </receiver>
     </application>
 
 </manifest>

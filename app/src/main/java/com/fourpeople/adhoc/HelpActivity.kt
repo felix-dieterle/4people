@@ -17,8 +17,7 @@ class HelpActivity : AppCompatActivity() {
         const val EXTRA_INITIAL_TAB = "initial_tab"
         const val TAB_IDLE_STATE = 0
         const val TAB_EMERGENCY_MODE = 1
-        const val TAB_PANIC_MODE = 2
-        const val TAB_NETWORK_CASCADE = 3
+        const val TAB_NETWORK_CASCADE = 2
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,7 +46,6 @@ class HelpActivity : AppCompatActivity() {
             tab.text = when (position) {
                 TAB_IDLE_STATE -> getString(R.string.help_tab_idle_state)
                 TAB_EMERGENCY_MODE -> getString(R.string.help_tab_emergency_mode)
-                TAB_PANIC_MODE -> getString(R.string.help_tab_panic_mode)
                 TAB_NETWORK_CASCADE -> getString(R.string.help_tab_network_cascade)
                 else -> ""
             }
